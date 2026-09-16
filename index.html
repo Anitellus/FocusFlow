@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Focus Flow | Master Single-Task Tracker</title>
     
-    <!-- Fonts: Inter & Fira Code -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -47,7 +47,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-    <!-- External Modular Stylesheet -->
+    <!-- Modular Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex selection:bg-brand-100 selection:text-brand-900">
@@ -70,7 +70,7 @@
         </div>
         
         <div class="flex-1 overflow-y-auto p-3 space-y-1 font-sans-ui" id="project-list-container">
-            <!-- Dynamic Injection of 3-Level Hierarchical Projects -->
+            <!-- Dynamic 3-Tier Hierarchy Tree -->
         </div>
 
         <div class="p-4 border-t border-slate-200/60 bg-white/50 space-y-2 font-sans-ui">
@@ -81,11 +81,11 @@
                 <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud
             </button>
             <div class="flex gap-2">
-                <button onclick="exportDataJSON()" class="flex-1 py-2 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-600 text-[11px] font-semibold hover:text-brand-600 hover:border-brand-200 transition-all flex items-center justify-center gap-1">
+                <button onclick="exportDataJSON()" class="flex-1 py-2 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-600 text-[11px] font-semibold hover:text-brand-600 transition-all flex items-center justify-center gap-1">
                     <i data-lucide="download" class="w-3.5 h-3.5"></i> Backup
                 </button>
                 <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
-                <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-2 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-600 text-[11px] font-semibold hover:text-brand-600 hover:border-brand-200 transition-all flex items-center justify-center gap-1">
+                <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-2 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-600 text-[11px] font-semibold hover:text-brand-600 transition-all flex items-center justify-center gap-1">
                     <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore
                 </button>
             </div>
@@ -131,6 +131,9 @@
         <div class="flex-1 overflow-y-auto px-4 sm:px-8 pb-24 z-10 scroll-smooth">
             <div class="max-w-4xl mx-auto space-y-8 mt-6">
                 
+                <!-- Resumption Breadcrumb Launchpad Banner Mount Point -->
+                <div id="resumption-banner-mount"></div>
+
                 <!-- Main Focus Card & Stage -->
                 <section class="relative bg-white rounded-[2rem] shadow-float ring-1 ring-slate-900/5 p-6 sm:p-10 overflow-hidden flex flex-col items-center" id="active-task-stage">
                     <div class="relative z-10 w-full flex flex-col items-center">
@@ -150,6 +153,11 @@
                                 <button onclick="openZenView()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
                                     <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-indigo-400"></i>
                                     <span>Fullscreen Zen</span>
+                                </button>
+
+                                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5" title="Quick RAM Dump (Alt + S)">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                    <span>Scratchpad</span>
                                 </button>
 
                                 <button onclick="toggleBloomPopover()" class="p-2 bg-slate-100 hover:bg-slate-200 text-emerald-600 rounded-xl transition-colors" title="Breathing Bloom Intensity">
@@ -213,7 +221,7 @@
                             </div>
                         </div>
 
-                        <!-- Active Focus Stage Companion Mount -->
+                        <!-- Active Companion Mount -->
                         <div id="main-mascot-mount-wrapper" class="w-full flex justify-center items-center mb-6 hidden">
                             <div class="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 flex items-center justify-center gap-4">
                                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Companion Stage</span>
@@ -221,22 +229,64 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-center gap-8 md:gap-12 w-full mb-8">
-                            <button id="main-timer-btn" onclick="toggleTimer()" class="relative flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80 rounded-full border-[10px] transition-all duration-300 timer-red-container cursor-pointer outline-none overflow-hidden group">
-                                <div id="inner-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div>
-                                <div class="relative z-10 flex flex-col items-center">
-                                    <div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="timer-state-text">Paused</div>
-                                    <div class="text-5xl sm:text-6xl font-bold font-mono tracking-tighter" id="active-timer-display">00:00:00</div>
-                                    <div class="text-xs font-medium mt-3 opacity-80 flex items-center gap-1" id="active-timer-estimate">
-                                        <i data-lucide="target" class="w-3.5 h-3.5"></i> <span>No Target</span>
-                                    </div>
+                        <!-- Central Clock Stage with SVG Radial Time-Blindness Ring -->
+                        <div class="relative flex items-center justify-center gap-8 md:gap-12 w-full mb-8">
+                            <div class="relative flex items-center justify-center">
+                                <!-- SVG Radial Sweep Track & Overtime Halo -->
+                                <div class="absolute inset-0 pointer-events-none flex items-center justify-center -rotate-90">
+                                    <svg class="w-72 h-72 sm:w-80 sm:h-80" viewBox="0 0 320 320">
+                                        <circle cx="160" cy="160" r="148" stroke="#e2e8f0" stroke-width="8" fill="none" class="opacity-40" />
+                                        <circle id="radial-progress-arc" cx="160" cy="160" r="148" stroke="#10b981" stroke-width="9" stroke-linecap="round" fill="none" stroke-dasharray="930" stroke-dashoffset="930" class="transition-all duration-300 ease-out" />
+                                        <circle id="radial-overtime-halo" cx="160" cy="160" r="156" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none" stroke-dasharray="980" stroke-dashoffset="980" class="opacity-0 transition-all duration-700 ease-out" />
+                                    </svg>
                                 </div>
-                            </button>
+
+                                <button id="main-timer-btn" onclick="toggleTimer()" class="relative flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 timer-red-container cursor-pointer outline-none overflow-hidden group">
+                                    <div id="inner-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div>
+                                    <div class="relative z-10 flex flex-col items-center">
+                                        <div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="timer-state-text">Paused</div>
+                                        <div class="text-5xl sm:text-6xl font-bold font-mono tracking-tighter" id="active-timer-display">00:00:00</div>
+                                        <div class="text-xs font-medium mt-3 opacity-80 flex items-center gap-1" id="active-timer-estimate">
+                                            <i data-lucide="target" class="w-3.5 h-3.5"></i> <span>No Target</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
 
                             <button onclick="completeActiveTask()" id="btn-complete-task" class="w-20 h-20 rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-400 hover:shadow-lg transition-all shadow-md flex flex-col items-center justify-center gap-1 ring-4 ring-emerald-50 hover:-translate-y-1 group font-sans-ui shrink-0">
                                 <i data-lucide="check-circle" class="w-8 h-8 group-hover:scale-110 transition-transform"></i>
                                 <span class="text-[10px] uppercase tracking-wider">Done</span>
                             </button>
+                        </div>
+
+                        <!-- 1-Click Micro-Step Decomposer Section -->
+                        <div class="w-full bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 font-sans-ui mb-4 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2 text-xs font-bold text-indigo-900">
+                                    <i data-lucide="split" class="w-4 h-4 text-brand-600"></i>
+                                    <span>Micro-Step Decomposer (&le; 5-min actions)</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono" id="microstep-summary">0/0 done</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2 text-[10px] font-semibold text-slate-600">
+                                <button onclick="addPresetMicroStep('Open files & setup canvas', 2)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Open workspace (2m)
+                                </button>
+                                <button onclick="addPresetMicroStep('Jot down 3 raw bullets', 3)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> 3 Messy Bullets (3m)
+                                </button>
+                                <button onclick="addPresetMicroStep('Draft initial section outline', 5)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> First Rough Pass (5m)
+                                </button>
+                            </div>
+
+                            <div class="space-y-1.5" id="active-task-microsteps-list"></div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <input type="text" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step...">
+                                <button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button>
+                            </div>
                         </div>
 
                         <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
@@ -275,11 +325,8 @@
                     </div>
 
                     <div class="pt-1">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project Companions (Tier 1 Available Immediately • Unlocked per Project Time)</span>
-                        </div>
                         <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3" id="mascot-gallery-grid">
-                            <!-- Injected via Script -->
+                            <!-- Injected from js/mascots.js -->
                         </div>
                     </div>
                 </section>
@@ -293,11 +340,9 @@
                         <span class="text-xs font-semibold text-slate-500 bg-white px-3 py-1 rounded-full shadow-sm ring-1 ring-slate-200" id="task-progress-text">0/0 Completed</span>
                     </div>
 
-                    <div class="space-y-2.5" id="task-list-container">
-                        <!-- Items Injected via Script -->
-                    </div>
+                    <div class="space-y-2.5" id="task-list-container"></div>
 
-                    <div id="add-task-container" class="mt-4 bg-white p-2.5 rounded-2xl shadow-sm ring-1 ring-slate-200 flex flex-col sm:flex-row items-center gap-3 transition-shadow focus-within:ring-2 focus-within:ring-brand-400">
+                    <div id="add-task-container" class="mt-4 bg-white p-2.5 rounded-2xl shadow-sm ring-1 ring-slate-200 flex flex-col sm:flex-row items-center gap-3">
                         <div class="flex items-center gap-2 w-full sm:w-auto flex-1">
                             <div class="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 ml-1 shrink-0">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
@@ -313,7 +358,7 @@
                     </div>
                     <div id="parent-task-blocked-notice" class="mt-4 p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-semibold flex items-center gap-2 hidden">
                         <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-amber-600"></i>
-                        <span>This project contains sub-projects. Tasks can only be added to lowest-level sub-projects.</span>
+                        <span>This project contains sub-projects. Tasks can only exist at the lowest leaf project levels.</span>
                     </div>
                 </section>
 
@@ -321,11 +366,11 @@
         </div>
     </main>
 
-    <!-- ANALYTICS DASHBOARD -->
+    <!-- ANALYTICS DASHBOARD (20 ADHD Biofeedback Metrics) -->
     <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
         <header class="px-8 py-6 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm">
             <h1 class="text-2xl font-bold text-slate-800">Analytics & Retrospective</h1>
-            <p class="text-xs text-slate-500 mt-1">Evaluate focus efficiency, completed history, and estimate accuracy over time.</p>
+            <p class="text-xs text-slate-500 mt-1">Compassionate biofeedback, time perception audits, and sustainable momentum calibration.</p>
         </header>
 
         <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-8">
@@ -338,41 +383,92 @@
                     <button onclick="renderAnalytics(9999)" class="analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="9999">All Time</button>
                 </div>
 
-                <div class="border border-amber-200 bg-amber-50/70 rounded-2xl p-5 flex items-center shadow-sm gap-4">
-                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-2xl shadow-inner shrink-0">🔥</div>
-                    <div>
-                        <div class="font-extrabold text-sm text-amber-900">Current Consecutive Focus Streak: <span id="streak-counter-val" class="text-amber-600">0 Days</span></div>
-                        <div class="text-xs text-amber-700 mt-0.5">Counts consecutive days with focus action or task completion. Keep momentum going!</div>
+                <!-- Non-Punitive Rolling Momentum Battery -->
+                <div class="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-5 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg shadow-inner">⚡</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-emerald-950">Rolling Momentum Battery</h4>
+                                <p class="text-xs text-emerald-700">Forgiving consistency index based on 5 of 7 active days. Never resets to zero on missed days.</p>
+                            </div>
+                        </div>
+                        <span class="text-2xl font-mono font-extrabold text-emerald-700" id="stat-battery-pct">0%</span>
+                    </div>
+                    <div class="w-full h-3 bg-white rounded-full overflow-hidden border border-emerald-200">
+                        <div id="stat-battery-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Focused Time</h3>
-                            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i data-lucide="clock" class="w-5 h-5"></i></div>
-                        </div>
-                        <p class="text-3xl font-mono font-bold text-slate-800" id="stat-total-time">0m</p>
+                <!-- Primary KPI Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Focused Time</h4>
+                        <p class="text-2xl font-mono font-bold text-slate-800 mt-2" id="stat-total-time">0m</p>
                     </div>
-
-                    <div class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tasks Completed</h3>
-                            <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i data-lucide="check-square" class="w-5 h-5"></i></div>
-                        </div>
-                        <p class="text-3xl font-mono font-bold text-slate-800" id="stat-tasks-done">0</p>
+                    <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tasks Completed</h4>
+                        <p class="text-2xl font-mono font-bold text-slate-800 mt-2" id="stat-tasks-done">0</p>
                     </div>
-
-                    <div class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-200">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Estimation Accuracy</h3>
-                            <div class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i data-lucide="target" class="w-5 h-5"></i></div>
-                        </div>
-                        <p class="text-3xl font-mono font-bold text-slate-800" id="stat-accuracy">0%</p>
-                        <p class="text-[11px] text-slate-500 mt-2" id="stat-accuracy-sub">Actual vs Target Ratio</p>
+                    <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time Accuracy</h4>
+                        <p class="text-2xl font-mono font-bold text-slate-800 mt-2" id="stat-accuracy">0%</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Actual vs Target</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Complexity</h4>
+                        <p class="text-2xl font-mono font-bold text-slate-800 mt-2" id="stat-tci">0.0</p>
+                        <p class="text-[10px] text-slate-400 mt-1" id="stat-tci-sub">Deep work ratio</p>
                     </div>
                 </div>
 
+                <!-- Biofeedback Diagnostics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200 space-y-3">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Time-Blindness Recalibration
+                        </h4>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Underestimated Tasks (>25% over)</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-underestimated-count">0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Context Switching Density</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-switching-density">0/hr</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Zen Mode Shielding Ratio</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-zen-ratio">0%</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-500">Weekend vs. Weekday Focus Split</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-weekend-split">0% / 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200 space-y-3">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                            <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Circadian Chronotype Alignment
+                        </h4>
+                        <p class="text-xs text-slate-500">Natural focus peak: <strong class="text-slate-800" id="stat-circadian-peak">Detecting...</strong></p>
+                        <div class="grid grid-cols-12 gap-1 py-1" id="circadian-bars-grid"></div>
+                        <div class="flex justify-between text-[9px] text-slate-400 font-mono">
+                            <span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>11 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dormant Projects Monitor (Object Permanence Guardian) -->
+                <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200 space-y-3" id="dormant-projects-section">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                        <i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian (Untouched &ge; 14 Days)
+                    </h4>
+                    <div class="space-y-2" id="dormant-projects-list"></div>
+                </div>
+
+                <!-- 30-Day Heatmap Grid -->
                 <div class="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-200 space-y-3">
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
@@ -380,15 +476,14 @@
                         </h3>
                         <span class="text-[10px] bg-slate-100 font-mono px-2 py-0.5 rounded text-slate-500">Last 30 Days</span>
                     </div>
-                    <div class="grid grid-cols-10 gap-2 py-2" id="heatmap-grid">
-                        <!-- Dynamic Injection -->
-                    </div>
+                    <div class="grid grid-cols-10 gap-2 py-2" id="heatmap-grid"></div>
                 </div>
 
+                <!-- Retroactive Task Archive -->
                 <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
                         <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
-                        <h3 class="font-bold text-slate-800 text-sm">Completed Task History</h3>
+                        <h3 class="font-bold text-slate-800 text-sm">Completed Task Archive</h3>
                     </div>
                     <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto" id="analytics-log-container"></div>
                 </div>
@@ -422,6 +517,9 @@
             </span>
 
             <div class="flex items-center gap-3">
+                <button onclick="toggleScratchpadModal()" class="px-3.5 py-2 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1.5 shadow">
+                    <i data-lucide="edit-3" class="w-4 h-4 text-brand-400"></i> Scratchpad
+                </button>
                 <button onclick="toggleBackdropModal()" class="px-3.5 py-2 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1.5 shadow">
                     <i data-lucide="palette" class="w-4 h-4 text-indigo-400"></i> Backdrops
                 </button>
@@ -431,7 +529,6 @@
             </div>
         </div>
 
-        <!-- Perfectly Centered Timer Display -->
         <div class="flex-1 flex flex-col items-center justify-center z-20 space-y-8 w-full max-w-xl text-center my-auto px-4">
             <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-100 tracking-tight drop-shadow-lg" id="zen-active-task-title">Workspace Active</h2>
 
@@ -448,7 +545,6 @@
             <p class="text-xs text-slate-300/80 font-mono w-full truncate drop-shadow-md max-w-md mx-auto" id="zen-task-notes">No notes attached</p>
         </div>
 
-        <!-- Expanded Zen Controls Bottom Bar -->
         <div class="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-6xl bg-slate-900/90 backdrop-blur-md px-5 py-3 rounded-2xl border border-slate-800 z-20 flex items-center justify-between gap-3 font-sans-ui shadow-2xl overflow-x-auto flex-nowrap">
             <div class="flex items-center gap-3 shrink-0">
                 <div class="flex bg-slate-800 p-1 rounded-xl text-[11px] font-bold shrink-0">
@@ -474,34 +570,63 @@
                 
                 <div class="h-4 w-px bg-slate-700 mx-1 shrink-0"></div>
 
-                <button onclick="triggerEmote('heart')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-rose-500 rounded-lg transition-colors shrink-0" title="Heart"><i data-lucide="heart" class="w-4 h-4 fill-rose-500"></i></button>
-                <button onclick="triggerEmote('lightbulb')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-500 rounded-lg transition-colors shrink-0" title="Idea"><i data-lucide="lightbulb" class="w-4 h-4 fill-amber-400"></i></button>
-                <button onclick="triggerEmote('music')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-sky-500 rounded-lg transition-colors shrink-0" title="Music"><i data-lucide="music" class="w-4 h-4"></i></button>
-                <button onclick="triggerEmote('smile')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-500 rounded-lg transition-colors shrink-0" title="Smile"><i data-lucide="smile" class="w-4 h-4"></i></button>
-                <button onclick="triggerEmote('coffee')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-600 rounded-lg transition-colors shrink-0" title="Coffee"><i data-lucide="coffee" class="w-4 h-4"></i></button>
-                <button onclick="triggerEmote('flame')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-orange-500 rounded-lg transition-colors shrink-0" title="Streak Flame"><i data-lucide="flame" class="w-4 h-4 fill-orange-500"></i></button>
-                <button onclick="triggerEmote('trophy')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-yellow-500 rounded-lg transition-colors shrink-0" title="Trophy"><i data-lucide="trophy" class="w-4 h-4 fill-yellow-400"></i></button>
+                <button onclick="triggerEmote('heart')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-rose-500 rounded-lg transition-colors shrink-0"><i data-lucide="heart" class="w-4 h-4 fill-rose-500"></i></button>
+                <button onclick="triggerEmote('lightbulb')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-500 rounded-lg transition-colors shrink-0"><i data-lucide="lightbulb" class="w-4 h-4 fill-amber-400"></i></button>
+                <button onclick="triggerEmote('music')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-sky-500 rounded-lg transition-colors shrink-0"><i data-lucide="music" class="w-4 h-4"></i></button>
+                <button onclick="triggerEmote('smile')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-500 rounded-lg transition-colors shrink-0"><i data-lucide="smile" class="w-4 h-4"></i></button>
+                <button onclick="triggerEmote('coffee')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-amber-600 rounded-lg transition-colors shrink-0"><i data-lucide="coffee" class="w-4 h-4"></i></button>
+                <button onclick="triggerEmote('flame')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-orange-500 rounded-lg transition-colors shrink-0"><i data-lucide="flame" class="w-4 h-4 fill-orange-500"></i></button>
+                <button onclick="triggerEmote('trophy')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-yellow-500 rounded-lg transition-colors shrink-0"><i data-lucide="trophy" class="w-4 h-4 fill-yellow-400"></i></button>
             </div>
         </div>
 
     </div>
 
-    <!-- Modals -->
-    <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes, Links & Resources Canvas
-                </h3>
-                <button onclick="toggleProjectNotesModal()" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
+    <!-- Modals & Drawers -->
+    <!-- Distraction Scratchpad Drawer (Alt + S) -->
+    <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3>
+                        <p class="text-[11px] text-slate-400">Offload thoughts immediately without interrupting the clock.</p>
+                    </div>
+                </div>
+                <button onclick="toggleScratchpadModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            <div class="p-6 space-y-4">
-                <textarea id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-400 resize-none" placeholder="Paste comprehensive notes, URLs, or markdown documentation here..."></textarea>
+            <div class="flex gap-2">
+                <input type="text" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type quick thought and press Enter...">
+                <button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button>
             </div>
-            <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end">
-                <button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors">Save Changes</button>
+            <div class="max-h-56 overflow-y-auto divide-y divide-slate-100 space-y-1" id="scratchpad-items-list"></div>
+        </div>
+    </div>
+
+    <!-- "Park & Resume" Pause Dialog -->
+    <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-100">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-800">Anchor Your Momentum</h3>
+                    <p class="text-[11px] text-slate-400">Reduce reactivation fatigue when returning.</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Where did you stop?</label>
+                    <input type="text" id="park-stopped-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Reading section 3">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Immediate next 60s launchpad action?</label>
+                    <input type="text" id="park-next60s-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Write bullet points for schema">
+                </div>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="dismissParkModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Just Pause</button>
+                <button onclick="confirmParkAndPause()" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md">Anchor & Pause</button>
             </div>
         </div>
     </div>
@@ -519,79 +644,81 @@
             </div>
             <div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-5 leading-relaxed">
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Projects, Sub-projects & Hierarchy</h3>
-                    <p>Organize work into a strict 3-tier hierarchy: <strong>Main Project &rarr; Sub-Project &rarr; Component Project</strong>. Sub-projects and Component projects can be created via the sidebar. Tasks exist strictly at the lowest project level; if a project contains child projects, tasks cannot be added to it directly.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Strict 3-Tier Hierarchy (Main &rarr; Sub &rarr; Component)</h3>
+                    <p>Organize work into exactly three structural depths: <strong>Main Project</strong> (Tier 1), <strong>Sub-Project</strong> (Tier 2), and <strong>Component Project</strong> (Tier 3). Tasks exist strictly at the lowest leaf level of any branch; if a project contains children, tasks cannot be added directly to the container.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">2. Task Management & Required Targets</h3>
-                    <p>Add tasks with an upfront Target Requirement (in minutes). Click a task row to make it active on the central focus clock. Active focus times and targets display cleanly as elapsed vs. target minutes.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">2. Time-Blindness Sweep & The Amber Flow Zone</h3>
+                    <p>The central timer features an analog radial progress ring that fills gradually toward your target estimate. Exceeding your target activates the warm Amber Overtime Halo ("Flow Zone"), reframing extra duration as exploratory focus rather than punitive failure.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. Focus Companions (Mascots)</h3>
-                    <p>Tier 1 companions are unlocked immediately. Higher tiers unlock at the <strong>Project Level</strong> based on cumulative project focus time (aggregated across sub-projects). Assigned companions are displayed on the right edge of projects in the sidebar.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. Park & Resume Context Anchors</h3>
+                    <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a prominent launchpad banner sits above the timer with one-click resumption to eliminate reactivation paralysis.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">4. Movement Modes & Physics Animations</h3>
-                    <p>Companions feature 4 movement behaviors: <strong>Still</strong> (frozen top-left), <strong>Roam</strong> (range straight lines, 90-deg wall rebounds), <strong>Float</strong> (aimless continuous curves), and <strong>Sleep</strong> (freezes at current location with Z-particles). Perform 2D Front Flips, Back Flips, Squish, or Hop animations.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">4. 1-Click Micro-Step Decomposer</h3>
+                    <p>Break overwhelming tasks into atomic &le;5-minute chunks directly on the focus stage. Complete micro-steps to earn dopamine chimes and burst momentum.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">5. Analytics, Streak & Heatmap</h3>
-                    <p>Switch to Analytics to view stats across Today, 7 Days, 30 Days, or All Time. The Focus Streak tile tracks consecutive days of activity, and the 30-Day Heatmap accurately displays work logged per calendar date.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">5. Non-Punitive Rolling Momentum Battery</h3>
+                    <p>The Analytics dashboard tracks sustained effort using a 7-day rolling battery that fills up when completing 5 out of 7 active days. Missing a day gently drains energy rather than wiping all progress down to zero.</p>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Notes Modal -->
+    <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes & Resources
+                </h3>
+                <button onclick="toggleProjectNotesModal()" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-6">
+                <textarea id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea>
+            </div>
+            <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end">
+                <button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500">Save Changes</button>
             </div>
         </div>
     </div>
 
     <!-- Backdrop Designer Modal -->
     <div id="backdrop-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
-                    <i data-lucide="palette" class="w-4 h-4 text-brand-600"></i> Stage Environment Designer
-                </h3>
-                <button onclick="toggleBackdropModal()" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-sm text-slate-800">Stage Backdrop Designer</h3>
+                <button onclick="toggleBackdropModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            
-            <div class="p-6 space-y-4 bg-slate-50">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-white p-3 rounded-xl border border-slate-200">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Primary Base</label>
-                        <input type="color" id="picker-primary" value="#090d16" oninput="onCustomColorChange()" class="w-full h-8 rounded cursor-pointer border-0">
-                    </div>
-                    <div class="bg-white p-3 rounded-xl border border-slate-200">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Secondary Accent</label>
-                        <input type="color" id="picker-secondary" value="#1e1b4b" oninput="onCustomColorChange()" class="w-full h-8 rounded cursor-pointer border-0">
-                    </div>
-                    <div class="bg-white p-3 rounded-xl border border-slate-200">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Tertiary Glow</label>
-                        <input type="color" id="picker-tertiary" value="#4338ca" oninput="onCustomColorChange()" class="w-full h-8 rounded cursor-pointer border-0">
-                    </div>
-                </div>
-
-                <div class="bg-white p-3 rounded-xl border border-slate-200">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase block mb-1">Gradient Pattern Architecture</label>
-                    <select id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-700 outline-none">
-                        <option value="radial-center">Radial Center Glow</option>
-                        <option value="spotlight">Corner Spotlight Glow</option>
-                        <option value="linear-diag">Diagonal Split (45°)</option>
-                        <option value="linear-vert">Vertical Gradient</option>
-                        <option value="mesh">3-Color Mesh Atmosphere</option>
-                        <option value="solid">Solid Primary Color</option>
-                    </select>
-                </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">Primary</label><input type="color" id="picker-primary" value="#090d16" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">Secondary</label><input type="color" id="picker-secondary" value="#1e1b4b" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">Tertiary</label><input type="color" id="picker-tertiary" value="#4338ca" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 block mb-1">Gradient Architecture</label>
+                <select id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-700 outline-none">
+                    <option value="radial-center">Radial Center Glow</option>
+                    <option value="spotlight">Corner Spotlight Glow</option>
+                    <option value="linear-diag">Diagonal Split (45°)</option>
+                    <option value="linear-vert">Vertical Gradient</option>
+                    <option value="mesh">3-Color Mesh Atmosphere</option>
+                    <option value="solid">Solid Primary Color</option>
+                </select>
             </div>
         </div>
     </div>
 
-    <!-- Load Companion Dictionary from js/mascots.js -->
+    <!-- External Companion Dictionary -->
     <script src="js/mascots.js"></script>
 
-    <!-- CORE ENGINE SCRIPT -->
+    <!-- BACKEND ENGINE SCRIPT -->
     <script>
-        // --- 1. State Management & Cloud Sync ---
-        const STORAGE_KEY = 'focus_flow_master_v9';
+        // --- 1. Schema v10 & Throttled Sync Setup ---
+        const STORAGE_KEY_V9 = 'focus_flow_master_v9';
+        const STORAGE_KEY_V10 = 'focus_flow_master_v10';
 
         const firebaseConfig = {
             apiKey: "AIzaSyCzpHlAhANEmgZd3tMsfTnHGlbaK9L9sIM",
@@ -609,11 +736,12 @@
         const docRef = db.collection('focus_flow').doc('user_workspace');
 
         let appState = {
+            version: 10,
             activeProjectId: null,
             audioFamily: 'woodblock',
             audioVolume: 80,
             audioMuted: false,
-            bloomOpacity: 60, 
+            bloomOpacity: 60,
             pickerPrimary: '#090d16',
             pickerSecondary: '#1e1b4b',
             pickerTertiary: '#4338ca',
@@ -624,33 +752,61 @@
             jitterAudioBase: 300,
             jitterAudioWindow: 30,
             collapsedProjects: {},
+            scratchpad: [],
+            sessionLogs: [],
             projects: []
         };
 
         let isPlaying = false, timerInterval = null, tickCounter = 0, currentView = 'focus';
         let jitterAudioTimer = null, jitterMascotTimer = null;
+        let activeSessionStart = null;
+        let activeSessionMode = 'focus';
 
-        // Startup from local cache immediately
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) { 
-            try { 
-                appState = Object.assign(appState, JSON.parse(saved)); 
-            } catch(e) {} 
+        // Initialize and Lossless Migration
+        function initializeAndMigrateStorage() {
+            const rawV10 = localStorage.getItem(STORAGE_KEY_V10);
+            if (rawV10) {
+                try {
+                    return JSON.parse(rawV10);
+                } catch(e) {}
+            }
+            const rawV9 = localStorage.getItem(STORAGE_KEY_V9);
+            if (rawV9) {
+                try {
+                    const v9 = JSON.parse(rawV9);
+                    const nowISO = new Date().toISOString();
+                    const state = Object.assign(appState, v9);
+                    state.version = 10;
+                    state.scratchpad = Array.isArray(v9.scratchpad) ? v9.scratchpad : [];
+                    state.sessionLogs = Array.isArray(v9.sessionLogs) ? v9.sessionLogs : [];
+                    state.projects = (v9.projects || []).map(p => ({
+                        ...p,
+                        createdAt: p.createdAt || nowISO,
+                        completedAt: p.completedAt || null,
+                        tasks: (p.tasks || []).map(t => ({
+                            ...t,
+                            createdAt: t.createdAt || nowISO,
+                            microSteps: Array.isArray(t.microSteps) ? t.microSteps : [],
+                            lastParkedContext: t.lastParkedContext || null
+                        }))
+                    }));
+                    localStorage.setItem(STORAGE_KEY_V10, JSON.stringify(state));
+                    return state;
+                } catch(e) {}
+            }
+            return null;
         }
-        
-        if (!appState.projects || appState.projects.length === 0) { 
-            loadDefaultData(); 
+
+        const loaded = initializeAndMigrateStorage();
+        if (loaded) {
+            appState = loaded;
         } else {
-            appState.projects.forEach(p => {
-                if (p.parentId === undefined) p.parentId = null;
-                if (p.unlockAllMascotsTest === undefined) p.unlockAllMascotsTest = false;
-            });
+            loadDefaultData();
         }
 
         function loadDefaultData() {
             const initialId = 'proj-' + generateId();
             appState.activeProjectId = initialId;
-            appState.collapsedProjects = {};
             appState.projects = [{
                 id: initialId,
                 parentId: null,
@@ -661,16 +817,45 @@
                 totalTimeSpent: 0,
                 activeTaskId: 't-1',
                 activeMascotId: 'm-shiba',
-                unlockAllMascotsTest: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
                 tasks: [
-                    { id: 't-1', title: 'Verify custom matrix SVGs and animations', estimatedTime: 1800, actualTime: 0, isCompleted: false, deadline: '', notes: 'Check all complexity steps.', completionDate: null }
+                    { 
+                        id: 't-1', 
+                        title: 'Verify custom matrix SVGs and animations', 
+                        estimatedTime: 1800, 
+                        actualTime: 0, 
+                        isCompleted: false, 
+                        deadline: '', 
+                        notes: 'Check all complexity steps.', 
+                        completionDate: null,
+                        createdAt: new Date().toISOString(),
+                        microSteps: [
+                            { id: 'ms-1', title: 'Open SVG files', isCompleted: false },
+                            { id: 'ms-2', title: 'Check bounds clipping', isCompleted: false }
+                        ],
+                        lastParkedContext: null
+                    }
                 ]
             }];
             saveStateLocally();
         }
 
         function saveStateLocally() {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+            localStorage.setItem(STORAGE_KEY_V10, JSON.stringify(appState));
+        }
+
+        function syncHeaderInputsToState() {
+            const p = getActiveProject();
+            if (!p) return;
+            const tEl = document.getElementById('project-title-input');
+            const gEl = document.getElementById('project-goal-input');
+            const dEl = document.getElementById('project-deadline-input');
+            const nEl = document.getElementById('project-notes-summary-input');
+            if (tEl && tEl.value !== undefined) p.title = tEl.value;
+            if (gEl && gEl.value !== undefined) p.goal = gEl.value;
+            if (dEl && dEl.value !== undefined) p.deadline = dEl.value;
+            if (nEl && nEl.value !== undefined) p.notes = nEl.value;
         }
 
         function saveState() {
@@ -682,7 +867,7 @@
             syncHeaderInputsToState();
             saveStateLocally();
             const btn = document.getElementById('btn-manual-save');
-            if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Syncing...`;
+            if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Saving...`;
             safeCreateIcons();
 
             const cleanData = JSON.parse(JSON.stringify(appState));
@@ -699,14 +884,14 @@
             });
         }
 
-        // Automatic throttled cloud backup every 5 minutes
+        // Throttled background sync every 5 minutes
         setInterval(() => {
             syncHeaderInputsToState();
             const cleanData = JSON.parse(JSON.stringify(appState));
-            docRef.set(cleanData, { merge: true }).catch(err => console.warn("Background auto-sync note:", err));
+            docRef.set(cleanData, { merge: true }).catch(err => console.warn("Auto-sync info:", err));
         }, 5 * 60 * 1000);
 
-        // Firestore real-time listener (ignores local pending writes to avoid race conditions)
+        // Firestore real-time listener (ignores local pending writes)
         docRef.onSnapshot((doc) => {
             if (doc.metadata && doc.metadata.hasPendingWrites) return;
             if (doc.exists) {
@@ -719,7 +904,7 @@
             }
         });
 
-        // --- Helper & Query Functions ---
+        // --- 2. Helper & Hierarchy Traversal Functions ---
         function getActiveProject() { return appState.projects.find(p => p.id === appState.activeProjectId) || appState.projects[0]; }
         
         function getRootProject(proj) {
@@ -736,14 +921,10 @@
             const p = getActiveProject(); 
             return p ? p.tasks.find(t => t.id === p.activeTaskId) : null; 
         }
-        
+
         function generateId() { return Math.random().toString(36).substr(2, 9); }
+        function hasSubProjects(projectId) { return appState.projects.some(p => p.parentId === projectId); }
 
-        function hasSubProjects(projectId) {
-            return appState.projects.some(p => p.parentId === projectId);
-        }
-
-        // Strictly limits hierarchy: Level 0 (Root) -> Level 1 (Sub) -> Level 2 (Component)
         function getProjectDepth(projectId) {
             let depth = 0;
             let curr = appState.projects.find(p => p.id === projectId);
@@ -758,19 +939,8 @@
             const p = appState.projects.find(x => x.id === projectId);
             if (!p) return 0;
             let total = p.totalTimeSpent || 0;
-            const subProjects = appState.projects.filter(sp => sp.parentId === projectId);
-            subProjects.forEach(sp => {
-                total += getCumulativeTime(sp.id);
-            });
+            appState.projects.filter(sp => sp.parentId === projectId).forEach(sp => { total += getCumulativeTime(sp.id); });
             return total;
-        }
-        
-        function getLocalFormattedDate(d) {
-            const target = d || new Date();
-            const year = target.getFullYear();
-            const month = String(target.getMonth() + 1).padStart(2, '0');
-            const day = String(target.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
         }
 
         function formatTimeCompact(totalSeconds) {
@@ -784,7 +954,7 @@
             const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60);
             return h > 0 ? `${h}h ${m}m` : `${m}m`;
         }
-        
+
         function formatTimeFull(totalSeconds) {
             if(!totalSeconds || totalSeconds === 0) return '0m';
             const d = Math.floor(totalSeconds / 86400);
@@ -797,31 +967,28 @@
             return parts.join(' ');
         }
 
-        // Live input safety sync: prevents uncommitted deadline or notes from getting wiped
-        function syncHeaderInputsToState() {
-            const p = getActiveProject();
-            if (!p) return;
-            const titleEl = document.getElementById('project-title-input');
-            const goalEl = document.getElementById('project-goal-input');
-            const deadEl = document.getElementById('project-deadline-input');
-            const notesEl = document.getElementById('project-notes-summary-input');
-            if (titleEl && titleEl.value !== undefined) p.title = titleEl.value;
-            if (goalEl && goalEl.value !== undefined) p.goal = goalEl.value;
-            if (deadEl && deadEl.value !== undefined) p.deadline = deadEl.value;
-            if (notesEl && notesEl.value !== undefined) p.notes = notesEl.value;
+        function getLocalFormattedDate(d) {
+            const target = d || new Date();
+            const year = target.getFullYear();
+            const month = String(target.getMonth() + 1).padStart(2, '0');
+            const day = String(target.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
+        function safeCreateIcons() { try { lucide.createIcons(); } catch(e) {} }
+
+        // --- 3. 3-Tier Hierarchy Management ---
         function createNewProject(parentId = null) {
             syncHeaderInputsToState();
             if (parentId) {
-                const parent = appState.projects.find(p => p.id === parentId);
                 const depth = getProjectDepth(parentId);
                 if (depth >= 2) {
-                    alert("Maximum 3-level depth reached (Main Project -> Sub-Project -> Component Project). Cannot create further nested levels.");
+                    alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
                     return;
                 }
+                const parent = appState.projects.find(p => p.id === parentId);
                 if (parent && parent.tasks && parent.tasks.length > 0) {
-                    alert("All tasks in this project level must be removed before creating a child project. Tasks can only exist at the lowest level.");
+                    alert("All tasks in this container must be removed before creating a sub-project. Tasks can only exist at the lowest level.");
                     return;
                 }
             }
@@ -841,6 +1008,8 @@
                 activeTaskId: null,
                 activeMascotId: null,
                 unlockAllMascotsTest: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
                 tasks: []
             });
             appState.activeProjectId = id;
@@ -868,7 +1037,6 @@
                     appState.projects.filter(p => p.parentId === id).forEach(sp => collectIds(sp.id));
                 }
                 collectIds(projectId);
-
                 appState.projects = appState.projects.filter(p => !toDelete.has(p.id));
 
                 if (appState.projects.length === 0) {
@@ -882,7 +1050,7 @@
             }
         }
 
-        // --- 2. Web Audio Synthesis Engine ---
+        // --- 4. Web Audio Synthesis Engine ---
         let audioCtx = null;
         function getAudioContext() { 
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
@@ -909,7 +1077,7 @@
                         osc.type = 'triangle'; osc.frequency.setValueAtTime(750, now);
                         g.gain.setValueAtTime(0.35 * vol, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                         osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now + 0.09);
-                    } else { // Zen
+                    } else {
                         const osc = ctx.createOscillator(), g = ctx.createGain();
                         osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now);
                         g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.3 * vol, now + 0.04);
@@ -931,7 +1099,7 @@
                             g.gain.setValueAtTime(0.3 * vol, now + i*0.18); g.gain.exponentialRampToValueAtTime(0.001, now + i*0.18 + 0.4);
                             osc.connect(g); g.connect(ctx.destination); osc.start(now + i*0.18); osc.stop(now + i*0.18 + 0.41);
                         });
-                    } else { // Zen
+                    } else {
                         [440.00, 554.37, 659.25, 880.00].forEach((f, i) => {
                             const osc = ctx.createOscillator(), g = ctx.createGain();
                             osc.type = 'sine'; osc.frequency.setValueAtTime(f, now + i*0.25);
@@ -948,134 +1116,40 @@
             appState.audioMuted = !appState.audioMuted;
             const btn = document.getElementById('btn-mute-toggle');
             const icon = document.getElementById('audio-icon-display');
-            if(btn) {
+            if (btn) {
                 btn.classList.toggle('bg-rose-100', appState.audioMuted);
                 btn.textContent = appState.audioMuted ? "Unmute" : "Mute";
             }
-            if(icon) icon.setAttribute('data-lucide', appState.audioMuted ? "volume-x" : "volume-2");
+            if (icon) icon.setAttribute('data-lucide', appState.audioMuted ? "volume-x" : "volume-2");
             safeCreateIcons();
             saveStateLocally();
         }
 
-        function updateVolume(val) { 
-            appState.audioVolume = parseInt(val); 
-            document.getElementById('volume-label').textContent = val + '%'; 
-            saveStateLocally(); 
+        function updateVolume(val) {
+            appState.audioVolume = parseInt(val);
+            document.getElementById('volume-label').textContent = val + '%';
+            saveStateLocally();
         }
 
-        function changeAudioFamily(val) { 
-            appState.audioFamily = val; 
+        function changeAudioFamily(val) {
+            appState.audioFamily = val;
             playSound('start');
-            saveStateLocally(); 
+            saveStateLocally();
         }
 
         function updateBloomOpacity(val) {
             const intVal = parseInt(val);
             appState.bloomOpacity = intVal;
-            const decimalVal = (intVal / 100);
-            document.documentElement.style.setProperty('--bloom-opacity', decimalVal.toString());
+            document.documentElement.style.setProperty('--bloom-opacity', (intVal / 100).toString());
             document.getElementById('bloom-val-label').textContent = intVal + '%';
             saveStateLocally();
-        }
-
-        function exportDataJSON() {
-            syncHeaderInputsToState();
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appState));
-            const anchor = document.createElement('a');
-            anchor.href = dataStr;
-            anchor.download = "focus_flow_backup.json";
-            anchor.click();
-        }
-
-        function importDataJSON(event) {
-            const file = event.target.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    if (imported && Array.isArray(imported.projects)) {
-                        appState = imported; 
-                        saveStateLocally(); 
-                        initSettings(); 
-                        renderApp();
-                        document.getElementById('import-file-input').value = "";
-                        alert("Workspace data restored successfully!");
-                    } else { alert("Invalid backup configuration format."); }
-                } catch (err) { alert("Error parsing import file."); }
-            };
-            reader.readAsText(file);
-        }
-
-        function initSettings() {
-            if(document.getElementById('volume-slider')) document.getElementById('volume-slider').value = appState.audioVolume || 80;
-            if(document.getElementById('volume-label')) document.getElementById('volume-label').textContent = (appState.audioVolume || 80) + '%';
-            if(document.getElementById('audio-family-select')) document.getElementById('audio-family-select').value = appState.audioFamily || 'woodblock';
-            if(document.getElementById('bloom-slider')) document.getElementById('bloom-slider').value = appState.bloomOpacity || 60;
-            if(document.getElementById('jitter-audio-base')) document.getElementById('jitter-audio-base').value = appState.jitterAudioBase || 300;
-            if(document.getElementById('jitter-audio-window')) document.getElementById('jitter-audio-window').value = appState.jitterAudioWindow || 30;
-            updateBloomOpacity(appState.bloomOpacity || 60);
-            if(appState.audioMuted) {
-                const btn = document.getElementById('btn-mute-toggle');
-                if (btn) { btn.classList.add('bg-rose-100'); btn.textContent = "Unmute"; }
-                const icon = document.getElementById('audio-icon-display');
-                if (icon) icon.setAttribute('data-lucide', "volume-x");
-            }
-        }
-
-        function safeCreateIcons() {
-            try { lucide.createIcons(); } catch(e) {}
-        }
-
-        // --- 3. Operational Clock Engine ---
-        function toggleTimer() {
-            const task = getActiveTask(); if (!task || task.isCompleted) return;
-            isPlaying = !isPlaying; 
-            renderTimerVisuals();
-            if (isPlaying) { 
-                playSound('start'); 
-                timerInterval = setInterval(timerTick, 1000); 
-                scheduleNextAudioJitter();
-            } else { 
-                clearInterval(timerInterval); 
-                if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
-                saveStateLocally(); 
-            }
-        }
-
-        function timerTick() {
-            const p = getActiveProject(), t = getActiveTask();
-            if (!t || t.isCompleted) { if (isPlaying) toggleTimer(); return; }
-            t.actualTime += 1; 
-            p.totalTimeSpent += 1; 
-            tickCounter++;
-            if (tickCounter >= 5) { 
-                saveStateLocally(); // Local update only: no Firestore spam
-                tickCounter = 0; 
-            }
-            updateTimerTexts(p, t);
-        }
-
-        function completeActiveTask() {
-            const t = getActiveTask(), p = getActiveProject(); if (!t || t.isCompleted) return;
-            if (isPlaying) toggleTimer(); 
-            t.isCompleted = true; 
-            t.completionDate = new Date().toISOString(); 
-            playSound('complete'); 
-            confetti({ particleCount: 80, spread: 60 }); 
-            saveStateLocally();
-            setTimeout(() => { 
-                p.activeTaskId = (p.tasks.find(x => !x.isCompleted) || {}).id || null; 
-                saveStateLocally(); 
-                renderApp(); 
-            }, 1000);
-            renderApp();
         }
 
         function updateJitterAudioSettings() {
             appState.jitterAudioBase = parseInt(document.getElementById('jitter-audio-base').value);
             appState.jitterAudioWindow = parseInt(document.getElementById('jitter-audio-window').value);
             saveStateLocally();
-            if(isPlaying) scheduleNextAudioJitter();
+            if (isPlaying) scheduleNextAudioJitter();
         }
 
         function scheduleNextAudioJitter() {
@@ -1085,9 +1159,8 @@
             const windowSec = appState.jitterAudioWindow || 30;
             const offset = Math.floor(Math.random() * (windowSec * 2 + 1)) - windowSec;
             const intervalMs = Math.max(10, (base + offset)) * 1000;
-            
             jitterAudioTimer = setTimeout(() => {
-                if(isPlaying) {
+                if (isPlaying) {
                     playSound('start');
                     scheduleNextAudioJitter();
                 }
@@ -1109,8 +1182,7 @@
 
             jitterMascotTimer = setTimeout(() => {
                 if (rootProj && rootProj.activeMascotId && (appState.mascotBehavior === 'roam' || appState.mascotBehavior === 'float')) {
-                    const isEmote = Math.random() > 0.5;
-                    if (isEmote) {
+                    if (Math.random() > 0.5) {
                         const emotes = ['heart', 'lightbulb', 'music', 'smile', 'coffee', 'flame', 'trophy'];
                         triggerEmote(emotes[Math.floor(Math.random() * emotes.length)]);
                     } else {
@@ -1122,7 +1194,374 @@
             }, intervalMs);
         }
 
-        // --- 4. Companion Interaction & Physics ---
+        // --- 5. Operational Clock & Time-Blindness Sweep ---
+        function toggleTimer() {
+            const task = getActiveTask(); 
+            if (!task || task.isCompleted) return;
+
+            if (isPlaying) {
+                // Intercept pause with "Park & Resume" context anchor
+                openParkModal();
+                return;
+            }
+
+            // Start timer
+            isPlaying = true;
+            activeSessionStart = new Date();
+            if (!task.startedAt) task.startedAt = new Date().toISOString();
+            renderTimerVisuals();
+            playSound('start');
+            timerInterval = setInterval(timerTick, 1000);
+            scheduleNextAudioJitter();
+        }
+
+        function timerTick() {
+            const p = getActiveProject(), t = getActiveTask();
+            if (!t || t.isCompleted) { if (isPlaying) forcePause(); return; }
+            t.actualTime += 1;
+            p.totalTimeSpent += 1;
+            tickCounter++;
+            if (tickCounter >= 5) {
+                saveStateLocally(); // Local save only: strictly no Firestore write loops
+                tickCounter = 0;
+            }
+            updateTimerTexts(p, t);
+        }
+
+        function forcePause() {
+            if (!isPlaying) return;
+            isPlaying = false;
+            clearInterval(timerInterval);
+            if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
+
+            // Log session telemetry
+            if (activeSessionStart) {
+                const duration = Math.round((Date.now() - activeSessionStart.getTime()) / 1000);
+                logSessionTelemetry(getActiveTask()?.id, getActiveProject()?.id, duration, false);
+                activeSessionStart = null;
+            }
+
+            renderTimerVisuals();
+            saveStateLocally();
+        }
+
+        function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
+            if (!durationSec || durationSec < 4) return;
+            appState.sessionLogs = appState.sessionLogs || [];
+            appState.sessionLogs.push({
+                id: 'sess-' + generateId(),
+                taskId: taskId,
+                projectId: projectId,
+                startedAt: new Date(Date.now() - durationSec * 1000).toISOString(),
+                endedAt: new Date().toISOString(),
+                durationSeconds: durationSec,
+                mode: activeSessionMode || 'focus',
+                completedTask: completed
+            });
+            saveStateLocally();
+        }
+
+        function completeActiveTask() {
+            const t = getActiveTask(), p = getActiveProject();
+            if (!t || t.isCompleted) return;
+            if (isPlaying) forcePause();
+            t.isCompleted = true;
+            t.completionDate = new Date().toISOString();
+            playSound('complete');
+            confetti({ particleCount: 80, spread: 60 });
+            logSessionTelemetry(t.id, p.id, t.actualTime, true);
+            saveStateLocally();
+            setTimeout(() => {
+                p.activeTaskId = (p.tasks.find(x => !x.isCompleted) || {}).id || null;
+                saveStateLocally();
+                renderApp();
+            }, 1000);
+            renderApp();
+        }
+
+        // Updates analog radial ring & overtime flow zone
+        function updateTimerTexts(p, task) {
+            document.getElementById('active-timer-display').textContent = formatTimeCompact(task.actualTime);
+            document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
+            document.getElementById('active-timer-estimate').textContent = task.estimatedTime > 0 ? `Target: ${Math.round(task.estimatedTime/60)}m` : 'Open ended';
+
+            const zenDisplay = document.getElementById('zen-timer-display'); 
+            if (zenDisplay) zenDisplay.textContent = formatTimeCompact(task.actualTime);
+
+            // Radial sweep calculation: circumference = 2 * PI * 148 ≈ 930
+            const c = 930;
+            const target = task.estimatedTime > 0 ? task.estimatedTime : 1800;
+            const arc = document.getElementById('radial-progress-arc');
+            const halo = document.getElementById('radial-overtime-halo');
+            const stateText = document.getElementById('timer-state-text');
+            const timerBtn = document.getElementById('main-timer-btn');
+            const zenBtn = document.getElementById('zen-timer-btn');
+
+            if (arc) {
+                const progress = Math.min(task.actualTime / target, 1.0);
+                arc.style.strokeDashoffset = (c * (1 - progress)).toString();
+
+                if (task.actualTime <= target) {
+                    arc.style.stroke = isPlaying ? '#10b981' : '#f43f5e';
+                    if (halo) halo.classList.add('opacity-0');
+                    if (stateText) stateText.textContent = isPlaying ? 'Active' : 'Paused';
+                    if (timerBtn) {
+                        timerBtn.classList.remove('timer-amber-container');
+                        timerBtn.classList.toggle('timer-green-container', isPlaying);
+                        timerBtn.classList.toggle('timer-red-container', !isPlaying);
+                    }
+                    if (zenBtn) {
+                        zenBtn.classList.remove('timer-amber-container');
+                        zenBtn.classList.toggle('timer-green-container', isPlaying);
+                        zenBtn.classList.toggle('timer-red-container', !isPlaying);
+                    }
+                } else {
+                    // Gentle Amber Overtime Halo (Flow Zone)
+                    const overtime = task.actualTime - target;
+                    arc.style.stroke = '#f59e0b';
+                    if (halo) {
+                        const haloC = 980;
+                        const otProgress = Math.min(overtime / target, 1.0);
+                        halo.style.strokeDashoffset = (haloC * (1 - otProgress)).toString();
+                        halo.classList.remove('opacity-0');
+                        halo.classList.add('overtime-pulse');
+                    }
+                    if (stateText) {
+                        stateText.textContent = `Flow Zone (+${formatTimeCompact(overtime)})`;
+                    }
+                    if (timerBtn) {
+                        timerBtn.classList.remove('timer-green-container', 'timer-red-container');
+                        timerBtn.classList.add('timer-amber-container');
+                    }
+                    if (zenBtn) {
+                        zenBtn.classList.remove('timer-green-container', 'timer-red-container');
+                        zenBtn.classList.add('timer-amber-container');
+                    }
+                }
+            }
+        }
+
+        // --- 6. Park & Resume Anchor Handlers ---
+        function openParkModal() {
+            const modal = document.getElementById('park-resume-modal');
+            if (!modal) { forcePause(); return; }
+            document.getElementById('park-stopped-input').value = '';
+            document.getElementById('park-next60s-input').value = '';
+            modal.classList.remove('hidden');
+            document.getElementById('park-stopped-input').focus();
+        }
+
+        function dismissParkModal() {
+            document.getElementById('park-resume-modal').classList.add('hidden');
+            forcePause();
+        }
+
+        function confirmParkAndPause() {
+            const task = getActiveTask();
+            if (task) {
+                const stopped = document.getElementById('park-stopped-input').value.trim();
+                const next60s = document.getElementById('park-next60s-input').value.trim();
+                task.lastParkedContext = {
+                    whereStopped: stopped || 'Mid-flow work',
+                    next60sAction: next60s || 'Resume central focus',
+                    parkedAt: new Date().toISOString()
+                };
+                task.pausedAt = new Date().toISOString();
+            }
+            document.getElementById('park-resume-modal').classList.add('hidden');
+            forcePause();
+            renderApp();
+        }
+
+        function executeLaunchpadResume() {
+            const task = getActiveTask();
+            if (task) {
+                task.lastParkedContext = null;
+                saveStateLocally();
+            }
+            renderApp();
+            if (!isPlaying) toggleTimer();
+        }
+
+        function dismissLaunchpad() {
+            const task = getActiveTask();
+            if (task) {
+                task.lastParkedContext = null;
+                saveStateLocally();
+            }
+            renderApp();
+        }
+
+        // --- 7. Micro-Step Decomposer Handlers ---
+        function renderMicroSteps(task) {
+            const list = document.getElementById('active-task-microsteps-list');
+            const summary = document.getElementById('microstep-summary');
+            if (!list || !summary) return;
+            if (!task) {
+                list.innerHTML = `<p class="text-[11px] text-slate-400 italic">Select a task to decompose.</p>`;
+                summary.textContent = '0/0 done';
+                return;
+            }
+            task.microSteps = task.microSteps || [];
+            const completed = task.microSteps.filter(s => s.isCompleted).length;
+            summary.textContent = `${completed}/${task.microSteps.length} done`;
+
+            list.innerHTML = task.microSteps.map((s, idx) => `
+                <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 text-xs">
+                    <label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                        <input type="checkbox" ${s.isCompleted ? 'checked' : ''} onchange="toggleMicroStep('${s.id}')" class="rounded text-brand-600 focus:ring-0">
+                        <span class="${s.isCompleted ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} truncate">${s.title}</span>
+                    </label>
+                    <button onclick="deleteMicroStep('${s.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                </div>
+            `).join('');
+            safeCreateIcons();
+        }
+
+        function addPresetMicroStep(title, mins) {
+            const task = getActiveTask();
+            if (!task) return;
+            task.microSteps = task.microSteps || [];
+            task.microSteps.push({ id: 'ms-' + generateId(), title: `${title} (${mins}m)`, isCompleted: false });
+            saveStateLocally();
+            renderMicroSteps(task);
+        }
+
+        function addCustomMicroStep() {
+            const input = document.getElementById('custom-microstep-input');
+            const val = input.value.trim();
+            const task = getActiveTask();
+            if (!val || !task) return;
+            task.microSteps = task.microSteps || [];
+            task.microSteps.push({ id: 'ms-' + generateId(), title: val, isCompleted: false });
+            input.value = '';
+            saveStateLocally();
+            renderMicroSteps(task);
+        }
+
+        function toggleMicroStep(stepId) {
+            const task = getActiveTask();
+            if (!task) return;
+            const s = (task.microSteps || []).find(x => x.id === stepId);
+            if (s) {
+                s.isCompleted = !s.isCompleted;
+                if (s.isCompleted) {
+                    playSound('complete');
+                    confetti({ particleCount: 40, spread: 45 });
+                }
+                saveStateLocally();
+                renderMicroSteps(task);
+            }
+        }
+
+        function deleteMicroStep(stepId) {
+            const task = getActiveTask();
+            if (!task) return;
+            task.microSteps = (task.microSteps || []).filter(x => x.id !== stepId);
+            saveStateLocally();
+            renderMicroSteps(task);
+        }
+
+        // --- 8. Distraction Scratchpad Drawer (Alt + S) ---
+        function toggleScratchpadModal() {
+            const modal = document.getElementById('scratchpad-modal');
+            modal.classList.toggle('hidden');
+            if (!modal.classList.contains('hidden')) {
+                renderScratchpadList();
+                document.getElementById('scratchpad-input').focus();
+            }
+        }
+
+        function submitScratchpadItem() {
+            const input = document.getElementById('scratchpad-input');
+            const text = input.value.trim();
+            if (!text) return;
+            appState.scratchpad = appState.scratchpad || [];
+            appState.scratchpad.unshift({
+                id: 'sp-' + generateId(),
+                text: text,
+                createdAt: new Date().toISOString(),
+                relatedTaskId: getActiveTask()?.id || null
+            });
+            input.value = '';
+            saveStateLocally();
+            renderScratchpadList();
+        }
+
+        function renderScratchpadList() {
+            const container = document.getElementById('scratchpad-items-list');
+            if (!container) return;
+            const items = appState.scratchpad || [];
+            if (items.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center italic">No thoughts captured yet.</p>`;
+                return;
+            }
+            container.innerHTML = items.map(item => `
+                <div class="flex items-center justify-between py-2 text-xs">
+                    <span class="text-slate-700 flex-1 truncate pr-2">${item.text}</span>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="convertScratchpadToTask('${item.id}')" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded text-[10px] font-bold">To Task</button>
+                        <button onclick="deleteScratchpadItem('${item.id}')" class="text-slate-400 hover:text-rose-500 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                </div>
+            `).join('');
+            safeCreateIcons();
+        }
+
+        function convertScratchpadToTask(itemId) {
+            const item = (appState.scratchpad || []).find(x => x.id === itemId);
+            const p = getActiveProject();
+            if (!item || !p) return;
+            if (hasSubProjects(p.id)) { alert("Select a leaf sub-project first."); return; }
+            p.tasks.push({
+                id: 't-' + generateId(),
+                title: item.text,
+                estimatedTime: 15 * 60,
+                actualTime: 0,
+                isCompleted: false,
+                deadline: '',
+                notes: 'Created from scratchpad',
+                createdAt: new Date().toISOString(),
+                microSteps: [],
+                lastParkedContext: null
+            });
+            deleteScratchpadItem(itemId);
+            renderApp();
+        }
+
+        function deleteScratchpadItem(itemId) {
+            appState.scratchpad = (appState.scratchpad || []).filter(x => x.id !== itemId);
+            saveStateLocally();
+            renderScratchpadList();
+        }
+
+        // Global hotkey listener (Alt + S)
+        window.addEventListener('keydown', (e) => {
+            if (e.altKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault();
+                toggleScratchpadModal();
+            }
+        });
+
+        // --- 9. Zen Mode & Animations ---
+        function openZenView() {
+            activeSessionMode = 'zen';
+            const task = getActiveTask();
+            const p = getActiveProject();
+            document.getElementById('zen-active-task-title').textContent = task ? `${task.title} (${p.title})` : p.title;
+            document.getElementById('zen-task-notes').textContent = task && task.notes ? task.notes : (p.notes || 'No notes attached.');
+            document.getElementById('zen-overlay').classList.remove('hidden');
+            applyStageStyle(appState.pickerPrimary, appState.pickerSecondary, appState.pickerTertiary, appState.selectPattern);
+            renderMascotStage();
+            renderTimerVisuals();
+            safeCreateIcons();
+        }
+
+        function closeZenView() {
+            activeSessionMode = 'focus';
+            document.getElementById('zen-overlay').classList.add('hidden');
+        }
+
         function setMascotBehavior(mode) {
             appState.mascotBehavior = mode;
             const roam = document.getElementById('mascot-roam-wrapper');
@@ -1130,52 +1569,44 @@
 
             ['still', 'roam', 'float', 'sleep'].forEach(m => {
                 const btn = document.getElementById(`btn-beh-${m}`);
-                if(btn) btn.className = m === mode ? "px-2.5 py-1 rounded bg-indigo-600 text-white shadow" : "px-2.5 py-1 rounded text-slate-400";
+                if (btn) btn.className = m === mode ? "px-2.5 py-1 rounded bg-indigo-600 text-white shadow" : "px-2.5 py-1 rounded text-slate-400";
             });
 
-            if(roam) {
+            if (roam) {
                 roam.classList.remove('mascot-roam', 'mascot-float');
                 if (mode === 'still') {
-                    roam.style.top = '2rem';
-                    roam.style.left = '2rem';
-                    roam.style.transform = 'none';
+                    roam.style.top = '2rem'; roam.style.left = '2rem'; roam.style.transform = 'none';
                 } else if (mode === 'roam') {
-                    roam.style.top = '50%';
-                    roam.style.left = '2.5rem';
-                    roam.classList.add('mascot-roam');
+                    roam.style.top = '50%'; roam.style.left = '2.5rem'; roam.classList.add('mascot-roam');
                 } else if (mode === 'float') {
-                    roam.style.top = '30%';
-                    roam.style.left = '5rem';
-                    roam.classList.add('mascot-float');
+                    roam.style.top = '30%'; roam.style.left = '5rem'; roam.classList.add('mascot-float');
                 }
             }
 
-            if(zParticle) zParticle.classList.add('hidden'); 
+            if (zParticle) zParticle.classList.add('hidden');
             toggleSleepingEyes(false);
-
-            if (mode === 'sleep') { 
-                if(zParticle) zParticle.classList.remove('hidden'); 
-                toggleSleepingEyes(true); 
+            if (mode === 'sleep') {
+                if (zParticle) zParticle.classList.remove('hidden');
+                toggleSleepingEyes(true);
             }
-
             scheduleNextMascotJitter();
             saveStateLocally();
         }
 
         function setMascotScale(scale) {
             appState.mascotScale = scale;
-            const scaleWrapper = document.getElementById('mascot-scale-wrapper');
-            if(scaleWrapper) scaleWrapper.style.transform = `scale(${scale})`;
-            const selectElem = document.getElementById('mascot-scale-select');
-            if(selectElem) selectElem.value = scale.toFixed(1);
+            const wrap = document.getElementById('mascot-scale-wrapper');
+            if (wrap) wrap.style.transform = `scale(${scale})`;
+            const sel = document.getElementById('mascot-scale-select');
+            if (sel) sel.value = scale.toFixed(1);
             saveStateLocally();
         }
 
         function triggerMascotAnim(type) {
             const anim = document.getElementById('mascot-anim-wrapper');
-            if(!anim) return;
-            anim.classList.remove('anim-squish', 'anim-hop', 'anim-frontflip', 'anim-backflip'); 
-            void anim.offsetWidth; 
+            if (!anim) return;
+            anim.classList.remove('anim-squish', 'anim-hop', 'anim-frontflip', 'anim-backflip');
+            void anim.offsetWidth;
             anim.classList.add(`anim-${type}`);
             playSound('start');
         }
@@ -1196,167 +1627,228 @@
             container.className = `emote-icon ${style.color}`;
             container.innerHTML = `<i data-lucide="${iconName}" class="w-7 h-7 ${style.fill}"></i>`;
             safeCreateIcons();
-            container.classList.remove('anim-emote'); 
-            void container.offsetWidth; 
+            container.classList.remove('anim-emote');
+            void container.offsetWidth;
             container.classList.add('anim-emote');
         }
 
         function toggleSleepingEyes(isSleeping) {
-            document.querySelectorAll('.rig-eye').forEach(e => { 
-                e.style.transform = isSleeping ? 'scaleY(0.1)' : 'scaleY(1.0)'; 
+            document.querySelectorAll('.rig-eye').forEach(e => {
+                e.style.transform = isSleeping ? 'scaleY(0.1)' : 'scaleY(1.0)';
             });
         }
 
-        function unlockAllMascotsTest() { 
-            const p = getActiveProject();
-            const rootProj = getRootProject(p);
-            rootProj.unlockAllMascotsTest = true; 
-            saveStateLocally(); 
-            renderMascotStage(); 
-        }
-        
-        function toggleHideUnlockBtn() { 
-            appState.hideUnlockBtn = !appState.hideUnlockBtn; 
-            saveStateLocally(); 
-            renderMascotStage(); 
+        function unlockAllMascotsTest() {
+            getRootProject(getActiveProject()).unlockAllMascotsTest = true;
+            saveStateLocally();
+            renderMascotStage();
         }
 
-        function removeCompanion() { 
+        function toggleHideUnlockBtn() {
+            appState.hideUnlockBtn = !appState.hideUnlockBtn;
+            saveStateLocally();
+            renderMascotStage();
+        }
+
+        function removeCompanion() {
             syncHeaderInputsToState();
-            const p = getActiveProject();
-            const rootProj = getRootProject(p);
-            rootProj.activeMascotId = null; 
-            saveStateLocally(); 
-            renderApp(); 
+            getRootProject(getActiveProject()).activeMascotId = null;
+            saveStateLocally();
+            renderApp();
         }
 
-        function selectMascotCompanion(id) { 
+        function selectMascotCompanion(id) {
             syncHeaderInputsToState();
-            const p = getActiveProject();
-            const rootProj = getRootProject(p);
-            rootProj.activeMascotId = id; 
-            saveStateLocally(); 
-            renderApp(); 
+            getRootProject(getActiveProject()).activeMascotId = id;
+            saveStateLocally();
+            renderApp();
         }
 
-        // --- 5. Backdrop & Color Designer ---
         function onCustomColorChange() {
             const p = document.getElementById('picker-primary').value;
             const s = document.getElementById('picker-secondary').value;
             const t = document.getElementById('picker-tertiary').value;
             const style = document.getElementById('select-pattern').value;
-            appState.pickerPrimary = p; appState.pickerSecondary = s; appState.pickerTertiary = t; appState.selectPattern = style; 
+            appState.pickerPrimary = p; appState.pickerSecondary = s; appState.pickerTertiary = t; appState.selectPattern = style;
             saveStateLocally();
             applyStageStyle(p, s, t, style);
         }
 
         function applyStageStyle(p, s, t, style) {
-            const zenOverlay = document.getElementById('zen-overlay'); if (!zenOverlay) return;
-            if (style === 'solid') zenOverlay.style.background = p;
-            else if (style === 'linear-vert') zenOverlay.style.background = `linear-gradient(180deg, ${p} 0%, ${s} 100%)`;
-            else if (style === 'linear-diag') zenOverlay.style.background = `linear-gradient(135deg, ${p} 0%, ${s} 50%, ${t} 100%)`;
-            else if (style === 'radial-center') zenOverlay.style.background = `radial-gradient(circle at center, ${t} 0%, ${s} 55%, ${p} 100%)`;
-            else if (style === 'spotlight') zenOverlay.style.background = `radial-gradient(circle at 80% 20%, ${t} 0%, ${s} 45%, ${p} 90%)`;
-            else if (style === 'mesh') zenOverlay.style.background = `radial-gradient(at 0% 0%, ${t} 0px, transparent 50%), radial-gradient(at 100% 100%, ${s} 0px, transparent 50%), ${p}`;
+            const zen = document.getElementById('zen-overlay'); if (!zen) return;
+            if (style === 'solid') zen.style.background = p;
+            else if (style === 'linear-vert') zen.style.background = `linear-gradient(180deg, ${p} 0%, ${s} 100%)`;
+            else if (style === 'linear-diag') zen.style.background = `linear-gradient(135deg, ${p} 0%, ${s} 50%, ${t} 100%)`;
+            else if (style === 'radial-center') zen.style.background = `radial-gradient(circle at center, ${t} 0%, ${s} 55%, ${p} 100%)`;
+            else if (style === 'spotlight') zen.style.background = `radial-gradient(circle at 80% 20%, ${t} 0%, ${s} 45%, ${p} 90%)`;
+            else if (style === 'mesh') zen.style.background = `radial-gradient(at 0% 0%, ${t} 0px, transparent 50%), radial-gradient(at 100% 100%, ${s} 0px, transparent 50%), ${p}`;
         }
 
-        // --- 6. Interface Routing & Navigation ---
-        function toggleBloomPopover() { document.getElementById('bloom-popover').classList.toggle('hidden'); document.getElementById('audio-popover').classList.add('hidden'); }
-        function toggleAudioPopover() { document.getElementById('audio-popover').classList.toggle('hidden'); document.getElementById('bloom-popover').classList.add('hidden'); }
-        function toggleProjectNotesModal() { const modal = document.getElementById('project-notes-modal'); if (modal.classList.contains('hidden')) { document.getElementById('project-full-notes-textarea').value = getActiveProject().notes || ''; }; modal.classList.toggle('hidden'); }
-        function toggleBackdropModal() { document.getElementById('backdrop-modal').classList.toggle('hidden'); }
-        function toggleInstructionsModal() { document.getElementById('instructions-modal').classList.toggle('hidden'); }
-        function saveFullProjectNotes() { 
-            const p = getActiveProject(); 
-            p.notes = document.getElementById('project-full-notes-textarea').value; 
-            document.getElementById('project-notes-summary-input').value = p.notes; 
-            saveStateLocally(); 
-            toggleProjectNotesModal(); 
-        }
+        // --- 10. 20-Metric ADHD Analytics Engine ---
+        function renderAnalytics(days) {
+            document.querySelectorAll('.analytics-tab').forEach(t => {
+                const tabDays = parseInt(t.dataset.days);
+                t.className = tabDays === days 
+                    ? "analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white transition-colors shadow-sm"
+                    : "analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-colors";
+            });
 
-        function switchView(view) {
-            syncHeaderInputsToState();
-            if (isPlaying) toggleTimer(); 
-            currentView = view;
-            document.getElementById('view-focus-container').classList.toggle('hidden', view !== 'focus');
-            document.getElementById('view-analytics-container').classList.toggle('hidden', view !== 'analytics');
+            const now = new Date();
+            const cutoff = days === 9999 ? new Date(0) : new Date(now.getTime() - days * 86400000);
+            const logs = (appState.sessionLogs || []).filter(l => new Date(l.endedAt) >= cutoff);
+            const allProjects = appState.projects || [];
+            const allTasks = allProjects.flatMap(p => (p.tasks || []).map(t => ({ ...t, projectId: p.id, projectTitle: p.title })));
 
-            const navFocus = document.getElementById('nav-focus');
-            const navAnalytics = document.getElementById('nav-analytics');
-            if (navFocus && navAnalytics) {
-                if (view === 'focus') {
-                    navFocus.className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5";
-                    navAnalytics.className = "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5";
-                    renderApp();
-                } else {
-                    navAnalytics.className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5";
-                    navFocus.className = "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5";
-                    renderAnalytics(7);
+            // 1. Total Time, Completed Tasks, Accuracy
+            let totalTimeSec = 0, completedTasks = 0, estTimeSec = 0;
+            let logsHTML = '', dateBuckets = {};
+
+            allTasks.forEach(t => {
+                if (t.isCompleted && t.completionDate) {
+                    const cDate = new Date(t.completionDate);
+                    if (days === 9999 || cDate >= cutoff) {
+                        totalTimeSec += t.actualTime;
+                        completedTasks++;
+                        estTimeSec += t.estimatedTime;
+                        logsHTML += `<div class="px-6 py-3 flex justify-between items-center text-xs">
+                            <span class="font-semibold text-slate-700 flex items-center gap-2">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> ${t.title}
+                                <span class="text-[10px] text-slate-400 font-normal">(${t.projectTitle})</span>
+                            </span>
+                            <span class="text-slate-500 font-mono">${formatTimeCompact(t.actualTime)}</span>
+                        </div>`;
+                    }
+                    const dStr = getLocalFormattedDate(cDate);
+                    dateBuckets[dStr] = (dateBuckets[dStr] || 0) + t.actualTime;
                 }
+            });
+
+            document.getElementById('stat-total-time').textContent = formatTimeHuman(totalTimeSec);
+            document.getElementById('stat-tasks-done').textContent = completedTasks;
+            const accuracy = estTimeSec === 0 ? 0 : Math.round((totalTimeSec / estTimeSec) * 100);
+            document.getElementById('stat-accuracy').textContent = Math.min(accuracy, 200) + '%';
+            document.getElementById('analytics-log-container').innerHTML = logsHTML || `<div class="p-6 text-xs text-slate-400 text-center">No completed tasks recorded in this time range.</div>`;
+
+            // 2. Rolling Momentum Battery (Replaces Streak Anxiety)
+            const DAILY_TARGET = 1500; // 25 minutes
+            const rollingBuckets = new Map();
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(now.getTime() - i * 86400000);
+                rollingBuckets.set(d.toISOString().split('T')[0], 0);
             }
+            (appState.sessionLogs || []).forEach(l => {
+                const ds = l.endedAt.split('T')[0];
+                if (rollingBuckets.has(ds)) rollingBuckets.set(ds, rollingBuckets.get(ds) + l.durationSeconds);
+            });
+            let weightedEffort = 0;
+            rollingBuckets.forEach(sec => { weightedEffort += Math.min(sec, DAILY_TARGET); });
+            const batteryPct = Math.min(100, Math.round((weightedEffort / (5 * DAILY_TARGET)) * 100));
+            document.getElementById('stat-battery-pct').textContent = batteryPct + '%';
+            document.getElementById('stat-battery-bar').style.width = batteryPct + '%';
+
+            // 3. Task Complexity Index (TCI)
+            const validTasks = allTasks.filter(t => t.actualTime > 0);
+            const sprints = validTasks.filter(t => t.actualTime < 900).length;
+            const deepWork = validTasks.filter(t => t.actualTime >= 2700).length;
+            const tci = (sprints + deepWork) > 0 ? (deepWork / (sprints + deepWork)).toFixed(2) : '0.0';
+            document.getElementById('stat-tci').textContent = tci;
+
+            // 4. Time-Blindness Underestimated Count
+            const underest = allTasks.filter(t => t.isCompleted && t.estimatedTime > 0 && ((t.actualTime - t.estimatedTime) / t.estimatedTime) > 0.25).length;
+            document.getElementById('stat-underestimated-count').textContent = underest;
+
+            // 5. Context Switching Density
+            let switches = 0;
+            const totalHours = logs.reduce((acc, l) => acc + l.durationSeconds, 0) / 3600;
+            for (let i = 1; i < logs.length; i++) {
+                if (logs[i].taskId !== logs[i - 1].taskId) switches++;
+            }
+            const density = totalHours > 0 ? (switches / totalHours).toFixed(1) : '0';
+            document.getElementById('stat-switching-density').textContent = `${density}/hr`;
+
+            // 6. Zen Mode Ratio
+            const zenSec = logs.filter(l => l.mode === 'zen').reduce((acc, l) => acc + l.durationSeconds, 0);
+            const zenRatio = totalTimeSec > 0 ? Math.round((zenSec / totalTimeSec) * 100) : 0;
+            document.getElementById('stat-zen-ratio').textContent = `${zenRatio}% Zen`;
+
+            // 7. Weekend vs Weekday Split
+            let weekdaySec = 0, weekendSec = 0;
+            logs.forEach(l => {
+                const day = new Date(l.endedAt).getDay();
+                if (day === 0 || day === 6) weekendSec += l.durationSeconds; else weekdaySec += l.durationSeconds;
+            });
+            const splitTotal = weekdaySec + weekendSec;
+            const wkEndPct = splitTotal > 0 ? Math.round((weekendSec / splitTotal) * 100) : 0;
+            const wkDayPct = splitTotal > 0 ? Math.round((weekdaySec / splitTotal) * 100) : 0;
+            document.getElementById('stat-weekend-split').textContent = `${wkDayPct}% Wk / ${wkEndPct}% End`;
+
+            // 8. Circadian Focus Heatmap (24 hours)
+            const hours = new Array(24).fill(0);
+            logs.forEach(l => {
+                const h = new Date(l.startedAt || l.endedAt).getHours();
+                hours[h] += Math.round(l.durationSeconds / 60);
+            });
+            const maxH = Math.max(...hours, 1);
+            const peakH = hours.indexOf(Math.max(...hours));
+            document.getElementById('stat-circadian-peak').textContent = hours[peakH] > 0 ? `${peakH}:00 - ${peakH+1}:00` : 'Logging sessions...';
+            document.getElementById('circadian-bars-grid').innerHTML = hours.map(m => {
+                const heightPct = Math.round((m / maxH) * 100);
+                return `<div class="h-10 bg-slate-100 rounded-sm flex items-end overflow-hidden"><div class="w-full bg-amber-500 rounded-sm" style="height: ${heightPct}%" title="${m} mins"></div></div>`;
+            }).join('');
+
+            // 9. Dormant Projects Monitor (Object Permanence Guardian)
+            const dormantList = document.getElementById('dormant-projects-list');
+            const dormantProjects = allProjects.filter(p => !p.completedAt).map(p => {
+                const times = (p.tasks || []).map(t => new Date(t.completionDate || t.createdAt || 0).getTime());
+                const last = times.length > 0 ? Math.max(...times) : new Date(p.createdAt || 0).getTime();
+                const daysDormant = Math.floor((now.getTime() - last) / 86400000);
+                return { ...p, daysDormant };
+            }).filter(p => p.daysDormant >= 14);
+
+            if (dormantProjects.length === 0) {
+                dormantList.innerHTML = `<p class="text-xs text-slate-400 italic">All projects have had recent momentum. Zero dormant containers.</p>`;
+            } else {
+                dormantList.innerHTML = dormantProjects.map(p => `
+                    <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                        <span class="font-bold text-slate-700">${p.title} (${p.daysDormant} days untouched)</span>
+                        <div class="flex gap-2">
+                            <button onclick="selectProject('${p.id}'); switchView('focus')" class="px-2.5 py-1 bg-brand-600 text-white font-bold rounded-lg text-[10px]">Reactivate</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // 10. 30-Day Activity Heatmap
+            let heatmapHTML = '';
+            for (let i = 29; i >= 0; i--) {
+                let d = new Date(now.getTime() - i * 86400000);
+                let ds = getLocalFormattedDate(d);
+                let time = dateBuckets[ds] || 0;
+                let color = 'bg-slate-100';
+                if (time > 0 && time <= 600) color = 'bg-emerald-200';
+                else if (time > 600 && time <= 1800) color = 'bg-emerald-300';
+                else if (time > 1800 && time <= 3600) color = 'bg-emerald-400';
+                else if (time > 3600 && time <= 7200) color = 'bg-emerald-500';
+                else if (time > 7200) color = 'bg-emerald-600';
+                heatmapHTML += `<div class="w-full h-8 ${color} rounded-lg" title="${ds}: ${formatTimeHuman(time)}"></div>`;
+            }
+            document.getElementById('heatmap-grid').innerHTML = heatmapHTML;
             safeCreateIcons();
         }
 
-        function openZenView() {
-            const task = getActiveTask();
-            const project = getActiveProject();
-            document.getElementById('zen-active-task-title').textContent = task ? `${task.title} (${project.title})` : `${project.title}`;
-            document.getElementById('zen-task-notes').textContent = task && task.notes ? task.notes : (project.notes || 'No notes attached.');
-            document.getElementById('zen-overlay').classList.remove('hidden'); 
-            applyStageStyle(appState.pickerPrimary, appState.pickerSecondary, appState.pickerTertiary, appState.selectPattern);
-            renderMascotStage(); 
-            renderTimerVisuals(); 
-            safeCreateIcons();
-        }
-
-        function closeZenView() { document.getElementById('zen-overlay').classList.add('hidden'); }
-
-        function handleAddTask() {
-            const input = document.getElementById('new-task-title-input'), estInput = document.getElementById('new-task-est-input');
-            const title = input.value.trim(), estMins = parseInt(estInput.value);
-            const p = getActiveProject();
-
-            if (hasSubProjects(p.id)) {
-                alert("Tasks can only exist at the lowest project level. Please select or create a leaf sub-project.");
-                return;
-            }
-
-            if (!title) return;
-            if (!estMins || estMins <= 0) { alert("Target Time (minutes) is required to append a task!"); estInput.focus(); return; }
-            
-            p.tasks.push({ id: 't-' + generateId(), title: title, estimatedTime: estMins * 60, actualTime: 0, isCompleted: false, deadline: '', notes: '', completionDate: null });
-            if (!p.activeTaskId) p.activeTaskId = p.tasks[p.tasks.length - 1].id;
-            input.value = ''; estInput.value = ''; 
-            saveStateLocally(); 
-            renderApp();
-        }
-
-        function deleteTask(taskId, e) {
-            if (e) e.stopPropagation();
-            const p = getActiveProject();
-            if (!p) return;
-            p.tasks = p.tasks.filter(t => t.id !== taskId);
-            if (p.activeTaskId === taskId) {
-                p.activeTaskId = p.tasks.length > 0 ? p.tasks[0].id : null;
-            }
-            saveStateLocally();
-            renderApp();
-        }
-
-        // --- 7. Render Engine ---
+        // --- 11. Render UI Engine ---
         function renderApp() {
             const p = getActiveProject(); if (!p) return;
-            renderSidebar(); 
-            renderHeader(p); 
-            renderActiveTask(p); 
-            renderMascotStage(); 
-            renderTaskList(p); 
+            renderSidebar();
+            renderHeader(p);
+            renderActiveTask(p);
+            renderMascotStage();
+            renderTaskList(p);
             safeCreateIcons();
         }
 
         function renderSidebar() {
             const container = document.getElementById('project-list-container');
-            
             function buildTreeHTML(parentId = null, depth = 0) {
                 const projectsAtLevel = appState.projects.filter(p => p.parentId === parentId);
                 if (projectsAtLevel.length === 0) return '';
@@ -1407,7 +1899,6 @@
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 </button>
 
-                                <!-- Companion Icon Display on right edge -->
                                 ${activeMascot ? `
                                     <div class="w-6 h-6 ml-1 flex items-center justify-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0" title="Companion: ${activeMascot.name}">
                                         ${activeMascot.svg}
@@ -1420,7 +1911,6 @@
                     </div>`;
                 }).join('');
             }
-
             container.innerHTML = buildTreeHTML(null, 0);
             safeCreateIcons();
         }
@@ -1439,19 +1929,40 @@
             
             const taskNotesElem = document.getElementById('active-task-notes');
             const taskDeadlineElem = document.getElementById('active-task-deadline');
-            
-            if(taskNotesElem) taskNotesElem.value = task ? (task.notes || '') : '';
-            if(taskDeadlineElem) taskDeadlineElem.value = task ? (task.deadline || '') : '';
+            if (taskNotesElem) taskNotesElem.value = task ? (task.notes || '') : '';
+            if (taskDeadlineElem) taskDeadlineElem.value = task ? (task.deadline || '') : '';
 
+            // Render Resumption Launchpad Banner if context exists
+            const bannerMount = document.getElementById('resumption-banner-mount');
+            if (bannerMount) {
+                if (task && task.lastParkedContext) {
+                    const ctx = task.lastParkedContext;
+                    bannerMount.innerHTML = `
+                    <div class="w-full bg-gradient-to-r from-amber-500/10 via-brand-500/10 to-indigo-500/10 border border-amber-500/30 rounded-2xl p-4 mb-4 backdrop-blur-md shadow-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-sans-ui">
+                        <div class="flex items-start gap-3 min-w-0">
+                            <div class="p-2.5 bg-amber-500 text-white rounded-xl shadow shrink-0 mt-0.5"><i data-lucide="play-circle" class="w-5 h-5"></i></div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-extrabold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Resumption Launchpad</span>
+                                    <span class="text-xs text-slate-500">Stopped: <strong>${ctx.whereStopped}</strong></span>
+                                </div>
+                                <p class="text-xs font-bold text-slate-800 mt-1">Next 60s: <span class="text-brand-600 underline">${ctx.next60sAction}</span></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="executeLaunchpadResume()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5">
+                                <i data-lucide="play" class="w-3.5 h-3.5 fill-white"></i> Execute 60s Action
+                            </button>
+                            <button onclick="dismissLaunchpad()" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl"><i data-lucide="x" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>`;
+                } else {
+                    bannerMount.innerHTML = '';
+                }
+            }
+
+            renderMicroSteps(task);
             updateTimerTexts(p, task || { actualTime: 0, estimatedTime: 0 });
-        }
-
-        function updateTimerTexts(p, task) {
-            document.getElementById('active-timer-display').textContent = formatTimeCompact(task.actualTime);
-            document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
-            document.getElementById('active-timer-estimate').textContent = task.estimatedTime > 0 ? `Target: ${Math.round(task.estimatedTime/60)}m` : 'Open ended';
-            const zenDisplay = document.getElementById('zen-timer-display'); 
-            if (zenDisplay) zenDisplay.textContent = formatTimeCompact(task.actualTime);
         }
 
         function renderMascotStage() {
@@ -1464,20 +1975,19 @@
             const mainMount = document.getElementById('main-mascot-mount');
             const zenMount = document.getElementById('zen-mascot-mount');
             const zenRoamWrapper = document.getElementById('mascot-roam-wrapper');
-            
+
             if (!activeMascotId) {
-                if(mainMountWrapper) mainMountWrapper.classList.add('hidden');
-                if(mainMount) mainMount.innerHTML = "";
-                if(zenMount) zenMount.innerHTML = "";
-                if(zenRoamWrapper) zenRoamWrapper.classList.add('hidden');
+                if (mainMountWrapper) mainMountWrapper.classList.add('hidden');
+                if (mainMount) mainMount.innerHTML = "";
+                if (zenMount) zenMount.innerHTML = "";
+                if (zenRoamWrapper) zenRoamWrapper.classList.add('hidden');
             } else {
                 const activeMascot = mascotDatabase.find(m => m.id === activeMascotId) || mascotDatabase[0];
                 const mascotHTML = `<div class="w-16 h-16 flex items-center justify-center p-0.5 overflow-visible">${activeMascot.svg}</div>`;
-                
-                if(mainMountWrapper) mainMountWrapper.classList.remove('hidden');
-                if(mainMount) mainMount.innerHTML = mascotHTML;
-                if(zenMount) zenMount.innerHTML = mascotHTML;
-                if(zenRoamWrapper) zenRoamWrapper.classList.remove('hidden');
+                if (mainMountWrapper) mainMountWrapper.classList.remove('hidden');
+                if (mainMount) mainMount.innerHTML = mascotHTML;
+                if (zenMount) zenMount.innerHTML = mascotHTML;
+                if (zenRoamWrapper) zenRoamWrapper.classList.remove('hidden');
             }
 
             setMascotBehavior(appState.mascotBehavior || 'roam');
@@ -1485,18 +1995,12 @@
 
             const unlockBtn = document.getElementById('btn-unlock-all-mascots');
             const hideBtn = document.getElementById('btn-hide-unlock');
-            if(appState.hideUnlockBtn) {
-                if(unlockBtn) unlockBtn.classList.add('hidden');
-                if(hideBtn) {
-                    hideBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i>`;
-                    hideBtn.title = "Show Unlock Button";
-                }
+            if (appState.hideUnlockBtn) {
+                if (unlockBtn) unlockBtn.classList.add('hidden');
+                if (hideBtn) { hideBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i>`; hideBtn.title = "Show"; }
             } else {
-                if(unlockBtn) unlockBtn.classList.remove('hidden');
-                if(hideBtn) {
-                    hideBtn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4"></i>`;
-                    hideBtn.title = "Hide Unlock Button";
-                }
+                if (unlockBtn) unlockBtn.classList.remove('hidden');
+                if (hideBtn) { hideBtn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4"></i>`; hideBtn.title = "Hide"; }
             }
 
             const grid = document.getElementById('mascot-gallery-grid'); if (!grid) return;
@@ -1505,27 +2009,25 @@
             grid.innerHTML = mascotDatabase.map(m => {
                 const isSelected = m.id === activeMascotId;
                 const isUnlocked = rootProj.unlockAllMascotsTest || m.unlockSec === 0 || (projectTime >= m.unlockSec);
-                const assignedOtherProject = appState.projects.find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
+                const assignedOther = appState.projects.find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
 
                 let statusText = `${m.shapes}`;
                 let cardClick = `selectMascotCompanion('${m.id}')`;
                 let cardClasses = "bg-slate-50 border-slate-200 hover:border-slate-300";
 
-                if (isSelected) {
-                    cardClasses = "bg-indigo-50/80 border-indigo-500 shadow-sm scale-[1.02]";
-                } else if (assignedOtherProject) {
+                if (isSelected) cardClasses = "bg-indigo-50/80 border-indigo-500 shadow-sm scale-[1.02]";
+                else if (assignedOther) {
                     cardClasses = "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed";
-                    cardClick = `alert('This mascot is assigned to: ${assignedOtherProject.title}')`;
-                    statusText = `In Use`;
+                    cardClick = `alert('This mascot is assigned to: ${assignedOther.title}')`;
+                    statusText = "In Use";
                 } else if (!isUnlocked) {
                     cardClasses = "opacity-40 grayscale cursor-not-allowed bg-slate-50 border-slate-200";
                     cardClick = "";
                 }
 
                 return `
-                <div onclick="${cardClick}" 
-                     class="p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center text-center ${cardClasses}">
-                    <div class="w-12 h-12 mascot-card-svg-wrapper flex items-center justify-center p-0.5 my-0.5 overflow-visible pointer-events-none">${m.svg}</div>
+                <div onclick="${cardClick}" class="p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center text-center ${cardClasses}">
+                    <div class="w-12 h-12 mascot-card-svg-wrapper flex items-center justify-center p-0.5 my-0.5 pointer-events-none">${m.svg}</div>
                     <div class="text-[11px] font-bold text-slate-800 truncate w-full mt-1">${m.name}</div>
                     <div class="text-[9px] font-mono text-slate-400 font-semibold truncate w-full">${statusText}</div>
                 </div>`;
@@ -1537,7 +2039,6 @@
             const container = document.getElementById('task-list-container');
             const addTaskContainer = document.getElementById('add-task-container');
             const parentNotice = document.getElementById('parent-task-blocked-notice');
-
             const isParent = hasSubProjects(p.id);
 
             if (isParent) {
@@ -1554,25 +2055,25 @@
 
             container.innerHTML = p.tasks.map((t, idx) => {
                 const isActive = t.id === p.activeTaskId;
-                const estFormatted = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
-                const actFormatted = formatTimeCompact(t.actualTime);
+                const estFmt = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
+                const actFmt = formatTimeCompact(t.actualTime);
 
-                return `<div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500' : 'border-slate-200'}">
-                    <span class="w-6 text-center text-xs font-bold font-mono text-slate-400 rounded">${idx + 1}</span>
+                return `
+                <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500' : 'border-slate-200'}">
+                    <span class="w-6 text-center text-xs font-bold font-mono text-slate-400">${idx + 1}</span>
                     <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full border flex items-center justify-center ${t.isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
                     <div class="flex-1 cursor-pointer min-w-0" onclick="selectTask('${t.id}')">
                         <p class="text-xs font-semibold truncate ${t.isCompleted ? 'line-through text-slate-400' : ''}">${t.title}</p>
                         <div class="flex items-center gap-2 mt-0.5">
-                            ${t.notes ? `<span class="text-[9px] font-medium text-slate-400 flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i> Attached</span>` : ''}
+                            ${(t.microSteps && t.microSteps.length > 0) ? `<span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">${t.microSteps.filter(s=>s.isCompleted).length}/${t.microSteps.length} steps</span>` : ''}
+                            ${t.notes ? `<span class="text-[9px] text-slate-400 flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3"></i> Notes</span>` : ''}
                             ${t.deadline ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-mono">${t.deadline}</span>` : ''}
                         </div>
                     </div>
-                    
-                    <!-- Formatted Elapsed / Estimate time with Trash icon -->
                     <div class="flex items-center gap-2 shrink-0 font-mono text-xs">
-                        <span class="text-slate-600 font-semibold">${actFormatted}</span>
+                        <span class="text-slate-700 font-semibold">${actFmt}</span>
                         <span class="text-slate-300">/</span>
-                        <span class="text-slate-400">${estFormatted}</span>
+                        <span class="text-slate-400">${estFmt}</span>
                         <button onclick="deleteTask('${t.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Delete Task">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
@@ -1584,16 +2085,13 @@
         function renderTimerVisuals() {
             const mainBtn = document.getElementById('main-timer-btn'), mainBloom = document.getElementById('inner-bloom-layer');
             const zenBtn = document.getElementById('zen-timer-btn'), zenBloom = document.getElementById('zen-bloom-layer');
-            const stateText = isPlaying ? "Active" : "Paused";
-            
-            const timerStateMain = document.getElementById('timer-state-text');
-            const timerStateZen = document.getElementById('zen-timer-state');
-            if (timerStateMain) timerStateMain.textContent = stateText;
-            if (timerStateZen) timerStateZen.textContent = stateText;
+            const state = isPlaying ? "Active" : "Paused";
+            if (document.getElementById('timer-state-text')) document.getElementById('timer-state-text').textContent = state;
+            if (document.getElementById('zen-timer-state')) document.getElementById('zen-timer-state').textContent = state;
 
             [mainBtn, zenBtn].forEach(b => {
                 if (!b) return;
-                b.className = `relative flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80 rounded-full border-[10px] transition-all duration-300 cursor-pointer outline-none overflow-hidden ${isPlaying ? 'timer-green-container' : 'timer-red-container'}`;
+                b.className = `relative flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 cursor-pointer outline-none overflow-hidden ${isPlaying ? 'timer-green-container' : 'timer-red-container'}`;
             });
             [mainBloom, zenBloom].forEach(bl => {
                 if (!bl) return;
@@ -1601,158 +2099,141 @@
             });
         }
 
-        // --- 8. Analytics & Retrospective Engine ---
-        function renderAnalytics(days) {
-            document.querySelectorAll('.analytics-tab').forEach(t => {
-                const tabDays = parseInt(t.dataset.days);
-                if(tabDays === days) {
-                    t.className = "analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white transition-colors shadow-sm";
+        function toggleTaskStatus(id) {
+            const p = getActiveProject(), t = p.tasks.find(x => x.id === id);
+            if (t) {
+                t.isCompleted = !t.isCompleted;
+                if (t.isCompleted) t.completionDate = new Date().toISOString();
+                saveStateLocally();
+                renderApp();
+            }
+        }
+
+        function selectProject(id) {
+            syncHeaderInputsToState();
+            appState.activeProjectId = id;
+            renderApp();
+        }
+
+        function selectTask(id) {
+            const p = getActiveProject();
+            p.activeTaskId = id;
+            renderApp();
+            const zt = document.getElementById('zen-active-task-title');
+            const zn = document.getElementById('zen-task-notes');
+            const t = getActiveTask();
+            if (zt) zt.textContent = t ? `${t.title} (${p.title})` : p.title;
+            if (zn) zn.textContent = t && t.notes ? t.notes : (p.notes || 'No notes attached.');
+        }
+
+        function handleAddTask() {
+            const inTitle = document.getElementById('new-task-title-input');
+            const inEst = document.getElementById('new-task-est-input');
+            const title = inTitle.value.trim(), estMins = parseInt(inEst.value);
+            const p = getActiveProject();
+            if (hasSubProjects(p.id)) { alert("Tasks only exist at the lowest project level."); return; }
+            if (!title) return;
+            if (!estMins || estMins <= 0) { alert("Target Time required!"); inEst.focus(); return; }
+
+            p.tasks.push({
+                id: 't-' + generateId(),
+                title: title,
+                estimatedTime: estMins * 60,
+                actualTime: 0,
+                isCompleted: false,
+                deadline: '',
+                notes: '',
+                createdAt: new Date().toISOString(),
+                microSteps: [],
+                lastParkedContext: null
+            });
+            if (!p.activeTaskId) p.activeTaskId = p.tasks[p.tasks.length - 1].id;
+            inTitle.value = ''; inEst.value = '';
+            saveStateLocally();
+            renderApp();
+        }
+
+        function deleteTask(taskId, e) {
+            if (e) e.stopPropagation();
+            const p = getActiveProject(); if (!p) return;
+            p.tasks = p.tasks.filter(t => t.id !== taskId);
+            if (p.activeTaskId === taskId) p.activeTaskId = p.tasks.length > 0 ? p.tasks[0].id : null;
+            saveStateLocally();
+            renderApp();
+        }
+
+        function switchView(view) {
+            syncHeaderInputsToState();
+            if (isPlaying) forcePause();
+            currentView = view;
+            document.getElementById('view-focus-container').classList.toggle('hidden', view !== 'focus');
+            document.getElementById('view-analytics-container').classList.toggle('hidden', view !== 'analytics');
+
+            const navF = document.getElementById('nav-focus');
+            const navA = document.getElementById('nav-analytics');
+            if (navF && navA) {
+                if (view === 'focus') {
+                    navF.className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5";
+                    navA.className = "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5";
+                    renderApp();
                 } else {
-                    t.className = "analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-colors";
-                }
-            });
-
-            const now = new Date();
-            const cutoff = new Date(now.getTime() - days * 24 * 3600 * 1000);
-            let totalTime = 0, completedTasks = 0, estTime = 0;
-            let logsHTML = '';
-            let dateBuckets = {};
-
-            appState.projects.forEach(p => {
-                p.tasks.forEach(t => {
-                    if (t.isCompleted && t.completionDate) {
-                        const cDate = new Date(t.completionDate);
-                        if (days === 9999 || cDate >= cutoff) {
-                            totalTime += t.actualTime;
-                            completedTasks++;
-                            estTime += t.estimatedTime;
-                            
-                            logsHTML += `<div class="px-6 py-3 flex justify-between items-center text-xs">
-                                <span class="font-semibold text-slate-700 flex items-center gap-2">
-                                    <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> ${t.title} 
-                                    <span class="text-[10px] text-slate-400 font-normal flex items-center gap-1"><i data-lucide="folder" class="w-3 h-3"></i>${p.title}</span>
-                                </span>
-                                <span class="text-slate-500 font-mono">${formatTimeCompact(t.actualTime)}</span>
-                            </div>`;
-                        }
-                        const dStr = getLocalFormattedDate(cDate);
-                        dateBuckets[dStr] = (dateBuckets[dStr] || 0) + t.actualTime;
-                    }
-                });
-            });
-
-            document.getElementById('stat-total-time').textContent = formatTimeHuman(totalTime);
-            document.getElementById('stat-tasks-done').textContent = completedTasks;
-            let accuracy = estTime === 0 ? 0 : Math.round((totalTime / estTime) * 100);
-            document.getElementById('stat-accuracy').textContent = Math.min(accuracy, 200) + '%';
-            document.getElementById('analytics-log-container').innerHTML = logsHTML || `<div class="p-6 text-xs text-slate-400 text-center">No completed tasks recorded in this time range.</div>`;
-
-            // Consecutive Focus Streak
-            let streak = 0, tempDate = new Date();
-            while(true) {
-                let dStr = getLocalFormattedDate(tempDate);
-                if(dateBuckets[dStr]) { 
-                    streak++; 
-                    tempDate.setDate(tempDate.getDate() - 1); 
-                } else { 
-                    if(streak === 0) {
-                        tempDate.setDate(tempDate.getDate() - 1); 
-                        dStr = getLocalFormattedDate(tempDate);
-                        if(dateBuckets[dStr]) { 
-                            streak++; 
-                            tempDate.setDate(tempDate.getDate() - 1); 
-                            continue; 
-                        }
-                    }
-                    break; 
+                    navA.className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5";
+                    navF.className = "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5";
+                    renderAnalytics(7);
                 }
             }
-            document.getElementById('streak-counter-val').textContent = streak + (streak === 1 ? ' Day' : ' Days');
-
-            // 30-Day Heatmap
-            let heatmapHTML = '';
-            for(let i=29; i>=0; i--) {
-                let d = new Date(now.getTime() - i * 24 * 3600 * 1000);
-                let ds = getLocalFormattedDate(d);
-                let time = dateBuckets[ds] || 0;
-                let color = 'bg-slate-100';
-                if (time > 0 && time <= 600) color = 'bg-emerald-200';
-                else if (time > 600 && time <= 1800) color = 'bg-emerald-300';
-                else if (time > 1800 && time <= 3600) color = 'bg-emerald-400';
-                else if (time > 3600 && time <= 7200) color = 'bg-emerald-500';
-                else if (time > 7200) color = 'bg-emerald-600';
-                heatmapHTML += `<div class="w-full h-8 ${color} rounded-lg" title="${ds}: ${formatTimeHuman(time)}"></div>`;
-            }
-            document.getElementById('heatmap-grid').innerHTML = heatmapHTML;
             safeCreateIcons();
         }
 
-        function toggleTaskStatus(id) { 
-            const p = getActiveProject(), t = p.tasks.find(x => x.id === id); 
-            if(t) { 
-                t.isCompleted = !t.isCompleted; 
-                if(t.isCompleted) t.completionDate = new Date().toISOString(); 
-                saveStateLocally(); 
-                renderApp(); 
-            } 
-        }
-
-        function selectProject(id) { 
-            syncHeaderInputsToState();
-            appState.activeProjectId = id; 
-            renderApp(); 
-        }
-        
-        function selectTask(id) { 
-            const p = getActiveProject(); 
-            p.activeTaskId = id; 
-            renderApp(); 
-            const zenTitle = document.getElementById('zen-active-task-title');
-            const zenNotes = document.getElementById('zen-task-notes');
-            const task = getActiveTask();
-            if(zenTitle) zenTitle.textContent = task ? `${task.title} (${p.title})` : p.title;
-            if(zenNotes) zenNotes.textContent = task && task.notes ? task.notes : (p.notes || 'No notes attached.');
-        }
-        
-        // Active Task Direct Handlers
-        document.getElementById('active-task-notes').addEventListener('input', function(e) {
-            const task = getActiveTask();
-            if(task) { task.notes = e.target.value; saveStateLocally(); }
-        });
-
-        document.getElementById('active-task-deadline').addEventListener('change', function(e) {
-            const task = getActiveTask();
-            if(task) { task.deadline = e.target.value; saveStateLocally(); renderTaskList(getActiveProject()); }
-        });
-
-        // Enter Key Listener for Task Inputs
-        ['new-task-title-input', 'new-task-est-input'].forEach(id => {
-            const elem = document.getElementById(id);
-            if(elem) {
-                elem.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') handleAddTask();
-                });
+        function toggleInstructionsModal() { document.getElementById('instructions-modal').classList.toggle('hidden'); }
+        function toggleBackdropModal() { document.getElementById('backdrop-modal').classList.toggle('hidden'); }
+        function toggleProjectNotesModal() {
+            const m = document.getElementById('project-notes-modal');
+            if (m.classList.contains('hidden')) {
+                document.getElementById('project-full-notes-textarea').value = getActiveProject().notes || '';
             }
-        });
+            m.classList.toggle('hidden');
+        }
+        function saveFullProjectNotes() {
+            const p = getActiveProject();
+            p.notes = document.getElementById('project-full-notes-textarea').value;
+            document.getElementById('project-notes-summary-input').value = p.notes;
+            saveStateLocally();
+            toggleProjectNotesModal();
+        }
 
-        // Global Sync Listeners: captures both 'input' and 'change' so values are never lost
+        // Auto-save listeners on header text fields
         ['project-title-input', 'project-goal-input', 'project-deadline-input', 'project-notes-summary-input'].forEach(id => {
             const elem = document.getElementById(id);
-            if(elem) {
-                const handler = function(e) {
+            if (elem) {
+                const handler = () => {
                     const p = getActiveProject();
-                    if(id === 'project-title-input') p.title = e.target.value;
-                    if(id === 'project-goal-input') p.goal = e.target.value;
-                    if(id === 'project-deadline-input') p.deadline = e.target.value;
-                    if(id === 'project-notes-summary-input') p.notes = e.target.value;
-                    saveStateLocally(); 
+                    if (id === 'project-title-input') p.title = elem.value;
+                    if (id === 'project-goal-input') p.goal = elem.value;
+                    if (id === 'project-deadline-input') p.deadline = elem.value;
+                    if (id === 'project-notes-summary-input') p.notes = elem.value;
+                    saveStateLocally();
                 };
                 elem.addEventListener('input', handler);
                 elem.addEventListener('change', handler);
             }
         });
 
-        // Startup Sequence
+        // Task notes & deadline listeners
+        document.getElementById('active-task-notes').addEventListener('input', (e) => {
+            const t = getActiveTask(); if (t) { t.notes = e.target.value; saveStateLocally(); }
+        });
+        document.getElementById('active-task-deadline').addEventListener('change', (e) => {
+            const t = getActiveTask(); if (t) { t.deadline = e.target.value; saveStateLocally(); renderTaskList(getActiveProject()); }
+        });
+
+        // Enter key for adding task
+        ['new-task-title-input', 'new-task-est-input'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleAddTask(); });
+        });
+
+        // Startup
         initSettings();
         renderApp();
     </script>
