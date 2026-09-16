@@ -22,12 +22,8 @@
                     },
                     colors: {
                         brand: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            900: '#312e81',
+                            50: '#eef2ff', 100: '#e0e7ff', 400: '#818cf8',
+                            500: '#6366f1', 600: '#4f46e5', 900: '#312e81',
                         }
                     },
                     boxShadow: {
@@ -52,26 +48,27 @@
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex selection:bg-brand-100 selection:text-brand-900">
 
-    <!-- SIDEBAR WORKSPACE NAVIGATION -->
+    <!-- SIDEBAR NAVIGATION -->
     <aside class="w-80 bg-slate-100/90 border-r border-slate-200 flex flex-col hidden md:flex backdrop-blur-xl shrink-0 z-20">
-        <button onclick="toggleInstructionsModal()" class="p-6 border-b border-slate-200/60 flex items-center gap-3 text-brand-600 font-bold text-xl tracking-tight hover:bg-slate-200/50 transition-colors w-full text-left focus:outline-none group" title="Open Program Guide">
+        <button onclick="toggleInstructionsModal()" class="p-6 border-b border-slate-200/60 flex items-center gap-3 text-brand-600 font-bold text-xl tracking-tight hover:bg-slate-200/50 transition-colors w-full text-left focus:outline-none group">
             <i data-lucide="layers" class="w-7 h-7 group-hover:scale-110 transition-transform"></i>
             <span>Focus Flow</span>
             <i data-lucide="help-circle" class="w-4 h-4 ml-auto text-slate-400 group-hover:text-brand-600 transition-colors"></i>
         </button>
 
-        <div class="px-4 py-3 flex gap-2 border-b border-slate-200/60 font-sans-ui">
-            <button onclick="switchView('focus')" id="nav-focus" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5">
-                <i data-lucide="target" class="w-4 h-4"></i> Focus
+        <div class="px-3 py-3 flex gap-1.5 border-b border-slate-200/60 font-sans-ui">
+            <button onclick="switchView('focus')" id="nav-focus" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1">
+                <i data-lucide="target" class="w-3.5 h-3.5"></i> Focus
             </button>
-            <button onclick="switchView('analytics')" id="nav-analytics" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5">
-                <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Analytics
+            <button onclick="switchView('calendar')" id="nav-calendar" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Calendar
+            </button>
+            <button onclick="switchView('analytics')" id="nav-analytics" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1">
+                <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Analytics
             </button>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-3 space-y-1 font-sans-ui" id="project-list-container">
-            <!-- Dynamic 3-Tier Hierarchy Tree -->
-        </div>
+        <div class="flex-1 overflow-y-auto p-3 space-y-1 font-sans-ui" id="project-list-container"></div>
 
         <div class="p-4 border-t border-slate-200/60 bg-white/50 space-y-2 font-sans-ui">
             <button onclick="createNewProject()" class="w-full py-2.5 bg-brand-600 text-white rounded-xl font-semibold text-xs hover:bg-brand-500 hover:shadow-md transition-all flex items-center justify-center gap-2">
@@ -92,7 +89,7 @@
         </div>
     </aside>
 
-    <!-- CORE WORKSPACE -->
+    <!-- VIEW 1: FOCUS WORKSPACE -->
     <main id="view-focus-container" class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
         <header class="px-8 py-6 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md">
             <div class="flex flex-col lg:flex-row justify-between items-start gap-6">
@@ -155,7 +152,7 @@
                                     <span>Fullscreen Zen</span>
                                 </button>
 
-                                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5" title="Quick RAM Dump (Alt + S)">
+                                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5" title="Mental RAM Dump (Alt + S)">
                                     <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                     <span>Scratchpad</span>
                                 </button>
@@ -229,10 +226,9 @@
                             </div>
                         </div>
 
-                        <!-- Central Clock Stage with SVG Radial Time-Blindness Ring -->
+                        <!-- Radial Time Dial & Central Clock -->
                         <div class="relative flex items-center justify-center gap-8 md:gap-12 w-full mb-8">
                             <div class="relative flex items-center justify-center">
-                                <!-- SVG Radial Sweep Track & Overtime Halo -->
                                 <div class="absolute inset-0 pointer-events-none flex items-center justify-center -rotate-90">
                                     <svg class="w-72 h-72 sm:w-80 sm:h-80" viewBox="0 0 320 320">
                                         <circle cx="160" cy="160" r="148" stroke="#e2e8f0" stroke-width="8" fill="none" class="opacity-40" />
@@ -264,16 +260,16 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-2 text-xs font-bold text-indigo-900">
                                     <i data-lucide="split" class="w-4 h-4 text-brand-600"></i>
-                                    <span>Micro-Step Decomposer (&le; 5-min actions)</span>
+                                    <span>Micro-Step Decomposer (≤ 5-min atomic actions)</span>
                                 </div>
                                 <span class="text-[10px] text-slate-400 font-mono" id="microstep-summary">0/0 done</span>
                             </div>
 
                             <div class="flex flex-wrap gap-2 text-[10px] font-semibold text-slate-600">
-                                <button onclick="addPresetMicroStep('Open files & setup canvas', 2)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                <button onclick="addPresetMicroStep('Open workspace & clean canvas', 2)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
                                     <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Open workspace (2m)
                                 </button>
-                                <button onclick="addPresetMicroStep('Jot down 3 raw bullets', 3)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                <button onclick="addPresetMicroStep('Jot down 3 messy bullets', 3)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
                                     <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> 3 Messy Bullets (3m)
                                 </button>
                                 <button onclick="addPresetMicroStep('Draft initial section outline', 5)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
@@ -325,9 +321,7 @@
                     </div>
 
                     <div class="pt-1">
-                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3" id="mascot-gallery-grid">
-                            <!-- Injected from js/mascots.js -->
-                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3" id="mascot-gallery-grid"></div>
                     </div>
                 </section>
 
@@ -366,14 +360,83 @@
         </div>
     </main>
 
-    <!-- ANALYTICS DASHBOARD (20 ADHD Biofeedback Metrics) -->
+    <!-- VIEW 2: CALENDAR & TEMPORAL HORIZONS -->
+    <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
+        <header class="px-8 py-6 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2.5">
+                    <i data-lucide="calendar" class="w-6 h-6 text-brand-600"></i> Calendar & Temporal Horizons
+                </h1>
+                <p class="text-xs text-slate-500 mt-1">Compassionate scheduling, time horizons, and shame-free date calibration.</p>
+            </div>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <button onclick="navigateCalendarMonth(-1)" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 text-slate-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                <span class="text-xs font-bold font-mono px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 min-w-[130px] text-center" id="calendar-month-label">Month 2026</span>
+                <button onclick="navigateCalendarMonth(1)" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 text-slate-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                <button onclick="resetCalendarToToday()" class="px-3 py-2 bg-brand-50 text-brand-700 text-xs font-bold rounded-xl border border-brand-200 hover:bg-brand-100 transition-colors">Today</button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-8 space-y-6">
+            <div class="max-w-6xl mx-auto space-y-6">
+
+                <!-- Temporal Horizon Deck (ADHD Chunked Horizons) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Today -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2.5">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Due Today
+                            </span>
+                            <span class="text-[10px] font-mono font-semibold text-slate-400" id="horizon-count-today">0 items</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-48 overflow-y-auto" id="horizon-list-today"></div>
+                    </div>
+
+                    <!-- Next 7 Days -->
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2.5">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Next 7 Days
+                            </span>
+                            <span class="text-[10px] font-mono font-semibold text-slate-400" id="horizon-count-week">0 items</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-48 overflow-y-auto" id="horizon-list-week"></div>
+                    </div>
+
+                    <!-- Gentle Recalibration (Past Intended Date) -->
+                    <div class="bg-amber-50/50 p-4 rounded-2xl shadow-sm border border-amber-200/80 space-y-2.5">
+                        <div class="flex items-center justify-between border-b border-amber-100 pb-2">
+                            <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-amber-500"></span> Gentle Recalibration
+                            </span>
+                            <span class="text-[10px] font-mono font-semibold text-amber-600" id="horizon-count-recalibrate">0 items</span>
+                        </div>
+                        <p class="text-[10px] text-amber-700">Passed dates simply need a new home. No guilt.</p>
+                        <div class="space-y-2 max-h-48 overflow-y-auto" id="horizon-list-recalibrate"></div>
+                    </div>
+                </div>
+
+                <!-- Monthly Calendar Grid View -->
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                    <div class="grid grid-cols-7 gap-px text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-2" id="calendar-days-grid"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW 3: ANALYTICS DASHBOARD -->
     <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
         <header class="px-8 py-6 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm">
             <h1 class="text-2xl font-bold text-slate-800">Analytics & Retrospective</h1>
             <p class="text-xs text-slate-500 mt-1">Compassionate biofeedback, time perception audits, and sustainable momentum calibration.</p>
         </header>
 
-        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-8">
+        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-8 space-y-8">
             <div class="max-w-5xl mx-auto space-y-8">
                 
                 <div class="flex bg-white p-1 rounded-xl shadow-sm ring-1 ring-slate-200 inline-flex">
@@ -418,7 +481,7 @@
                     <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200">
                         <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Complexity</h4>
                         <p class="text-2xl font-mono font-bold text-slate-800 mt-2" id="stat-tci">0.0</p>
-                        <p class="text-[10px] text-slate-400 mt-1" id="stat-tci-sub">Deep work ratio</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Deep work ratio</p>
                     </div>
                 </div>
 
@@ -461,9 +524,9 @@
                 </div>
 
                 <!-- Dormant Projects Monitor (Object Permanence Guardian) -->
-                <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200 space-y-3" id="dormant-projects-section">
+                <div class="bg-white rounded-2xl p-5 shadow-sm ring-1 ring-slate-200 space-y-3">
                     <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                        <i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian (Untouched &ge; 14 Days)
+                        <i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian (Untouched ≥ 14 Days)
                     </h4>
                     <div class="space-y-2" id="dormant-projects-list"></div>
                 </div>
@@ -494,17 +557,12 @@
 
     <!-- FULLSCREEN ZEN MODE VIEW -->
     <div id="zen-overlay" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col font-sans-ui overflow-hidden transition-all duration-500 items-center justify-center">
-        
         <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             <div id="mascot-roam-wrapper" class="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer mascot-roam hidden">
                 <div id="mascot-scale-wrapper" class="transition-transform duration-300" style="transform: scale(1.0);">
                     <div id="mascot-anim-wrapper" class="mascot-bob relative" onclick="triggerMascotAnim('squish')">
-                        <div id="sleep-particle-z" class="hidden">
-                            <div class="z-particle z-1">Z</div>
-                        </div>
-                        <div id="emote-pop-container" class="emote-icon text-rose-500">
-                            <i data-lucide="heart" class="w-6 h-6 fill-rose-500"></i>
-                        </div>
+                        <div id="sleep-particle-z" class="hidden"><div class="z-particle z-1">Z</div></div>
+                        <div id="emote-pop-container" class="emote-icon text-rose-500"><i data-lucide="heart" class="w-6 h-6 fill-rose-500"></i></div>
                         <div id="zen-mascot-mount" class="mascot-mount-box"></div>
                     </div>
                 </div>
@@ -579,10 +637,9 @@
                 <button onclick="triggerEmote('trophy')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-yellow-500 rounded-lg transition-colors shrink-0"><i data-lucide="trophy" class="w-4 h-4 fill-yellow-400"></i></button>
             </div>
         </div>
-
     </div>
 
-    <!-- Modals & Drawers -->
+    <!-- MODALS & DRAWERS -->
     <!-- Distraction Scratchpad Drawer (Alt + S) -->
     <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4">
@@ -597,14 +654,14 @@
                 <button onclick="toggleScratchpadModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             <div class="flex gap-2">
-                <input type="text" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type quick thought and press Enter...">
+                <input type="text" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type thought and press Enter...">
                 <button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button>
             </div>
             <div class="max-h-56 overflow-y-auto divide-y divide-slate-100 space-y-1" id="scratchpad-items-list"></div>
         </div>
     </div>
 
-    <!-- "Park & Resume" Pause Dialog -->
+    <!-- Park & Resume Pause Dialog -->
     <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 space-y-4 border border-slate-100">
             <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
@@ -645,7 +702,7 @@
             <div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-5 leading-relaxed">
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Strict 3-Tier Hierarchy (Main &rarr; Sub &rarr; Component)</h3>
-                    <p>Organize work into exactly three structural depths: <strong>Main Project</strong> (Tier 1), <strong>Sub-Project</strong> (Tier 2), and <strong>Component Project</strong> (Tier 3). Tasks exist strictly at the lowest leaf level of any branch; if a project contains children, tasks cannot be added directly to the container.</p>
+                    <p>Organize work into three structural depths: <strong>Main Project</strong> (Tier 1), <strong>Sub-Project</strong> (Tier 2), and <strong>Component Project</strong> (Tier 3). Tasks exist strictly at the lowest leaf level of any branch; if a project contains children, tasks cannot be added directly to the container.</p>
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">2. Time-Blindness Sweep & The Amber Flow Zone</h3>
@@ -653,15 +710,15 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. Park & Resume Context Anchors</h3>
-                    <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a prominent launchpad banner sits above the timer with one-click resumption to eliminate reactivation paralysis.</p>
+                    <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a launchpad banner sits above the timer with one-click resumption to eliminate reactivation paralysis.</p>
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">4. 1-Click Micro-Step Decomposer</h3>
                     <p>Break overwhelming tasks into atomic &le;5-minute chunks directly on the focus stage. Complete micro-steps to earn dopamine chimes and burst momentum.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">5. Non-Punitive Rolling Momentum Battery</h3>
-                    <p>The Analytics dashboard tracks sustained effort using a 7-day rolling battery that fills up when completing 5 out of 7 active days. Missing a day gently drains energy rather than wiping all progress down to zero.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">5. Calendar & Temporal Horizons</h3>
+                    <p>The calendar view separates work into digestible cognitive horizons (Today, Next 7 Days, and Gentle Recalibration). Dates that have passed are never displayed as punitive failures; they can be moved forward with a single click (+1 Day, +3 Days, +1 Week).</p>
                 </div>
             </div>
         </div>
@@ -711,1531 +768,12 @@
         </div>
     </div>
 
-    <!-- External Companion Dictionary -->
+    <!-- MODULAR JS APPLICATION SUITE (Loaded in Dependency Order) -->
     <script src="js/mascots.js"></script>
-
-    <!-- BACKEND ENGINE SCRIPT -->
-    <script>
-        // --- 1. Schema v10 & Throttled Sync Setup ---
-        const STORAGE_KEY_V9 = 'focus_flow_master_v9';
-        const STORAGE_KEY_V10 = 'focus_flow_master_v10';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCzpHlAhANEmgZd3tMsfTnHGlbaK9L9sIM",
-            authDomain: "focus-flow-app-87591.firebaseapp.com",
-            projectId: "focus-flow-app-87591",
-            storageBucket: "focus-flow-app-87591.firebasestorage.app",
-            messagingSenderId: "233299198976",
-            appId: "1:233299198976:web:721adeec2947aa06d384e5"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const db = firebase.firestore();
-        const docRef = db.collection('focus_flow').doc('user_workspace');
-
-        let appState = {
-            version: 10,
-            activeProjectId: null,
-            audioFamily: 'woodblock',
-            audioVolume: 80,
-            audioMuted: false,
-            bloomOpacity: 60,
-            pickerPrimary: '#090d16',
-            pickerSecondary: '#1e1b4b',
-            pickerTertiary: '#4338ca',
-            selectPattern: 'radial-center',
-            mascotBehavior: 'roam',
-            mascotScale: 1.0,
-            hideUnlockBtn: false,
-            jitterAudioBase: 300,
-            jitterAudioWindow: 30,
-            collapsedProjects: {},
-            scratchpad: [],
-            sessionLogs: [],
-            projects: []
-        };
-
-        let isPlaying = false, timerInterval = null, tickCounter = 0, currentView = 'focus';
-        let jitterAudioTimer = null, jitterMascotTimer = null;
-        let activeSessionStart = null;
-        let activeSessionMode = 'focus';
-
-        // Initialize and Lossless Migration
-        function initializeAndMigrateStorage() {
-            const rawV10 = localStorage.getItem(STORAGE_KEY_V10);
-            if (rawV10) {
-                try {
-                    return JSON.parse(rawV10);
-                } catch(e) {}
-            }
-            const rawV9 = localStorage.getItem(STORAGE_KEY_V9);
-            if (rawV9) {
-                try {
-                    const v9 = JSON.parse(rawV9);
-                    const nowISO = new Date().toISOString();
-                    const state = Object.assign(appState, v9);
-                    state.version = 10;
-                    state.scratchpad = Array.isArray(v9.scratchpad) ? v9.scratchpad : [];
-                    state.sessionLogs = Array.isArray(v9.sessionLogs) ? v9.sessionLogs : [];
-                    state.projects = (v9.projects || []).map(p => ({
-                        ...p,
-                        createdAt: p.createdAt || nowISO,
-                        completedAt: p.completedAt || null,
-                        tasks: (p.tasks || []).map(t => ({
-                            ...t,
-                            createdAt: t.createdAt || nowISO,
-                            microSteps: Array.isArray(t.microSteps) ? t.microSteps : [],
-                            lastParkedContext: t.lastParkedContext || null
-                        }))
-                    }));
-                    localStorage.setItem(STORAGE_KEY_V10, JSON.stringify(state));
-                    return state;
-                } catch(e) {}
-            }
-            return null;
-        }
-
-        const loaded = initializeAndMigrateStorage();
-        if (loaded) {
-            appState = loaded;
-        } else {
-            loadDefaultData();
-        }
-
-        function loadDefaultData() {
-            const initialId = 'proj-' + generateId();
-            appState.activeProjectId = initialId;
-            appState.projects = [{
-                id: initialId,
-                parentId: null,
-                title: 'Core Production Module',
-                goal: 'Ship production ready client build with single-task workflows',
-                deadline: getLocalFormattedDate(new Date(Date.now() + 7 * 86400000)),
-                notes: 'Comprehensive project management metrics inside.',
-                totalTimeSpent: 0,
-                activeTaskId: 't-1',
-                activeMascotId: 'm-shiba',
-                createdAt: new Date().toISOString(),
-                completedAt: null,
-                tasks: [
-                    { 
-                        id: 't-1', 
-                        title: 'Verify custom matrix SVGs and animations', 
-                        estimatedTime: 1800, 
-                        actualTime: 0, 
-                        isCompleted: false, 
-                        deadline: '', 
-                        notes: 'Check all complexity steps.', 
-                        completionDate: null,
-                        createdAt: new Date().toISOString(),
-                        microSteps: [
-                            { id: 'ms-1', title: 'Open SVG files', isCompleted: false },
-                            { id: 'ms-2', title: 'Check bounds clipping', isCompleted: false }
-                        ],
-                        lastParkedContext: null
-                    }
-                ]
-            }];
-            saveStateLocally();
-        }
-
-        function saveStateLocally() {
-            localStorage.setItem(STORAGE_KEY_V10, JSON.stringify(appState));
-        }
-
-        function syncHeaderInputsToState() {
-            const p = getActiveProject();
-            if (!p) return;
-            const tEl = document.getElementById('project-title-input');
-            const gEl = document.getElementById('project-goal-input');
-            const dEl = document.getElementById('project-deadline-input');
-            const nEl = document.getElementById('project-notes-summary-input');
-            if (tEl && tEl.value !== undefined) p.title = tEl.value;
-            if (gEl && gEl.value !== undefined) p.goal = gEl.value;
-            if (dEl && dEl.value !== undefined) p.deadline = dEl.value;
-            if (nEl && nEl.value !== undefined) p.notes = nEl.value;
-        }
-
-        function saveState() {
-            syncHeaderInputsToState();
-            saveStateLocally();
-        }
-
-        function manualCloudSave() {
-            syncHeaderInputsToState();
-            saveStateLocally();
-            const btn = document.getElementById('btn-manual-save');
-            if (btn) btn.innerHTML = `<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Saving...`;
-            safeCreateIcons();
-
-            const cleanData = JSON.parse(JSON.stringify(appState));
-            docRef.set(cleanData, { merge: true }).then(() => {
-                if (btn) btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Saved to Cloud!`;
-                safeCreateIcons();
-                setTimeout(() => {
-                    if (btn) btn.innerHTML = `<i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud`;
-                    safeCreateIcons();
-                }, 2500);
-            }).catch(err => {
-                console.error("Cloud Save Error:", err);
-                if (btn) btn.innerHTML = `Save Failed`;
-            });
-        }
-
-        // Throttled background sync every 5 minutes
-        setInterval(() => {
-            syncHeaderInputsToState();
-            const cleanData = JSON.parse(JSON.stringify(appState));
-            docRef.set(cleanData, { merge: true }).catch(err => console.warn("Auto-sync info:", err));
-        }, 5 * 60 * 1000);
-
-        // Firestore real-time listener (ignores local pending writes)
-        docRef.onSnapshot((doc) => {
-            if (doc.metadata && doc.metadata.hasPendingWrites) return;
-            if (doc.exists) {
-                const cloudData = doc.data();
-                if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
-                    appState = Object.assign(appState, cloudData);
-                    saveStateLocally();
-                    renderApp();
-                }
-            }
-        });
-
-        // --- 2. Helper & Hierarchy Traversal Functions ---
-        function getActiveProject() { return appState.projects.find(p => p.id === appState.activeProjectId) || appState.projects[0]; }
-        
-        function getRootProject(proj) {
-            let curr = proj;
-            while (curr && curr.parentId) {
-                const parent = appState.projects.find(p => p.id === curr.parentId);
-                if (!parent) break;
-                curr = parent;
-            }
-            return curr;
-        }
-
-        function getActiveTask() { 
-            const p = getActiveProject(); 
-            return p ? p.tasks.find(t => t.id === p.activeTaskId) : null; 
-        }
-
-        function generateId() { return Math.random().toString(36).substr(2, 9); }
-        function hasSubProjects(projectId) { return appState.projects.some(p => p.parentId === projectId); }
-
-        function getProjectDepth(projectId) {
-            let depth = 0;
-            let curr = appState.projects.find(p => p.id === projectId);
-            while (curr && curr.parentId) {
-                depth++;
-                curr = appState.projects.find(p => p.id === curr.parentId);
-            }
-            return depth;
-        }
-
-        function getCumulativeTime(projectId) {
-            const p = appState.projects.find(x => x.id === projectId);
-            if (!p) return 0;
-            let total = p.totalTimeSpent || 0;
-            appState.projects.filter(sp => sp.parentId === projectId).forEach(sp => { total += getCumulativeTime(sp.id); });
-            return total;
-        }
-
-        function formatTimeCompact(totalSeconds) {
-            if (isNaN(totalSeconds) || totalSeconds === null) totalSeconds = 0;
-            const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60), s = totalSeconds % 60;
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-        }
-
-        function formatTimeHuman(totalSeconds) {
-            if(!totalSeconds || totalSeconds === 0) return '0m';
-            const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60);
-            return h > 0 ? `${h}h ${m}m` : `${m}m`;
-        }
-
-        function formatTimeFull(totalSeconds) {
-            if(!totalSeconds || totalSeconds === 0) return '0m';
-            const d = Math.floor(totalSeconds / 86400);
-            const h = Math.floor((totalSeconds % 86400) / 3600);
-            const m = Math.floor((totalSeconds % 3600) / 60);
-            let parts = [];
-            if (d > 0) parts.push(`${d}d`);
-            if (h > 0) parts.push(`${h}h`);
-            if (m > 0 || parts.length === 0) parts.push(`${m}m`);
-            return parts.join(' ');
-        }
-
-        function getLocalFormattedDate(d) {
-            const target = d || new Date();
-            const year = target.getFullYear();
-            const month = String(target.getMonth() + 1).padStart(2, '0');
-            const day = String(target.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function safeCreateIcons() { try { lucide.createIcons(); } catch(e) {} }
-
-        // --- 3. 3-Tier Hierarchy Management ---
-        function createNewProject(parentId = null) {
-            syncHeaderInputsToState();
-            if (parentId) {
-                const depth = getProjectDepth(parentId);
-                if (depth >= 2) {
-                    alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
-                    return;
-                }
-                const parent = appState.projects.find(p => p.id === parentId);
-                if (parent && parent.tasks && parent.tasks.length > 0) {
-                    alert("All tasks in this container must be removed before creating a sub-project. Tasks can only exist at the lowest level.");
-                    return;
-                }
-            }
-
-            const id = 'proj-' + generateId();
-            const parentDepth = parentId ? getProjectDepth(parentId) : -1;
-            const projectTitle = parentDepth === 0 ? 'New Sub-Project' : (parentDepth === 1 ? 'New Component Project' : 'New Root Project');
-
-            appState.projects.push({
-                id,
-                parentId: parentId,
-                title: projectTitle,
-                goal: '',
-                deadline: '',
-                notes: '',
-                totalTimeSpent: 0,
-                activeTaskId: null,
-                activeMascotId: null,
-                unlockAllMascotsTest: false,
-                createdAt: new Date().toISOString(),
-                completedAt: null,
-                tasks: []
-            });
-            appState.activeProjectId = id;
-            saveStateLocally();
-            renderApp();
-        }
-
-        function toggleProjectCollapse(projectId, e) {
-            if (e) e.stopPropagation();
-            appState.collapsedProjects = appState.collapsedProjects || {};
-            appState.collapsedProjects[projectId] = !appState.collapsedProjects[projectId];
-            saveStateLocally();
-            renderSidebar();
-        }
-
-        function deleteProject(projectId, e) {
-            if (e) e.stopPropagation();
-            const proj = appState.projects.find(p => p.id === projectId);
-            if (!proj) return;
-
-            if (confirm(`Are you sure you want to delete "${proj.title}" and all its contents?`)) {
-                const toDelete = new Set();
-                function collectIds(id) {
-                    toDelete.add(id);
-                    appState.projects.filter(p => p.parentId === id).forEach(sp => collectIds(sp.id));
-                }
-                collectIds(projectId);
-                appState.projects = appState.projects.filter(p => !toDelete.has(p.id));
-
-                if (appState.projects.length === 0) {
-                    loadDefaultData();
-                } else if (toDelete.has(appState.activeProjectId)) {
-                    appState.activeProjectId = appState.projects[0].id;
-                }
-
-                saveStateLocally();
-                renderApp();
-            }
-        }
-
-        // --- 4. Web Audio Synthesis Engine ---
-        let audioCtx = null;
-        function getAudioContext() { 
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
-            return audioCtx; 
-        }
-
-        function playSound(type) {
-            if (appState.audioMuted) return;
-            try {
-                const ctx = getAudioContext(); 
-                if (ctx.state === 'suspended') ctx.resume();
-                const now = ctx.currentTime;
-                const family = appState.audioFamily || 'woodblock';
-                const vol = (appState.audioVolume / 100);
-
-                if (type === 'start') {
-                    if (family === 'pip') {
-                        const osc = ctx.createOscillator(), g = ctx.createGain();
-                        osc.type = 'square'; osc.frequency.setValueAtTime(659.25, now);
-                        g.gain.setValueAtTime(0.12 * vol, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-                        osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now + 0.07);
-                    } else if (family === 'woodblock') {
-                        const osc = ctx.createOscillator(), g = ctx.createGain();
-                        osc.type = 'triangle'; osc.frequency.setValueAtTime(750, now);
-                        g.gain.setValueAtTime(0.35 * vol, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                        osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now + 0.09);
-                    } else {
-                        const osc = ctx.createOscillator(), g = ctx.createGain();
-                        osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, now);
-                        g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.3 * vol, now + 0.04);
-                        g.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-                        osc.connect(g); g.connect(ctx.destination); osc.start(now); osc.stop(now + 1.25);
-                    }
-                } else if (type === 'complete') {
-                    if (family === 'pip') {
-                        [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
-                            const osc = ctx.createOscillator(), g = ctx.createGain();
-                            osc.type = 'square'; osc.frequency.setValueAtTime(f, now + i*0.1);
-                            g.gain.setValueAtTime(0.08 * vol, now + i*0.1); g.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.25);
-                            osc.connect(g); g.connect(ctx.destination); osc.start(now + i*0.1); osc.stop(now + i*0.1 + 0.26);
-                        });
-                    } else if (family === 'woodblock') {
-                        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-                            const osc = ctx.createOscillator(), g = ctx.createGain();
-                            osc.type = 'triangle'; osc.frequency.setValueAtTime(f, now + i*0.18);
-                            g.gain.setValueAtTime(0.3 * vol, now + i*0.18); g.gain.exponentialRampToValueAtTime(0.001, now + i*0.18 + 0.4);
-                            osc.connect(g); g.connect(ctx.destination); osc.start(now + i*0.18); osc.stop(now + i*0.18 + 0.41);
-                        });
-                    } else {
-                        [440.00, 554.37, 659.25, 880.00].forEach((f, i) => {
-                            const osc = ctx.createOscillator(), g = ctx.createGain();
-                            osc.type = 'sine'; osc.frequency.setValueAtTime(f, now + i*0.25);
-                            g.gain.setValueAtTime(0, now + i*0.25); g.gain.linearRampToValueAtTime(0.2 * vol, now + i*0.25 + 0.05);
-                            g.gain.exponentialRampToValueAtTime(0.001, now + i*0.25 + 1.8);
-                            osc.connect(g); g.connect(ctx.destination); osc.start(now + i*0.25); osc.stop(now + i*0.25 + 1.85);
-                        });
-                    }
-                }
-            } catch(e) {}
-        }
-
-        function toggleMuteAudio() {
-            appState.audioMuted = !appState.audioMuted;
-            const btn = document.getElementById('btn-mute-toggle');
-            const icon = document.getElementById('audio-icon-display');
-            if (btn) {
-                btn.classList.toggle('bg-rose-100', appState.audioMuted);
-                btn.textContent = appState.audioMuted ? "Unmute" : "Mute";
-            }
-            if (icon) icon.setAttribute('data-lucide', appState.audioMuted ? "volume-x" : "volume-2");
-            safeCreateIcons();
-            saveStateLocally();
-        }
-
-        function updateVolume(val) {
-            appState.audioVolume = parseInt(val);
-            document.getElementById('volume-label').textContent = val + '%';
-            saveStateLocally();
-        }
-
-        function changeAudioFamily(val) {
-            appState.audioFamily = val;
-            playSound('start');
-            saveStateLocally();
-        }
-
-        function updateBloomOpacity(val) {
-            const intVal = parseInt(val);
-            appState.bloomOpacity = intVal;
-            document.documentElement.style.setProperty('--bloom-opacity', (intVal / 100).toString());
-            document.getElementById('bloom-val-label').textContent = intVal + '%';
-            saveStateLocally();
-        }
-
-        function updateJitterAudioSettings() {
-            appState.jitterAudioBase = parseInt(document.getElementById('jitter-audio-base').value);
-            appState.jitterAudioWindow = parseInt(document.getElementById('jitter-audio-window').value);
-            saveStateLocally();
-            if (isPlaying) scheduleNextAudioJitter();
-        }
-
-        function scheduleNextAudioJitter() {
-            if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
-            if (!isPlaying) return;
-            const base = appState.jitterAudioBase || 300;
-            const windowSec = appState.jitterAudioWindow || 30;
-            const offset = Math.floor(Math.random() * (windowSec * 2 + 1)) - windowSec;
-            const intervalMs = Math.max(10, (base + offset)) * 1000;
-            jitterAudioTimer = setTimeout(() => {
-                if (isPlaying) {
-                    playSound('start');
-                    scheduleNextAudioJitter();
-                }
-            }, intervalMs);
-        }
-
-        function scheduleNextMascotJitter() {
-            if (jitterMascotTimer) clearTimeout(jitterMascotTimer);
-            const activeProject = getActiveProject();
-            const rootProj = getRootProject(activeProject);
-            if (!rootProj || !rootProj.activeMascotId || typeof mascotDatabase === 'undefined') return;
-            const mode = appState.mascotBehavior;
-            if (mode !== 'roam' && mode !== 'float') return;
-
-            const freqOptions = [15, 30, 60];
-            const baseFreq = freqOptions[Math.floor(Math.random() * freqOptions.length)];
-            const offset = Math.floor(Math.random() * 11) - 5;
-            const intervalMs = Math.max(5, (baseFreq + offset)) * 1000;
-
-            jitterMascotTimer = setTimeout(() => {
-                if (rootProj && rootProj.activeMascotId && (appState.mascotBehavior === 'roam' || appState.mascotBehavior === 'float')) {
-                    if (Math.random() > 0.5) {
-                        const emotes = ['heart', 'lightbulb', 'music', 'smile', 'coffee', 'flame', 'trophy'];
-                        triggerEmote(emotes[Math.floor(Math.random() * emotes.length)]);
-                    } else {
-                        const anims = ['squish', 'hop', 'frontflip', 'backflip'];
-                        triggerMascotAnim(anims[Math.floor(Math.random() * anims.length)]);
-                    }
-                    scheduleNextMascotJitter();
-                }
-            }, intervalMs);
-        }
-
-        // --- 5. Operational Clock & Time-Blindness Sweep ---
-        function toggleTimer() {
-            const task = getActiveTask(); 
-            if (!task || task.isCompleted) return;
-
-            if (isPlaying) {
-                // Intercept pause with "Park & Resume" context anchor
-                openParkModal();
-                return;
-            }
-
-            // Start timer
-            isPlaying = true;
-            activeSessionStart = new Date();
-            if (!task.startedAt) task.startedAt = new Date().toISOString();
-            renderTimerVisuals();
-            playSound('start');
-            timerInterval = setInterval(timerTick, 1000);
-            scheduleNextAudioJitter();
-        }
-
-        function timerTick() {
-            const p = getActiveProject(), t = getActiveTask();
-            if (!t || t.isCompleted) { if (isPlaying) forcePause(); return; }
-            t.actualTime += 1;
-            p.totalTimeSpent += 1;
-            tickCounter++;
-            if (tickCounter >= 5) {
-                saveStateLocally(); // Local save only: strictly no Firestore write loops
-                tickCounter = 0;
-            }
-            updateTimerTexts(p, t);
-        }
-
-        function forcePause() {
-            if (!isPlaying) return;
-            isPlaying = false;
-            clearInterval(timerInterval);
-            if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
-
-            // Log session telemetry
-            if (activeSessionStart) {
-                const duration = Math.round((Date.now() - activeSessionStart.getTime()) / 1000);
-                logSessionTelemetry(getActiveTask()?.id, getActiveProject()?.id, duration, false);
-                activeSessionStart = null;
-            }
-
-            renderTimerVisuals();
-            saveStateLocally();
-        }
-
-        function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
-            if (!durationSec || durationSec < 4) return;
-            appState.sessionLogs = appState.sessionLogs || [];
-            appState.sessionLogs.push({
-                id: 'sess-' + generateId(),
-                taskId: taskId,
-                projectId: projectId,
-                startedAt: new Date(Date.now() - durationSec * 1000).toISOString(),
-                endedAt: new Date().toISOString(),
-                durationSeconds: durationSec,
-                mode: activeSessionMode || 'focus',
-                completedTask: completed
-            });
-            saveStateLocally();
-        }
-
-        function completeActiveTask() {
-            const t = getActiveTask(), p = getActiveProject();
-            if (!t || t.isCompleted) return;
-            if (isPlaying) forcePause();
-            t.isCompleted = true;
-            t.completionDate = new Date().toISOString();
-            playSound('complete');
-            confetti({ particleCount: 80, spread: 60 });
-            logSessionTelemetry(t.id, p.id, t.actualTime, true);
-            saveStateLocally();
-            setTimeout(() => {
-                p.activeTaskId = (p.tasks.find(x => !x.isCompleted) || {}).id || null;
-                saveStateLocally();
-                renderApp();
-            }, 1000);
-            renderApp();
-        }
-
-        // Updates analog radial ring & overtime flow zone
-        function updateTimerTexts(p, task) {
-            document.getElementById('active-timer-display').textContent = formatTimeCompact(task.actualTime);
-            document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
-            document.getElementById('active-timer-estimate').textContent = task.estimatedTime > 0 ? `Target: ${Math.round(task.estimatedTime/60)}m` : 'Open ended';
-
-            const zenDisplay = document.getElementById('zen-timer-display'); 
-            if (zenDisplay) zenDisplay.textContent = formatTimeCompact(task.actualTime);
-
-            // Radial sweep calculation: circumference = 2 * PI * 148 ≈ 930
-            const c = 930;
-            const target = task.estimatedTime > 0 ? task.estimatedTime : 1800;
-            const arc = document.getElementById('radial-progress-arc');
-            const halo = document.getElementById('radial-overtime-halo');
-            const stateText = document.getElementById('timer-state-text');
-            const timerBtn = document.getElementById('main-timer-btn');
-            const zenBtn = document.getElementById('zen-timer-btn');
-
-            if (arc) {
-                const progress = Math.min(task.actualTime / target, 1.0);
-                arc.style.strokeDashoffset = (c * (1 - progress)).toString();
-
-                if (task.actualTime <= target) {
-                    arc.style.stroke = isPlaying ? '#10b981' : '#f43f5e';
-                    if (halo) halo.classList.add('opacity-0');
-                    if (stateText) stateText.textContent = isPlaying ? 'Active' : 'Paused';
-                    if (timerBtn) {
-                        timerBtn.classList.remove('timer-amber-container');
-                        timerBtn.classList.toggle('timer-green-container', isPlaying);
-                        timerBtn.classList.toggle('timer-red-container', !isPlaying);
-                    }
-                    if (zenBtn) {
-                        zenBtn.classList.remove('timer-amber-container');
-                        zenBtn.classList.toggle('timer-green-container', isPlaying);
-                        zenBtn.classList.toggle('timer-red-container', !isPlaying);
-                    }
-                } else {
-                    // Gentle Amber Overtime Halo (Flow Zone)
-                    const overtime = task.actualTime - target;
-                    arc.style.stroke = '#f59e0b';
-                    if (halo) {
-                        const haloC = 980;
-                        const otProgress = Math.min(overtime / target, 1.0);
-                        halo.style.strokeDashoffset = (haloC * (1 - otProgress)).toString();
-                        halo.classList.remove('opacity-0');
-                        halo.classList.add('overtime-pulse');
-                    }
-                    if (stateText) {
-                        stateText.textContent = `Flow Zone (+${formatTimeCompact(overtime)})`;
-                    }
-                    if (timerBtn) {
-                        timerBtn.classList.remove('timer-green-container', 'timer-red-container');
-                        timerBtn.classList.add('timer-amber-container');
-                    }
-                    if (zenBtn) {
-                        zenBtn.classList.remove('timer-green-container', 'timer-red-container');
-                        zenBtn.classList.add('timer-amber-container');
-                    }
-                }
-            }
-        }
-
-        // --- 6. Park & Resume Anchor Handlers ---
-        function openParkModal() {
-            const modal = document.getElementById('park-resume-modal');
-            if (!modal) { forcePause(); return; }
-            document.getElementById('park-stopped-input').value = '';
-            document.getElementById('park-next60s-input').value = '';
-            modal.classList.remove('hidden');
-            document.getElementById('park-stopped-input').focus();
-        }
-
-        function dismissParkModal() {
-            document.getElementById('park-resume-modal').classList.add('hidden');
-            forcePause();
-        }
-
-        function confirmParkAndPause() {
-            const task = getActiveTask();
-            if (task) {
-                const stopped = document.getElementById('park-stopped-input').value.trim();
-                const next60s = document.getElementById('park-next60s-input').value.trim();
-                task.lastParkedContext = {
-                    whereStopped: stopped || 'Mid-flow work',
-                    next60sAction: next60s || 'Resume central focus',
-                    parkedAt: new Date().toISOString()
-                };
-                task.pausedAt = new Date().toISOString();
-            }
-            document.getElementById('park-resume-modal').classList.add('hidden');
-            forcePause();
-            renderApp();
-        }
-
-        function executeLaunchpadResume() {
-            const task = getActiveTask();
-            if (task) {
-                task.lastParkedContext = null;
-                saveStateLocally();
-            }
-            renderApp();
-            if (!isPlaying) toggleTimer();
-        }
-
-        function dismissLaunchpad() {
-            const task = getActiveTask();
-            if (task) {
-                task.lastParkedContext = null;
-                saveStateLocally();
-            }
-            renderApp();
-        }
-
-        // --- 7. Micro-Step Decomposer Handlers ---
-        function renderMicroSteps(task) {
-            const list = document.getElementById('active-task-microsteps-list');
-            const summary = document.getElementById('microstep-summary');
-            if (!list || !summary) return;
-            if (!task) {
-                list.innerHTML = `<p class="text-[11px] text-slate-400 italic">Select a task to decompose.</p>`;
-                summary.textContent = '0/0 done';
-                return;
-            }
-            task.microSteps = task.microSteps || [];
-            const completed = task.microSteps.filter(s => s.isCompleted).length;
-            summary.textContent = `${completed}/${task.microSteps.length} done`;
-
-            list.innerHTML = task.microSteps.map((s, idx) => `
-                <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 text-xs">
-                    <label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                        <input type="checkbox" ${s.isCompleted ? 'checked' : ''} onchange="toggleMicroStep('${s.id}')" class="rounded text-brand-600 focus:ring-0">
-                        <span class="${s.isCompleted ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} truncate">${s.title}</span>
-                    </label>
-                    <button onclick="deleteMicroStep('${s.id}')" class="text-slate-300 hover:text-rose-500 p-1"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
-                </div>
-            `).join('');
-            safeCreateIcons();
-        }
-
-        function addPresetMicroStep(title, mins) {
-            const task = getActiveTask();
-            if (!task) return;
-            task.microSteps = task.microSteps || [];
-            task.microSteps.push({ id: 'ms-' + generateId(), title: `${title} (${mins}m)`, isCompleted: false });
-            saveStateLocally();
-            renderMicroSteps(task);
-        }
-
-        function addCustomMicroStep() {
-            const input = document.getElementById('custom-microstep-input');
-            const val = input.value.trim();
-            const task = getActiveTask();
-            if (!val || !task) return;
-            task.microSteps = task.microSteps || [];
-            task.microSteps.push({ id: 'ms-' + generateId(), title: val, isCompleted: false });
-            input.value = '';
-            saveStateLocally();
-            renderMicroSteps(task);
-        }
-
-        function toggleMicroStep(stepId) {
-            const task = getActiveTask();
-            if (!task) return;
-            const s = (task.microSteps || []).find(x => x.id === stepId);
-            if (s) {
-                s.isCompleted = !s.isCompleted;
-                if (s.isCompleted) {
-                    playSound('complete');
-                    confetti({ particleCount: 40, spread: 45 });
-                }
-                saveStateLocally();
-                renderMicroSteps(task);
-            }
-        }
-
-        function deleteMicroStep(stepId) {
-            const task = getActiveTask();
-            if (!task) return;
-            task.microSteps = (task.microSteps || []).filter(x => x.id !== stepId);
-            saveStateLocally();
-            renderMicroSteps(task);
-        }
-
-        // --- 8. Distraction Scratchpad Drawer (Alt + S) ---
-        function toggleScratchpadModal() {
-            const modal = document.getElementById('scratchpad-modal');
-            modal.classList.toggle('hidden');
-            if (!modal.classList.contains('hidden')) {
-                renderScratchpadList();
-                document.getElementById('scratchpad-input').focus();
-            }
-        }
-
-        function submitScratchpadItem() {
-            const input = document.getElementById('scratchpad-input');
-            const text = input.value.trim();
-            if (!text) return;
-            appState.scratchpad = appState.scratchpad || [];
-            appState.scratchpad.unshift({
-                id: 'sp-' + generateId(),
-                text: text,
-                createdAt: new Date().toISOString(),
-                relatedTaskId: getActiveTask()?.id || null
-            });
-            input.value = '';
-            saveStateLocally();
-            renderScratchpadList();
-        }
-
-        function renderScratchpadList() {
-            const container = document.getElementById('scratchpad-items-list');
-            if (!container) return;
-            const items = appState.scratchpad || [];
-            if (items.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center italic">No thoughts captured yet.</p>`;
-                return;
-            }
-            container.innerHTML = items.map(item => `
-                <div class="flex items-center justify-between py-2 text-xs">
-                    <span class="text-slate-700 flex-1 truncate pr-2">${item.text}</span>
-                    <div class="flex items-center gap-1 shrink-0">
-                        <button onclick="convertScratchpadToTask('${item.id}')" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded text-[10px] font-bold">To Task</button>
-                        <button onclick="deleteScratchpadItem('${item.id}')" class="text-slate-400 hover:text-rose-500 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-                    </div>
-                </div>
-            `).join('');
-            safeCreateIcons();
-        }
-
-        function convertScratchpadToTask(itemId) {
-            const item = (appState.scratchpad || []).find(x => x.id === itemId);
-            const p = getActiveProject();
-            if (!item || !p) return;
-            if (hasSubProjects(p.id)) { alert("Select a leaf sub-project first."); return; }
-            p.tasks.push({
-                id: 't-' + generateId(),
-                title: item.text,
-                estimatedTime: 15 * 60,
-                actualTime: 0,
-                isCompleted: false,
-                deadline: '',
-                notes: 'Created from scratchpad',
-                createdAt: new Date().toISOString(),
-                microSteps: [],
-                lastParkedContext: null
-            });
-            deleteScratchpadItem(itemId);
-            renderApp();
-        }
-
-        function deleteScratchpadItem(itemId) {
-            appState.scratchpad = (appState.scratchpad || []).filter(x => x.id !== itemId);
-            saveStateLocally();
-            renderScratchpadList();
-        }
-
-        // Global hotkey listener (Alt + S)
-        window.addEventListener('keydown', (e) => {
-            if (e.altKey && (e.key === 's' || e.key === 'S')) {
-                e.preventDefault();
-                toggleScratchpadModal();
-            }
-        });
-
-        // --- 9. Zen Mode & Animations ---
-        function openZenView() {
-            activeSessionMode = 'zen';
-            const task = getActiveTask();
-            const p = getActiveProject();
-            document.getElementById('zen-active-task-title').textContent = task ? `${task.title} (${p.title})` : p.title;
-            document.getElementById('zen-task-notes').textContent = task && task.notes ? task.notes : (p.notes || 'No notes attached.');
-            document.getElementById('zen-overlay').classList.remove('hidden');
-            applyStageStyle(appState.pickerPrimary, appState.pickerSecondary, appState.pickerTertiary, appState.selectPattern);
-            renderMascotStage();
-            renderTimerVisuals();
-            safeCreateIcons();
-        }
-
-        function closeZenView() {
-            activeSessionMode = 'focus';
-            document.getElementById('zen-overlay').classList.add('hidden');
-        }
-
-        function setMascotBehavior(mode) {
-            appState.mascotBehavior = mode;
-            const roam = document.getElementById('mascot-roam-wrapper');
-            const zParticle = document.getElementById('sleep-particle-z');
-
-            ['still', 'roam', 'float', 'sleep'].forEach(m => {
-                const btn = document.getElementById(`btn-beh-${m}`);
-                if (btn) btn.className = m === mode ? "px-2.5 py-1 rounded bg-indigo-600 text-white shadow" : "px-2.5 py-1 rounded text-slate-400";
-            });
-
-            if (roam) {
-                roam.classList.remove('mascot-roam', 'mascot-float');
-                if (mode === 'still') {
-                    roam.style.top = '2rem'; roam.style.left = '2rem'; roam.style.transform = 'none';
-                } else if (mode === 'roam') {
-                    roam.style.top = '50%'; roam.style.left = '2.5rem'; roam.classList.add('mascot-roam');
-                } else if (mode === 'float') {
-                    roam.style.top = '30%'; roam.style.left = '5rem'; roam.classList.add('mascot-float');
-                }
-            }
-
-            if (zParticle) zParticle.classList.add('hidden');
-            toggleSleepingEyes(false);
-            if (mode === 'sleep') {
-                if (zParticle) zParticle.classList.remove('hidden');
-                toggleSleepingEyes(true);
-            }
-            scheduleNextMascotJitter();
-            saveStateLocally();
-        }
-
-        function setMascotScale(scale) {
-            appState.mascotScale = scale;
-            const wrap = document.getElementById('mascot-scale-wrapper');
-            if (wrap) wrap.style.transform = `scale(${scale})`;
-            const sel = document.getElementById('mascot-scale-select');
-            if (sel) sel.value = scale.toFixed(1);
-            saveStateLocally();
-        }
-
-        function triggerMascotAnim(type) {
-            const anim = document.getElementById('mascot-anim-wrapper');
-            if (!anim) return;
-            anim.classList.remove('anim-squish', 'anim-hop', 'anim-frontflip', 'anim-backflip');
-            void anim.offsetWidth;
-            anim.classList.add(`anim-${type}`);
-            playSound('start');
-        }
-
-        function triggerEmote(iconName) {
-            const container = document.getElementById('emote-pop-container');
-            if (!container) return;
-            const iconStyles = {
-                'heart': { color: 'text-rose-500', fill: 'fill-rose-500' },
-                'lightbulb': { color: 'text-amber-500', fill: 'fill-amber-400' },
-                'music': { color: 'text-sky-500', fill: '' },
-                'smile': { color: 'text-emerald-500', fill: '' },
-                'coffee': { color: 'text-amber-800', fill: '' },
-                'flame': { color: 'text-orange-500', fill: 'fill-orange-500' },
-                'trophy': { color: 'text-yellow-500', fill: 'fill-yellow-400' }
-            };
-            const style = iconStyles[iconName] || { color: 'text-indigo-500', fill: '' };
-            container.className = `emote-icon ${style.color}`;
-            container.innerHTML = `<i data-lucide="${iconName}" class="w-7 h-7 ${style.fill}"></i>`;
-            safeCreateIcons();
-            container.classList.remove('anim-emote');
-            void container.offsetWidth;
-            container.classList.add('anim-emote');
-        }
-
-        function toggleSleepingEyes(isSleeping) {
-            document.querySelectorAll('.rig-eye').forEach(e => {
-                e.style.transform = isSleeping ? 'scaleY(0.1)' : 'scaleY(1.0)';
-            });
-        }
-
-        function unlockAllMascotsTest() {
-            getRootProject(getActiveProject()).unlockAllMascotsTest = true;
-            saveStateLocally();
-            renderMascotStage();
-        }
-
-        function toggleHideUnlockBtn() {
-            appState.hideUnlockBtn = !appState.hideUnlockBtn;
-            saveStateLocally();
-            renderMascotStage();
-        }
-
-        function removeCompanion() {
-            syncHeaderInputsToState();
-            getRootProject(getActiveProject()).activeMascotId = null;
-            saveStateLocally();
-            renderApp();
-        }
-
-        function selectMascotCompanion(id) {
-            syncHeaderInputsToState();
-            getRootProject(getActiveProject()).activeMascotId = id;
-            saveStateLocally();
-            renderApp();
-        }
-
-        function onCustomColorChange() {
-            const p = document.getElementById('picker-primary').value;
-            const s = document.getElementById('picker-secondary').value;
-            const t = document.getElementById('picker-tertiary').value;
-            const style = document.getElementById('select-pattern').value;
-            appState.pickerPrimary = p; appState.pickerSecondary = s; appState.pickerTertiary = t; appState.selectPattern = style;
-            saveStateLocally();
-            applyStageStyle(p, s, t, style);
-        }
-
-        function applyStageStyle(p, s, t, style) {
-            const zen = document.getElementById('zen-overlay'); if (!zen) return;
-            if (style === 'solid') zen.style.background = p;
-            else if (style === 'linear-vert') zen.style.background = `linear-gradient(180deg, ${p} 0%, ${s} 100%)`;
-            else if (style === 'linear-diag') zen.style.background = `linear-gradient(135deg, ${p} 0%, ${s} 50%, ${t} 100%)`;
-            else if (style === 'radial-center') zen.style.background = `radial-gradient(circle at center, ${t} 0%, ${s} 55%, ${p} 100%)`;
-            else if (style === 'spotlight') zen.style.background = `radial-gradient(circle at 80% 20%, ${t} 0%, ${s} 45%, ${p} 90%)`;
-            else if (style === 'mesh') zen.style.background = `radial-gradient(at 0% 0%, ${t} 0px, transparent 50%), radial-gradient(at 100% 100%, ${s} 0px, transparent 50%), ${p}`;
-        }
-
-        // --- 10. 20-Metric ADHD Analytics Engine ---
-        function renderAnalytics(days) {
-            document.querySelectorAll('.analytics-tab').forEach(t => {
-                const tabDays = parseInt(t.dataset.days);
-                t.className = tabDays === days 
-                    ? "analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg bg-slate-800 text-white transition-colors shadow-sm"
-                    : "analytics-tab px-4 py-1.5 text-xs font-bold rounded-lg text-slate-500 hover:text-slate-800 transition-colors";
-            });
-
-            const now = new Date();
-            const cutoff = days === 9999 ? new Date(0) : new Date(now.getTime() - days * 86400000);
-            const logs = (appState.sessionLogs || []).filter(l => new Date(l.endedAt) >= cutoff);
-            const allProjects = appState.projects || [];
-            const allTasks = allProjects.flatMap(p => (p.tasks || []).map(t => ({ ...t, projectId: p.id, projectTitle: p.title })));
-
-            // 1. Total Time, Completed Tasks, Accuracy
-            let totalTimeSec = 0, completedTasks = 0, estTimeSec = 0;
-            let logsHTML = '', dateBuckets = {};
-
-            allTasks.forEach(t => {
-                if (t.isCompleted && t.completionDate) {
-                    const cDate = new Date(t.completionDate);
-                    if (days === 9999 || cDate >= cutoff) {
-                        totalTimeSec += t.actualTime;
-                        completedTasks++;
-                        estTimeSec += t.estimatedTime;
-                        logsHTML += `<div class="px-6 py-3 flex justify-between items-center text-xs">
-                            <span class="font-semibold text-slate-700 flex items-center gap-2">
-                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-500"></i> ${t.title}
-                                <span class="text-[10px] text-slate-400 font-normal">(${t.projectTitle})</span>
-                            </span>
-                            <span class="text-slate-500 font-mono">${formatTimeCompact(t.actualTime)}</span>
-                        </div>`;
-                    }
-                    const dStr = getLocalFormattedDate(cDate);
-                    dateBuckets[dStr] = (dateBuckets[dStr] || 0) + t.actualTime;
-                }
-            });
-
-            document.getElementById('stat-total-time').textContent = formatTimeHuman(totalTimeSec);
-            document.getElementById('stat-tasks-done').textContent = completedTasks;
-            const accuracy = estTimeSec === 0 ? 0 : Math.round((totalTimeSec / estTimeSec) * 100);
-            document.getElementById('stat-accuracy').textContent = Math.min(accuracy, 200) + '%';
-            document.getElementById('analytics-log-container').innerHTML = logsHTML || `<div class="p-6 text-xs text-slate-400 text-center">No completed tasks recorded in this time range.</div>`;
-
-            // 2. Rolling Momentum Battery (Replaces Streak Anxiety)
-            const DAILY_TARGET = 1500; // 25 minutes
-            const rollingBuckets = new Map();
-            for (let i = 0; i < 7; i++) {
-                const d = new Date(now.getTime() - i * 86400000);
-                rollingBuckets.set(d.toISOString().split('T')[0], 0);
-            }
-            (appState.sessionLogs || []).forEach(l => {
-                const ds = l.endedAt.split('T')[0];
-                if (rollingBuckets.has(ds)) rollingBuckets.set(ds, rollingBuckets.get(ds) + l.durationSeconds);
-            });
-            let weightedEffort = 0;
-            rollingBuckets.forEach(sec => { weightedEffort += Math.min(sec, DAILY_TARGET); });
-            const batteryPct = Math.min(100, Math.round((weightedEffort / (5 * DAILY_TARGET)) * 100));
-            document.getElementById('stat-battery-pct').textContent = batteryPct + '%';
-            document.getElementById('stat-battery-bar').style.width = batteryPct + '%';
-
-            // 3. Task Complexity Index (TCI)
-            const validTasks = allTasks.filter(t => t.actualTime > 0);
-            const sprints = validTasks.filter(t => t.actualTime < 900).length;
-            const deepWork = validTasks.filter(t => t.actualTime >= 2700).length;
-            const tci = (sprints + deepWork) > 0 ? (deepWork / (sprints + deepWork)).toFixed(2) : '0.0';
-            document.getElementById('stat-tci').textContent = tci;
-
-            // 4. Time-Blindness Underestimated Count
-            const underest = allTasks.filter(t => t.isCompleted && t.estimatedTime > 0 && ((t.actualTime - t.estimatedTime) / t.estimatedTime) > 0.25).length;
-            document.getElementById('stat-underestimated-count').textContent = underest;
-
-            // 5. Context Switching Density
-            let switches = 0;
-            const totalHours = logs.reduce((acc, l) => acc + l.durationSeconds, 0) / 3600;
-            for (let i = 1; i < logs.length; i++) {
-                if (logs[i].taskId !== logs[i - 1].taskId) switches++;
-            }
-            const density = totalHours > 0 ? (switches / totalHours).toFixed(1) : '0';
-            document.getElementById('stat-switching-density').textContent = `${density}/hr`;
-
-            // 6. Zen Mode Ratio
-            const zenSec = logs.filter(l => l.mode === 'zen').reduce((acc, l) => acc + l.durationSeconds, 0);
-            const zenRatio = totalTimeSec > 0 ? Math.round((zenSec / totalTimeSec) * 100) : 0;
-            document.getElementById('stat-zen-ratio').textContent = `${zenRatio}% Zen`;
-
-            // 7. Weekend vs Weekday Split
-            let weekdaySec = 0, weekendSec = 0;
-            logs.forEach(l => {
-                const day = new Date(l.endedAt).getDay();
-                if (day === 0 || day === 6) weekendSec += l.durationSeconds; else weekdaySec += l.durationSeconds;
-            });
-            const splitTotal = weekdaySec + weekendSec;
-            const wkEndPct = splitTotal > 0 ? Math.round((weekendSec / splitTotal) * 100) : 0;
-            const wkDayPct = splitTotal > 0 ? Math.round((weekdaySec / splitTotal) * 100) : 0;
-            document.getElementById('stat-weekend-split').textContent = `${wkDayPct}% Wk / ${wkEndPct}% End`;
-
-            // 8. Circadian Focus Heatmap (24 hours)
-            const hours = new Array(24).fill(0);
-            logs.forEach(l => {
-                const h = new Date(l.startedAt || l.endedAt).getHours();
-                hours[h] += Math.round(l.durationSeconds / 60);
-            });
-            const maxH = Math.max(...hours, 1);
-            const peakH = hours.indexOf(Math.max(...hours));
-            document.getElementById('stat-circadian-peak').textContent = hours[peakH] > 0 ? `${peakH}:00 - ${peakH+1}:00` : 'Logging sessions...';
-            document.getElementById('circadian-bars-grid').innerHTML = hours.map(m => {
-                const heightPct = Math.round((m / maxH) * 100);
-                return `<div class="h-10 bg-slate-100 rounded-sm flex items-end overflow-hidden"><div class="w-full bg-amber-500 rounded-sm" style="height: ${heightPct}%" title="${m} mins"></div></div>`;
-            }).join('');
-
-            // 9. Dormant Projects Monitor (Object Permanence Guardian)
-            const dormantList = document.getElementById('dormant-projects-list');
-            const dormantProjects = allProjects.filter(p => !p.completedAt).map(p => {
-                const times = (p.tasks || []).map(t => new Date(t.completionDate || t.createdAt || 0).getTime());
-                const last = times.length > 0 ? Math.max(...times) : new Date(p.createdAt || 0).getTime();
-                const daysDormant = Math.floor((now.getTime() - last) / 86400000);
-                return { ...p, daysDormant };
-            }).filter(p => p.daysDormant >= 14);
-
-            if (dormantProjects.length === 0) {
-                dormantList.innerHTML = `<p class="text-xs text-slate-400 italic">All projects have had recent momentum. Zero dormant containers.</p>`;
-            } else {
-                dormantList.innerHTML = dormantProjects.map(p => `
-                    <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                        <span class="font-bold text-slate-700">${p.title} (${p.daysDormant} days untouched)</span>
-                        <div class="flex gap-2">
-                            <button onclick="selectProject('${p.id}'); switchView('focus')" class="px-2.5 py-1 bg-brand-600 text-white font-bold rounded-lg text-[10px]">Reactivate</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            // 10. 30-Day Activity Heatmap
-            let heatmapHTML = '';
-            for (let i = 29; i >= 0; i--) {
-                let d = new Date(now.getTime() - i * 86400000);
-                let ds = getLocalFormattedDate(d);
-                let time = dateBuckets[ds] || 0;
-                let color = 'bg-slate-100';
-                if (time > 0 && time <= 600) color = 'bg-emerald-200';
-                else if (time > 600 && time <= 1800) color = 'bg-emerald-300';
-                else if (time > 1800 && time <= 3600) color = 'bg-emerald-400';
-                else if (time > 3600 && time <= 7200) color = 'bg-emerald-500';
-                else if (time > 7200) color = 'bg-emerald-600';
-                heatmapHTML += `<div class="w-full h-8 ${color} rounded-lg" title="${ds}: ${formatTimeHuman(time)}"></div>`;
-            }
-            document.getElementById('heatmap-grid').innerHTML = heatmapHTML;
-            safeCreateIcons();
-        }
-
-        // --- 11. Render UI Engine ---
-        function renderApp() {
-            const p = getActiveProject(); if (!p) return;
-            renderSidebar();
-            renderHeader(p);
-            renderActiveTask(p);
-            renderMascotStage();
-            renderTaskList(p);
-            safeCreateIcons();
-        }
-
-        function renderSidebar() {
-            const container = document.getElementById('project-list-container');
-            function buildTreeHTML(parentId = null, depth = 0) {
-                const projectsAtLevel = appState.projects.filter(p => p.parentId === parentId);
-                if (projectsAtLevel.length === 0) return '';
-
-                return projectsAtLevel.map(p => {
-                    const isActive = p.id === appState.activeProjectId;
-                    const isCollapsed = appState.collapsedProjects && appState.collapsedProjects[p.id];
-                    const subProjects = appState.projects.filter(sp => sp.parentId === p.id);
-                    const hasSubs = subProjects.length > 0;
-                    
-                    const rootProj = getRootProject(p);
-                    const activeMascot = (rootProj.activeMascotId && typeof mascotDatabase !== 'undefined') ? mascotDatabase.find(m => m.id === rootProj.activeMascotId) : null;
-                    const cumulativeTime = getCumulativeTime(p.id);
-                    const indentPx = depth * 14;
-
-                    return `
-                    <div class="space-y-1">
-                        <div class="group relative rounded-xl p-2.5 cursor-pointer transition-all flex items-center justify-between ${isActive ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-slate-200/50'}"
-                             style="margin-left: ${indentPx}px"
-                             onclick="selectProject('${p.id}')">
-                            
-                            <div class="flex items-center gap-2 min-w-0 flex-1 pr-2">
-                                ${hasSubs ? `
-                                    <button onclick="toggleProjectCollapse('${p.id}', event)" class="p-0.5 hover:bg-slate-200 rounded text-slate-500 shrink-0">
-                                        <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
-                                    </button>
-                                ` : `<span class="w-3.5 shrink-0"></span>`}
-
-                                <div class="min-w-0 flex-1">
-                                    <div class="flex items-center gap-1.5">
-                                        <i data-lucide="${hasSubs ? 'folder-tree' : 'folder'}" class="w-3.5 h-3.5 shrink-0 ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i>
-                                        <h4 class="font-bold text-xs truncate ${isActive ? 'text-slate-900' : 'text-slate-700'}">${p.title}</h4>
-                                    </div>
-                                    <div class="text-[9px] text-slate-400 font-mono tracking-tight mt-0.5 ml-5">
-                                        ${formatTimeFull(cumulativeTime)}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-1 shrink-0">
-                                ${depth < 2 ? `
-                                <button onclick="createNewProject('${p.id}'); event.stopPropagation();" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-brand-50 text-brand-600 rounded transition-opacity" title="${depth === 0 ? 'Add Sub-Project' : 'Add Component Project'}">
-                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                                </button>
-                                ` : ''}
-                                
-                                <button onclick="deleteProject('${p.id}', event)" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-50 text-rose-500 rounded transition-opacity" title="Delete Project">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                </button>
-
-                                ${activeMascot ? `
-                                    <div class="w-6 h-6 ml-1 flex items-center justify-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0" title="Companion: ${activeMascot.name}">
-                                        ${activeMascot.svg}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-
-                        ${(!isCollapsed && hasSubs) ? buildTreeHTML(p.id, depth + 1) : ''}
-                    </div>`;
-                }).join('');
-            }
-            container.innerHTML = buildTreeHTML(null, 0);
-            safeCreateIcons();
-        }
-
-        function renderHeader(p) {
-            document.getElementById('project-title-input').value = p.title || '';
-            document.getElementById('project-goal-input').value = p.goal || '';
-            document.getElementById('project-deadline-input').value = p.deadline || '';
-            document.getElementById('project-notes-summary-input').value = p.notes || '';
-            document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
-        }
-
-        function renderActiveTask(p) {
-            const task = getActiveTask();
-            document.getElementById('active-task-title').textContent = task ? task.title : 'Select a task to begin';
-            
-            const taskNotesElem = document.getElementById('active-task-notes');
-            const taskDeadlineElem = document.getElementById('active-task-deadline');
-            if (taskNotesElem) taskNotesElem.value = task ? (task.notes || '') : '';
-            if (taskDeadlineElem) taskDeadlineElem.value = task ? (task.deadline || '') : '';
-
-            // Render Resumption Launchpad Banner if context exists
-            const bannerMount = document.getElementById('resumption-banner-mount');
-            if (bannerMount) {
-                if (task && task.lastParkedContext) {
-                    const ctx = task.lastParkedContext;
-                    bannerMount.innerHTML = `
-                    <div class="w-full bg-gradient-to-r from-amber-500/10 via-brand-500/10 to-indigo-500/10 border border-amber-500/30 rounded-2xl p-4 mb-4 backdrop-blur-md shadow-soft flex flex-col md:flex-row items-start md:items-center justify-between gap-4 font-sans-ui">
-                        <div class="flex items-start gap-3 min-w-0">
-                            <div class="p-2.5 bg-amber-500 text-white rounded-xl shadow shrink-0 mt-0.5"><i data-lucide="play-circle" class="w-5 h-5"></i></div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-[10px] font-extrabold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-full">Resumption Launchpad</span>
-                                    <span class="text-xs text-slate-500">Stopped: <strong>${ctx.whereStopped}</strong></span>
-                                </div>
-                                <p class="text-xs font-bold text-slate-800 mt-1">Next 60s: <span class="text-brand-600 underline">${ctx.next60sAction}</span></p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="executeLaunchpadResume()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5">
-                                <i data-lucide="play" class="w-3.5 h-3.5 fill-white"></i> Execute 60s Action
-                            </button>
-                            <button onclick="dismissLaunchpad()" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl"><i data-lucide="x" class="w-4 h-4"></i></button>
-                        </div>
-                    </div>`;
-                } else {
-                    bannerMount.innerHTML = '';
-                }
-            }
-
-            renderMicroSteps(task);
-            updateTimerTexts(p, task || { actualTime: 0, estimatedTime: 0 });
-        }
-
-        function renderMascotStage() {
-            if (typeof mascotDatabase === 'undefined') return;
-            const activeProject = getActiveProject();
-            const rootProj = getRootProject(activeProject);
-            const activeMascotId = rootProj.activeMascotId;
-
-            const mainMountWrapper = document.getElementById('main-mascot-mount-wrapper');
-            const mainMount = document.getElementById('main-mascot-mount');
-            const zenMount = document.getElementById('zen-mascot-mount');
-            const zenRoamWrapper = document.getElementById('mascot-roam-wrapper');
-
-            if (!activeMascotId) {
-                if (mainMountWrapper) mainMountWrapper.classList.add('hidden');
-                if (mainMount) mainMount.innerHTML = "";
-                if (zenMount) zenMount.innerHTML = "";
-                if (zenRoamWrapper) zenRoamWrapper.classList.add('hidden');
-            } else {
-                const activeMascot = mascotDatabase.find(m => m.id === activeMascotId) || mascotDatabase[0];
-                const mascotHTML = `<div class="w-16 h-16 flex items-center justify-center p-0.5 overflow-visible">${activeMascot.svg}</div>`;
-                if (mainMountWrapper) mainMountWrapper.classList.remove('hidden');
-                if (mainMount) mainMount.innerHTML = mascotHTML;
-                if (zenMount) zenMount.innerHTML = mascotHTML;
-                if (zenRoamWrapper) zenRoamWrapper.classList.remove('hidden');
-            }
-
-            setMascotBehavior(appState.mascotBehavior || 'roam');
-            setMascotScale(appState.mascotScale || 1.0);
-
-            const unlockBtn = document.getElementById('btn-unlock-all-mascots');
-            const hideBtn = document.getElementById('btn-hide-unlock');
-            if (appState.hideUnlockBtn) {
-                if (unlockBtn) unlockBtn.classList.add('hidden');
-                if (hideBtn) { hideBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i>`; hideBtn.title = "Show"; }
-            } else {
-                if (unlockBtn) unlockBtn.classList.remove('hidden');
-                if (hideBtn) { hideBtn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4"></i>`; hideBtn.title = "Hide"; }
-            }
-
-            const grid = document.getElementById('mascot-gallery-grid'); if (!grid) return;
-            const projectTime = getCumulativeTime(rootProj.id);
-
-            grid.innerHTML = mascotDatabase.map(m => {
-                const isSelected = m.id === activeMascotId;
-                const isUnlocked = rootProj.unlockAllMascotsTest || m.unlockSec === 0 || (projectTime >= m.unlockSec);
-                const assignedOther = appState.projects.find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
-
-                let statusText = `${m.shapes}`;
-                let cardClick = `selectMascotCompanion('${m.id}')`;
-                let cardClasses = "bg-slate-50 border-slate-200 hover:border-slate-300";
-
-                if (isSelected) cardClasses = "bg-indigo-50/80 border-indigo-500 shadow-sm scale-[1.02]";
-                else if (assignedOther) {
-                    cardClasses = "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed";
-                    cardClick = `alert('This mascot is assigned to: ${assignedOther.title}')`;
-                    statusText = "In Use";
-                } else if (!isUnlocked) {
-                    cardClasses = "opacity-40 grayscale cursor-not-allowed bg-slate-50 border-slate-200";
-                    cardClick = "";
-                }
-
-                return `
-                <div onclick="${cardClick}" class="p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center text-center ${cardClasses}">
-                    <div class="w-12 h-12 mascot-card-svg-wrapper flex items-center justify-center p-0.5 my-0.5 pointer-events-none">${m.svg}</div>
-                    <div class="text-[11px] font-bold text-slate-800 truncate w-full mt-1">${m.name}</div>
-                    <div class="text-[9px] font-mono text-slate-400 font-semibold truncate w-full">${statusText}</div>
-                </div>`;
-            }).join('');
-            safeCreateIcons();
-        }
-
-        function renderTaskList(p) {
-            const container = document.getElementById('task-list-container');
-            const addTaskContainer = document.getElementById('add-task-container');
-            const parentNotice = document.getElementById('parent-task-blocked-notice');
-            const isParent = hasSubProjects(p.id);
-
-            if (isParent) {
-                if (addTaskContainer) addTaskContainer.classList.add('hidden');
-                if (parentNotice) parentNotice.classList.remove('hidden');
-            } else {
-                if (addTaskContainer) addTaskContainer.classList.remove('hidden');
-                if (parentNotice) parentNotice.classList.add('hidden');
-            }
-
-            const total = p.tasks.length;
-            const completed = p.tasks.filter(t => t.isCompleted).length;
-            document.getElementById('task-progress-text').textContent = `${completed}/${total} Completed`;
-
-            container.innerHTML = p.tasks.map((t, idx) => {
-                const isActive = t.id === p.activeTaskId;
-                const estFmt = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
-                const actFmt = formatTimeCompact(t.actualTime);
-
-                return `
-                <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500' : 'border-slate-200'}">
-                    <span class="w-6 text-center text-xs font-bold font-mono text-slate-400">${idx + 1}</span>
-                    <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full border flex items-center justify-center ${t.isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
-                    <div class="flex-1 cursor-pointer min-w-0" onclick="selectTask('${t.id}')">
-                        <p class="text-xs font-semibold truncate ${t.isCompleted ? 'line-through text-slate-400' : ''}">${t.title}</p>
-                        <div class="flex items-center gap-2 mt-0.5">
-                            ${(t.microSteps && t.microSteps.length > 0) ? `<span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">${t.microSteps.filter(s=>s.isCompleted).length}/${t.microSteps.length} steps</span>` : ''}
-                            ${t.notes ? `<span class="text-[9px] text-slate-400 flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3"></i> Notes</span>` : ''}
-                            ${t.deadline ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-mono">${t.deadline}</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 shrink-0 font-mono text-xs">
-                        <span class="text-slate-700 font-semibold">${actFmt}</span>
-                        <span class="text-slate-300">/</span>
-                        <span class="text-slate-400">${estFmt}</span>
-                        <button onclick="deleteTask('${t.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Delete Task">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function renderTimerVisuals() {
-            const mainBtn = document.getElementById('main-timer-btn'), mainBloom = document.getElementById('inner-bloom-layer');
-            const zenBtn = document.getElementById('zen-timer-btn'), zenBloom = document.getElementById('zen-bloom-layer');
-            const state = isPlaying ? "Active" : "Paused";
-            if (document.getElementById('timer-state-text')) document.getElementById('timer-state-text').textContent = state;
-            if (document.getElementById('zen-timer-state')) document.getElementById('zen-timer-state').textContent = state;
-
-            [mainBtn, zenBtn].forEach(b => {
-                if (!b) return;
-                b.className = `relative flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 cursor-pointer outline-none overflow-hidden ${isPlaying ? 'timer-green-container' : 'timer-red-container'}`;
-            });
-            [mainBloom, zenBloom].forEach(bl => {
-                if (!bl) return;
-                if (isPlaying) bl.classList.add('zen-breathing-bloom'); else bl.classList.remove('zen-breathing-bloom');
-            });
-        }
-
-        function toggleTaskStatus(id) {
-            const p = getActiveProject(), t = p.tasks.find(x => x.id === id);
-            if (t) {
-                t.isCompleted = !t.isCompleted;
-                if (t.isCompleted) t.completionDate = new Date().toISOString();
-                saveStateLocally();
-                renderApp();
-            }
-        }
-
-        function selectProject(id) {
-            syncHeaderInputsToState();
-            appState.activeProjectId = id;
-            renderApp();
-        }
-
-        function selectTask(id) {
-            const p = getActiveProject();
-            p.activeTaskId = id;
-            renderApp();
-            const zt = document.getElementById('zen-active-task-title');
-            const zn = document.getElementById('zen-task-notes');
-            const t = getActiveTask();
-            if (zt) zt.textContent = t ? `${t.title} (${p.title})` : p.title;
-            if (zn) zn.textContent = t && t.notes ? t.notes : (p.notes || 'No notes attached.');
-        }
-
-        function handleAddTask() {
-            const inTitle = document.getElementById('new-task-title-input');
-            const inEst = document.getElementById('new-task-est-input');
-            const title = inTitle.value.trim(), estMins = parseInt(inEst.value);
-            const p = getActiveProject();
-            if (hasSubProjects(p.id)) { alert("Tasks only exist at the lowest project level."); return; }
-            if (!title) return;
-            if (!estMins || estMins <= 0) { alert("Target Time required!"); inEst.focus(); return; }
-
-            p.tasks.push({
-                id: 't-' + generateId(),
-                title: title,
-                estimatedTime: estMins * 60,
-                actualTime: 0,
-                isCompleted: false,
-                deadline: '',
-                notes: '',
-                createdAt: new Date().toISOString(),
-                microSteps: [],
-                lastParkedContext: null
-            });
-            if (!p.activeTaskId) p.activeTaskId = p.tasks[p.tasks.length - 1].id;
-            inTitle.value = ''; inEst.value = '';
-            saveStateLocally();
-            renderApp();
-        }
-
-        function deleteTask(taskId, e) {
-            if (e) e.stopPropagation();
-            const p = getActiveProject(); if (!p) return;
-            p.tasks = p.tasks.filter(t => t.id !== taskId);
-            if (p.activeTaskId === taskId) p.activeTaskId = p.tasks.length > 0 ? p.tasks[0].id : null;
-            saveStateLocally();
-            renderApp();
-        }
-
-        function switchView(view) {
-            syncHeaderInputsToState();
-            if (isPlaying) forcePause();
-            currentView = view;
-            document.getElementById('view-focus-container').classList.toggle('hidden', view !== 'focus');
-            document.getElementById('view-analytics-container').classList.toggle('hidden', view !== 'analytics');
-
-            const navF = document.getElementById('nav-focus');
-            const navA = document.getElementById('nav-analytics');
-            if (navF && navA) {
-                if (view === 'focus') {
-                    navF.className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5";
-                    navA.className = "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5";
-                    renderApp();
-                } else {
-                    navA.className = "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1.5";
-                    navF.className = "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1.5";
-                    renderAnalytics(7);
-                }
-            }
-            safeCreateIcons();
-        }
-
-        function toggleInstructionsModal() { document.getElementById('instructions-modal').classList.toggle('hidden'); }
-        function toggleBackdropModal() { document.getElementById('backdrop-modal').classList.toggle('hidden'); }
-        function toggleProjectNotesModal() {
-            const m = document.getElementById('project-notes-modal');
-            if (m.classList.contains('hidden')) {
-                document.getElementById('project-full-notes-textarea').value = getActiveProject().notes || '';
-            }
-            m.classList.toggle('hidden');
-        }
-        function saveFullProjectNotes() {
-            const p = getActiveProject();
-            p.notes = document.getElementById('project-full-notes-textarea').value;
-            document.getElementById('project-notes-summary-input').value = p.notes;
-            saveStateLocally();
-            toggleProjectNotesModal();
-        }
-
-        // Auto-save listeners on header text fields
-        ['project-title-input', 'project-goal-input', 'project-deadline-input', 'project-notes-summary-input'].forEach(id => {
-            const elem = document.getElementById(id);
-            if (elem) {
-                const handler = () => {
-                    const p = getActiveProject();
-                    if (id === 'project-title-input') p.title = elem.value;
-                    if (id === 'project-goal-input') p.goal = elem.value;
-                    if (id === 'project-deadline-input') p.deadline = elem.value;
-                    if (id === 'project-notes-summary-input') p.notes = elem.value;
-                    saveStateLocally();
-                };
-                elem.addEventListener('input', handler);
-                elem.addEventListener('change', handler);
-            }
-        });
-
-        // Task notes & deadline listeners
-        document.getElementById('active-task-notes').addEventListener('input', (e) => {
-            const t = getActiveTask(); if (t) { t.notes = e.target.value; saveStateLocally(); }
-        });
-        document.getElementById('active-task-deadline').addEventListener('change', (e) => {
-            const t = getActiveTask(); if (t) { t.deadline = e.target.value; saveStateLocally(); renderTaskList(getActiveProject()); }
-        });
-
-        // Enter key for adding task
-        ['new-task-title-input', 'new-task-est-input'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleAddTask(); });
-        });
-
-        // Startup
-        initSettings();
-        renderApp();
-    </script>
+    <script src="js/storage.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
