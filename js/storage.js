@@ -1,4 +1,45 @@
-// --- Storage & Sync Engine (v9 -> v10 Migration) ---
+// --- Core Shared Utilities (Hoisted for Safe Startup) ---
+function generateId() { 
+    return Math.random().toString(36).substr(2, 9); 
+}
+
+function getLocalFormattedDate(d) {
+    const target = d || new Date();
+    const year = target.getFullYear();
+    const month = String(target.getMonth() + 1).padStart(2, '0');
+    const day = String(target.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function formatTimeCompact(totalSeconds) {
+    if (isNaN(totalSeconds) || totalSeconds === null) totalSeconds = 0;
+    const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60), s = totalSeconds % 60;
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatTimeHuman(totalSeconds) {
+    if (!totalSeconds || totalSeconds === 0) return '0m';
+    const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60);
+    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+
+function formatTimeFull(totalSeconds) {
+    if (!totalSeconds || totalSeconds === 0) return '0m';
+    const d = Math.floor(totalSeconds / 86400);
+    const h = Math.floor((totalSeconds % 86400) / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    let parts = [];
+    if (d > 0) parts.push(`${d}d`);
+    if (h > 0) parts.push(`${h}h`);
+    if (m > 0 || parts.length === 0) parts.push(`${m}m`);
+    return parts.join(' ');
+}
+
+function safeCreateIcons() { 
+    try { lucide.createIcons(); } catch(e) {} 
+}
+
+// --- Firebase & State Storage Engine ---
 const STORAGE_KEY_V9 = 'focus_flow_master_v9';
 const STORAGE_KEY_V10 = 'focus_flow_master_v10';
 
@@ -119,6 +160,19 @@ function saveStateLocally() {
     localStorage.setItem(STORAGE_KEY_V10, JSON.stringify(appState));
 }
 
+function syncHeaderInputsToState() {
+    const p = (appState.projects || []).find(x => x.id === appState.activeProjectId) || (appState.projects || [])[0];
+    if (!p) return;
+    const tEl = document.getElementById('project-title-input');
+    const gEl = document.getElementById('project-goal-input');
+    const dEl = document.getElementById('project-deadline-input');
+    const nEl = document.getElementById('project-notes-summary-input');
+    if (tEl && tEl.value !== undefined) p.title = tEl.value;
+    if (gEl && gEl.value !== undefined) p.goal = gEl.value;
+    if (dEl && dEl.value !== undefined) p.deadline = dEl.value;
+    if (nEl && nEl.value !== undefined) p.notes = nEl.value;
+}
+
 function saveState() {
     syncHeaderInputsToState();
     saveStateLocally();
@@ -149,10 +203,10 @@ function manualCloudSave() {
 setInterval(() => {
     syncHeaderInputsToState();
     const cleanData = JSON.parse(JSON.stringify(appState));
-    docRef.set(cleanData, { merge: true }).catch(err => console.warn("Auto-sync info:", err));
+    docRef.set(cleanData, { merge: true }).catch(err => console.warn("Auto-sync note:", err));
 }, 5 * 60 * 1000);
 
-// Real-time Firestore sync (ignores local pending writes)
+// Real-time listener: ignores own pending writes
 docRef.onSnapshot((doc) => {
     if (doc.metadata && doc.metadata.hasPendingWrites) return;
     if (doc.exists) {
@@ -160,7 +214,7 @@ docRef.onSnapshot((doc) => {
         if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
             appState = Object.assign(appState, cloudData);
             saveStateLocally();
-            renderApp();
+            if (typeof renderApp === 'function') renderApp();
         }
     }
 });
