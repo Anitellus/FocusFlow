@@ -10,7 +10,7 @@ function getActiveProject() {
 function getRootProject(proj) {
     let curr = proj;
     while (curr && curr.parentId) {
-        const parent = appState.projects.find(p => p.id === curr.parentId);
+        const parent = (appState.projects || []).find(p => p.id === curr.parentId);
         if (!parent) break;
         curr = parent;
     }
@@ -77,7 +77,7 @@ function createNewProject(parentId = null) {
             alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
             return;
         }
-        const parent = appState.projects.find(p => p.id === parentId);
+        const parent = (appState.projects || []).find(p => p.id === parentId);
         if (parent && parent.tasks && parent.tasks.length > 0) {
             alert("Remove existing tasks before creating a sub-project. Tasks can only exist at the lowest leaf level.");
             return;
@@ -109,17 +109,17 @@ function toggleProjectCollapse(projectId, e) {
 
 function deleteProject(projectId, e) {
     if (e) e.stopPropagation();
-    const proj = appState.projects.find(p => p.id === projectId);
+    const proj = (appState.projects || []).find(p => p.id === projectId);
     if (!proj) return;
 
     if (confirm(`Are you sure you want to delete "${proj.title}" and all its contents?`)) {
         const toDelete = new Set();
         function collectIds(id) {
             toDelete.add(id);
-            appState.projects.filter(p => p.parentId === id).forEach(sp => collectIds(sp.id));
+            (appState.projects || []).filter(p => p.parentId === id).forEach(sp => collectIds(sp.id));
         }
         collectIds(projectId);
-        appState.projects = appState.projects.filter(p => !toDelete.has(p.id));
+        appState.projects = (appState.projects || []).filter(p => !toDelete.has(p.id));
 
         if (appState.projects.length === 0) {
             loadDefaultData();
@@ -157,7 +157,7 @@ function timerTick() {
     p.totalTimeSpent += 1;
     tickCounter++;
     if (tickCounter >= 5) {
-        saveStateLocally(); // Safe local save: zero Firestore traffic on ticks
+        saveStateLocally();
         tickCounter = 0;
     }
     updateTimerTexts(p, t);
@@ -270,7 +270,7 @@ function updateTimerTexts(p, task) {
     }
 }
 
-// Park & Resume Anchor Handlers
+// Park & Resume Anchors
 function openParkModal() {
     const modal = document.getElementById('park-resume-modal');
     if (!modal) { forcePause(); return; }
@@ -560,10 +560,53 @@ function toggleSleepingEyes(isSleeping) {
     });
 }
 
+function scheduleNextMascotJitter() {
+    if (jitterMascotTimer) clearTimeout(jitterMascotTimer);
+    const activeProject = getActiveProject();
+    const rootProj = getRootProject(activeProject);
+    if (!rootProj || !rootProj.activeMascotId || typeof mascotDatabase === 'undefined') return;
+    const mode = appState.mascotBehavior;
+    if (mode !== 'roam' && mode !== 'float') return;
+
+    const freqOptions = [15, 30, 60];
+    const baseFreq = freqOptions[Math.floor(Math.random() * freqOptions.length)];
+    const offset = Math.floor(Math.random() * 11) - 5;
+    const intervalMs = Math.max(5, (baseFreq + offset)) * 1000;
+
+    jitterMascotTimer = setTimeout(() => {
+        if (rootProj && rootProj.activeMascotId && (appState.mascotBehavior === 'roam' || appState.mascotBehavior === 'float')) {
+            if (Math.random() > 0.5) {
+                const emotes = ['heart', 'lightbulb', 'music', 'smile', 'coffee', 'flame', 'trophy'];
+                triggerEmote(emotes[Math.floor(Math.random() * emotes.length)]);
+            } else {
+                const anims = ['squish', 'hop', 'frontflip', 'backflip'];
+                triggerMascotAnim(anims[Math.floor(Math.random() * anims.length)]);
+            }
+            scheduleNextMascotJitter();
+        }
+    }, intervalMs);
+}
+
+// --- Companion Unlock & Relock Actions ---
 function unlockAllMascotsTest() {
-    getRootProject(getActiveProject()).unlockAllMascotsTest = true;
+    const rootProj = getRootProject(getActiveProject());
+    rootProj.unlockAllMascotsTest = true;
     saveStateLocally();
     renderMascotStage();
+}
+
+function relockAllMascots() {
+    const rootProj = getRootProject(getActiveProject());
+    rootProj.unlockAllMascotsTest = false;
+    saveStateLocally();
+    renderMascotStage();
+}
+
+function lockedMascotPrompt(name, requiredSec, currentSec) {
+    const msg = `${name} is currently locked.\n\nRequirement: ${formatTimeHuman(requiredSec)} of focus on this project.\nCurrent Progress: ${formatTimeHuman(currentSec)}.\n\nWould you like to unlock all companions in Test Mode?`;
+    if (confirm(msg)) {
+        unlockAllMascotsTest();
+    }
 }
 
 function toggleHideUnlockBtn() {
@@ -760,6 +803,7 @@ function renderActiveTask(p) {
     updateTimerTexts(p, task || { actualTime: 0, estimatedTime: 0 });
 }
 
+// Fixed Mascot Stage & Companion Gallery
 function renderMascotStage() {
     if (typeof mascotDatabase === 'undefined') return;
     const activeProject = getActiveProject();
@@ -788,45 +832,58 @@ function renderMascotStage() {
     setMascotBehavior(appState.mascotBehavior || 'roam');
     setMascotScale(appState.mascotScale || 1.0);
 
+    const isTestUnlocked = !!rootProj.unlockAllMascotsTest;
     const unlockBtn = document.getElementById('btn-unlock-all-mascots');
-    const hideBtn = document.getElementById('btn-hide-unlock');
-    if (appState.hideUnlockBtn) {
-        if (unlockBtn) unlockBtn.classList.add('hidden');
-        if (hideBtn) { hideBtn.innerHTML = `<i data-lucide="eye" class="w-4 h-4"></i>`; hideBtn.title = "Show"; }
-    } else {
-        if (unlockBtn) unlockBtn.classList.remove('hidden');
-        if (hideBtn) { hideBtn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4"></i>`; hideBtn.title = "Hide"; }
+    const relockBtn = document.getElementById('btn-relock-all-mascots');
+    
+    // Toggle active state visualization on buttons
+    if (unlockBtn) {
+        unlockBtn.className = isTestUnlocked
+            ? "px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1"
+            : "px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold shadow-sm flex items-center gap-1";
+    }
+    if (relockBtn) {
+        relockBtn.className = isTestUnlocked
+            ? "px-2.5 py-1 bg-slate-800 text-white rounded-lg text-[11px] font-bold shadow-sm flex items-center gap-1"
+            : "px-2.5 py-1 bg-slate-100 text-slate-400 rounded-lg text-[11px] font-semibold flex items-center gap-1 cursor-default";
     }
 
-    const grid = document.getElementById('mascot-gallery-grid'); if (!grid) return;
+    const grid = document.getElementById('mascot-gallery-grid'); 
+    if (!grid) return;
     const projectTime = getCumulativeTime(rootProj.id);
 
     grid.innerHTML = mascotDatabase.map(m => {
         const isSelected = m.id === activeMascotId;
-        const isUnlocked = rootProj.unlockAllMascotsTest || m.unlockSec === 0 || (projectTime >= m.unlockSec);
+        const isUnlocked = isTestUnlocked || m.unlockSec === 0 || (projectTime >= m.unlockSec);
         const assignedOther = (appState.projects || []).find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
 
         let statusText = `${m.shapes}`;
         let cardClick = `selectMascotCompanion('${m.id}')`;
-        let cardClasses = "bg-slate-50 border-slate-200 hover:border-slate-300";
+        let cardClasses = "bg-slate-50 border-slate-200 hover:border-indigo-200 hover:bg-slate-100/80";
 
-        if (isSelected) cardClasses = "bg-indigo-50/80 border-indigo-500 shadow-sm scale-[1.02]";
-        else if (assignedOther) {
+        if (isSelected) {
+            cardClasses = "bg-indigo-50/90 border-indigo-500 shadow-sm scale-[1.02] ring-2 ring-indigo-200";
+            statusText = "Active Companion";
+        } else if (assignedOther) {
             cardClasses = "bg-slate-100 border-slate-200 opacity-50 cursor-not-allowed";
-            cardClick = `alert('This mascot is assigned to: ${assignedOther.title}')`;
+            cardClick = `alert('This companion is already assigned to: ${assignedOther.title}')`;
             statusText = "In Use";
         } else if (!isUnlocked) {
-            cardClasses = "opacity-40 grayscale cursor-not-allowed bg-slate-50 border-slate-200";
-            cardClick = "";
+            cardClasses = "opacity-50 grayscale bg-slate-50 border-slate-200 hover:opacity-75";
+            cardClick = `lockedMascotPrompt('${m.name}', ${m.unlockSec}, ${projectTime})`;
+            statusText = `🔒 ${formatTimeHuman(m.unlockSec)}`;
         }
 
         return `
-        <div onclick="${cardClick}" class="p-2.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col items-center text-center ${cardClasses}">
-            <div class="w-12 h-12 mascot-card-svg-wrapper flex items-center justify-center p-0.5 my-0.5 pointer-events-none">${m.svg}</div>
+        <div onclick="${cardClick}" class="p-2.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col items-center text-center ${cardClasses}">
+            <div class="w-12 h-12 flex items-center justify-center p-0.5 my-1 pointer-events-none mascot-card-svg-wrapper [&>svg]:w-10 [&>svg]:h-10 [&>svg]:max-w-full [&>svg]:max-h-full">
+                ${m.svg}
+            </div>
             <div class="text-[11px] font-bold text-slate-800 truncate w-full mt-1">${m.name}</div>
-            <div class="text-[9px] font-mono text-slate-400 font-semibold truncate w-full">${statusText}</div>
+            <div class="text-[9px] font-mono text-slate-500 font-semibold truncate w-full mt-0.5">${statusText}</div>
         </div>`;
     }).join('');
+
     safeCreateIcons();
 }
 
@@ -985,7 +1042,7 @@ function toggleAudioPopover() {
     document.getElementById('bloom-popover').classList.add('hidden'); 
 }
 
-// Global Initialization Hook
+// Global Setting Initializer
 function initSettings() {
     if (document.getElementById('volume-slider')) document.getElementById('volume-slider').value = appState.audioVolume || 80;
     if (document.getElementById('volume-label')) document.getElementById('volume-label').textContent = (appState.audioVolume || 80) + '%';
@@ -1002,7 +1059,7 @@ function initSettings() {
     }
 }
 
-// Auto-save listeners on project header fields
+// Auto-save listeners on project header inputs
 ['project-title-input', 'project-goal-input', 'project-deadline-input', 'project-notes-summary-input'].forEach(id => {
     const elem = document.getElementById(id);
     if (elem) {
@@ -1031,6 +1088,6 @@ document.getElementById('active-task-deadline').addEventListener('change', (e) =
     if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleAddTask(); });
 });
 
-// Boot Sequence
+// App Startup Sequence
 initSettings();
 renderApp();
