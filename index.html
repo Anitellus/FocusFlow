@@ -1,6 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Flow | Master Single-Task Tracker</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff', 100: '#e0e7ff', 400: '#818cf8',
+                            500: '#6366f1', 600: '#4f46e5', 900: '#312e81',
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                        'float': '0 10px 40px -10px rgba(0, 0, 0, 0.08)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Canvas Confetti & Lucide Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
 <body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col md:flex-row selection:bg-brand-100 selection:text-brand-900">
 
-    <!-- MOBILE TOP BAR (Visible only on screens < 768px) -->
+    <!-- MOBILE TOP BAR (Screens < 768px) -->
     <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-30 shrink-0">
         <div class="flex items-center gap-2 font-bold text-brand-600 text-lg">
             <i data-lucide="layers" class="w-6 h-6"></i>
@@ -10,7 +58,7 @@
             <button onclick="toggleScratchpadModal()" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Scratchpad">
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
             </button>
-            <button onclick="toggleMobileSidebar()" class="p-2 bg-slate-100 text-slate-700 rounded-xl" title="Open Navigation Menu">
+            <button onclick="toggleMobileSidebar()" class="p-2 bg-slate-100 text-slate-700 rounded-xl" title="Open Menu">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
         </div>
@@ -19,7 +67,7 @@
     <!-- MOBILE DRAWER BACKDROP -->
     <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 hidden md:hidden"></div>
 
-    <!-- SIDEBAR NAVIGATION DRAWER (Slide-out on Mobile, Static on Desktop) -->
+    <!-- SIDEBAR NAVIGATION (Drawer on Mobile, Static on Desktop) -->
     <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 w-80 bg-slate-100/95 border-r border-slate-200 flex flex-col backdrop-blur-xl shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
         <div class="p-6 border-b border-slate-200/60 flex items-center justify-between">
             <button onclick="toggleInstructionsModal()" class="flex items-center gap-3 text-brand-600 font-bold text-xl tracking-tight text-left focus:outline-none group">
@@ -64,3 +112,630 @@
             </div>
         </div>
     </aside>
+
+    <!-- VIEW 1: FOCUS WORKSPACE -->
+    <main id="view-focus-container" class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
+        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md">
+            <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
+                <div class="flex-1 w-full space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase tracking-wider font-sans-ui flex items-center gap-1 shrink-0">
+                            <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600"></i> GOAL
+                        </span>
+                        <input type="text" id="project-goal-input" class="bg-transparent border-none focus:ring-0 text-slate-600 text-sm font-semibold w-full placeholder-slate-400 outline-none font-sans-ui" placeholder="Main project goal?">
+                    </div>
+                    
+                    <input type="text" id="project-title-input" class="text-2xl sm:text-3xl font-extrabold text-slate-900 bg-transparent border-none focus:ring-0 outline-none w-full truncate tracking-tight" placeholder="Project Title">
+                    
+                    <div class="flex items-center gap-2 font-sans-ui">
+                        <input type="text" id="project-notes-summary-input" class="flex-1 bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 placeholder-slate-400 outline-none focus:bg-white transition-all truncate" placeholder="Add notes, resources, links...">
+                        <button onclick="toggleProjectNotesModal()" class="px-3 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shrink-0">
+                            <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Expand Notes
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4 bg-white px-4 py-2.5 rounded-2xl shadow-soft ring-1 ring-slate-900/5 shrink-0 self-end lg:self-auto">
+                    <div class="flex flex-col text-right">
+                        <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">TIME SPENT</span>
+                        <span class="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-tight" id="project-cumulative-timer">00:00:00</span>
+                    </div>
+                    <div class="h-7 w-px bg-slate-200"></div>
+                    <div class="flex flex-col text-right">
+                        <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">DEADLINE</span>
+                        <input type="date" id="project-deadline-input" class="text-xs sm:text-sm font-bold text-slate-700 bg-transparent border-none p-0 outline-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 sm:px-8 pb-24 z-10 scroll-smooth">
+            <div class="max-w-4xl mx-auto space-y-6 mt-4">
+                
+                <!-- Resumption Launchpad Banner Mount -->
+                <div id="resumption-banner-mount"></div>
+
+                <!-- Active Stage Card -->
+                <section class="relative bg-white rounded-[2rem] shadow-float ring-1 ring-slate-900/5 p-4 sm:p-8 overflow-hidden flex flex-col items-center" id="active-task-stage">
+                    <div class="relative z-10 w-full flex flex-col items-center">
+                        
+                        <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5 shrink-0 font-sans-ui">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                    Focusing
+                                </span>
+                                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 truncate" id="active-task-title">
+                                    Select a task to begin
+                                </h2>
+                            </div>
+
+                            <div class="flex items-center gap-1.5 font-sans-ui shrink-0">
+                                <button onclick="openZenView()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                                    <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-indigo-400"></i>
+                                    <span>Zen</span>
+                                </button>
+                                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1" title="Scratchpad (Alt + S)">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
+                                    <span>Dump</span>
+                                </button>
+                                <button onclick="toggleBloomPopover()" class="p-2 bg-slate-100 text-emerald-600 rounded-xl" title="Bloom Intensity">
+                                    <i data-lucide="sun" class="w-4 h-4"></i>
+                                </button>
+                                <div id="bloom-popover" class="absolute right-12 top-10 w-56 bg-white p-3 rounded-2xl shadow-xl border border-slate-200 hidden z-50 space-y-2">
+                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700">
+                                        <span>Breathing Bloom Glow</span>
+                                        <span id="bloom-val-label" class="text-emerald-600">60%</span>
+                                    </div>
+                                    <input type="range" id="bloom-slider" min="10" max="100" value="60" oninput="updateBloomOpacity(this.value)" class="w-full accent-emerald-500 cursor-pointer">
+                                </div>
+                                <button onclick="toggleAudioPopover()" id="btn-audio-popover-trigger" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Audio">
+                                    <i data-lucide="volume-2" class="w-4 h-4" id="audio-icon-display"></i>
+                                </button>
+                                <div id="audio-popover" class="absolute right-0 top-10 w-72 bg-white p-4 rounded-2xl shadow-xl border border-slate-200 hidden z-50 space-y-3">
+                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                                        <span class="text-xs font-bold text-slate-800">Audio Profile</span>
+                                        <button onclick="toggleMuteAudio()" id="btn-mute-toggle" class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded">Mute</button>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-[10px] font-bold text-slate-500">
+                                            <span>Volume</span>
+                                            <span id="volume-label">80%</span>
+                                        </div>
+                                        <input type="range" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer">
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-bold text-slate-500 block">Sound Style</label>
+                                        <select id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold text-slate-700 outline-none">
+                                            <option value="woodblock">Woodblock (Acoustic)</option>
+                                            <option value="pip">8-Bit Pip (Chiptune)</option>
+                                            <option value="zen">Zen Chord (Pure Sine)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Companion Mount -->
+                        <div id="main-mascot-mount-wrapper" class="w-full flex justify-center items-center mb-4 hidden">
+                            <div class="p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 flex items-center justify-center gap-3">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Companion</span>
+                                <div id="main-mascot-mount" class="w-14 h-14 flex items-center justify-center mascot-mount-box"></div>
+                            </div>
+                        </div>
+
+                        <!-- Clock & Radial Overtime Ring -->
+                        <div class="relative flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 w-full mb-6">
+                            <div class="relative flex items-center justify-center">
+                                <div class="absolute inset-0 pointer-events-none flex items-center justify-center -rotate-90">
+                                    <svg class="w-64 h-64 sm:w-80 sm:h-80" viewBox="0 0 320 320">
+                                        <circle cx="160" cy="160" r="148" stroke="#e2e8f0" stroke-width="8" fill="none" class="opacity-40" />
+                                        <circle id="radial-progress-arc" cx="160" cy="160" r="148" stroke="#10b981" stroke-width="9" stroke-linecap="round" fill="none" stroke-dasharray="930" stroke-dashoffset="930" class="transition-all duration-300 ease-out" />
+                                        <circle id="radial-overtime-halo" cx="160" cy="160" r="156" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none" stroke-dasharray="980" stroke-dashoffset="980" class="opacity-0 transition-all duration-700 ease-out" />
+                                    </svg>
+                                </div>
+
+                                <button id="main-timer-btn" onclick="toggleTimer()" class="relative flex flex-col items-center justify-center w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 timer-red-container cursor-pointer outline-none overflow-hidden">
+                                    <div id="inner-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div>
+                                    <div class="relative z-10 flex flex-col items-center">
+                                        <div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="timer-state-text">Paused</div>
+                                        <div class="text-4xl sm:text-6xl font-bold font-mono tracking-tighter" id="active-timer-display">00:00:00</div>
+                                        <div class="text-xs font-medium mt-2 opacity-80 flex items-center gap-1" id="active-timer-estimate">
+                                            <i data-lucide="target" class="w-3.5 h-3.5"></i> <span>No Target</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <button onclick="completeActiveTask()" id="btn-complete-task" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-400 shadow-md flex flex-col items-center justify-center gap-1 shrink-0 font-sans-ui">
+                                <i data-lucide="check-circle" class="w-6 h-6 sm:w-8 sm:h-8"></i>
+                                <span class="text-[9px] uppercase tracking-wider">Done</span>
+                            </button>
+                        </div>
+
+                        <!-- Micro-Step Decomposer -->
+                        <div class="w-full bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 font-sans-ui mb-4 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-900">
+                                    <i data-lucide="split" class="w-4 h-4 text-brand-600"></i>
+                                    <span>Micro-Step Decomposer (&le; 5-min actions)</span>
+                                </div>
+                                <span class="text-[10px] text-slate-400 font-mono" id="microstep-summary">0/0 done</span>
+                            </div>
+
+                            <div class="flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600">
+                                <button onclick="addPresetMicroStep('Open workspace & clean canvas', 2)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Open (2m)
+                                </button>
+                                <button onclick="addPresetMicroStep('Jot down 3 messy bullets', 3)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> 3 Bullets (3m)
+                                </button>
+                                <button onclick="addPresetMicroStep('Draft initial section outline', 5)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1">
+                                    <i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Rough Pass (5m)
+                                </button>
+                            </div>
+
+                            <div class="space-y-1.5" id="active-task-microsteps-list"></div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <input type="text" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step...">
+                                <button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button>
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
+                                <textarea id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
+                            </div>
+                            <div class="shrink-0 w-full md:w-48">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label>
+                                <input type="date" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- Companions Gallery Grid -->
+                <section class="bg-white rounded-3xl p-5 shadow-sm ring-1 ring-slate-900/5 space-y-3 font-sans-ui">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-5 h-5 text-indigo-600"></i>
+                            <h3 class="font-bold text-slate-800 text-sm">Focus Companions</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="removeCompanion()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold">Remove</button>
+                            <button onclick="unlockAllMascotsTest()" id="btn-unlock-all-mascots" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold">Unlock All</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5" id="mascot-gallery-grid"></div>
+                </section>
+
+                <!-- Project Tasks List -->
+                <section class="font-sans-ui">
+                    <div class="flex items-center justify-between mb-3 px-1">
+                        <h3 class="text-base font-bold text-slate-700 flex items-center gap-2">
+                            <i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Project Tasks
+                        </h3>
+                        <span class="text-xs font-semibold text-slate-500 bg-white px-2.5 py-0.5 rounded-full ring-1 ring-slate-200" id="task-progress-text">0/0 Completed</span>
+                    </div>
+
+                    <div class="space-y-2" id="task-list-container"></div>
+
+                    <div id="add-task-container" class="mt-3 bg-white p-2 rounded-2xl shadow-sm ring-1 ring-slate-200 flex flex-col sm:flex-row items-center gap-2">
+                        <input type="text" id="new-task-title-input" class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-slate-700 placeholder-slate-400 py-1.5 font-medium text-xs px-2 w-full" placeholder="Add task... (Enter)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end pr-1">
+                            <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">*Target:</span>
+                            <input type="number" id="new-task-est-input" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none text-center font-mono" placeholder="min" min="1" max="999">
+                            <button onclick="handleAddTask()" class="bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0">Add</button>
+                        </div>
+                    </div>
+                    <div id="parent-task-blocked-notice" class="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-semibold flex items-center gap-2 hidden">
+                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-amber-600"></i>
+                        <span>This project contains sub-projects. Tasks can only exist at the lowest leaf project levels.</span>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW 2: CALENDAR & HORIZONS -->
+    <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
+        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Calendar & Temporal Horizons
+                </h1>
+                <p class="text-xs text-slate-500 mt-0.5">Compassionate scheduling and shame-free date calibration.</p>
+            </div>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <button onclick="navigateCalendarMonth(-1)" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                <span class="text-xs font-bold font-mono px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 min-w-[120px] text-center" id="calendar-month-label">Month 2026</span>
+                <button onclick="navigateCalendarMonth(1)" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                <button onclick="resetCalendarToToday()" class="px-2.5 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold rounded-xl border border-brand-200">Today</button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
+            <div class="max-w-6xl mx-auto space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Due Today</span>
+                            <span class="text-[10px] font-mono text-slate-400" id="horizon-count-today">0 items</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-today"></div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                            <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Next 7 Days</span>
+                            <span class="text-[10px] font-mono text-slate-400" id="horizon-count-week">0 items</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-week"></div>
+                    </div>
+
+                    <div class="bg-amber-50/50 p-4 rounded-2xl shadow-sm border border-amber-200/80 space-y-2">
+                        <div class="flex items-center justify-between border-b border-amber-100 pb-1.5">
+                            <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Gentle Recalibration</span>
+                            <span class="text-[10px] font-mono text-amber-600" id="horizon-count-recalibrate">0 items</span>
+                        </div>
+                        <div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-recalibrate"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 space-y-3">
+                    <div class="grid grid-cols-7 gap-px text-center text-[10px] font-bold uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100">
+                        <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1.5" id="calendar-days-grid"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW 3: ANALYTICS DASHBOARD -->
+    <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
+        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm">
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-800">Analytics & Retrospective</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Compassionate biofeedback, time perception audits, and sustainable momentum calibration.</p>
+        </header>
+
+        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
+            <div class="max-w-5xl mx-auto space-y-6">
+                
+                <div class="flex bg-white p-1 rounded-xl shadow-sm ring-1 ring-slate-200 inline-flex">
+                    <button onclick="renderAnalytics(1)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="1">Today</button>
+                    <button onclick="renderAnalytics(7)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="7">7 Days</button>
+                    <button onclick="renderAnalytics(30)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="30">30 Days</button>
+                    <button onclick="renderAnalytics(9999)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="9999">All Time</button>
+                </div>
+
+                <!-- Rolling Momentum Battery -->
+                <div class="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">⚡</div>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-emerald-950">Rolling Momentum Battery</h4>
+                                <p class="text-[11px] text-emerald-700">Forgiving consistency index based on 5 of 7 active days. Never resets to zero on missed days.</p>
+                            </div>
+                        </div>
+                        <span class="text-xl sm:text-2xl font-mono font-extrabold text-emerald-700" id="stat-battery-pct">0%</span>
+                    </div>
+                    <div class="w-full h-3 bg-white rounded-full overflow-hidden border border-emerald-200">
+                        <div id="stat-battery-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Focused Time</h4>
+                        <p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-total-time">0m</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tasks Completed</h4>
+                        <p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tasks-done">0</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time Accuracy</h4>
+                        <p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-accuracy">0%</p>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Actual vs Target</p>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200">
+                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Complexity</h4>
+                        <p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tci">0.0</p>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Deep work ratio</p>
+                    </div>
+                </div>
+
+                <!-- Diagnostics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2.5">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Time-Blindness Recalibration
+                        </h4>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Underestimated Tasks (>25% over)</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-underestimated-count">0</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Context Switching Density</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-switching-density">0/hr</span>
+                            </div>
+                            <div class="flex justify-between py-1 border-b border-slate-100">
+                                <span class="text-slate-500">Zen Mode Ratio</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-zen-ratio">0%</span>
+                            </div>
+                            <div class="flex justify-between py-1">
+                                <span class="text-slate-500">Weekend vs. Weekday Focus</span>
+                                <span class="font-mono font-bold text-slate-800" id="stat-weekend-split">0% / 0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2">
+                        <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Circadian Chronotype Alignment
+                        </h4>
+                        <p class="text-xs text-slate-500">Peak window: <strong class="text-slate-800" id="stat-circadian-peak">Detecting...</strong></p>
+                        <div class="grid grid-cols-12 gap-1 py-1" id="circadian-bars-grid"></div>
+                        <div class="flex justify-between text-[8px] text-slate-400 font-mono">
+                            <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dormant Projects Guardian -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2">
+                    <h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                        <i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian (Untouched ≥ 14 Days)
+                    </h4>
+                    <div class="space-y-1.5" id="dormant-projects-list"></div>
+                </div>
+
+                <!-- 30-Day Heatmap -->
+                <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-slate-200 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Activity Heatmap
+                        </h3>
+                        <span class="text-[10px] bg-slate-100 font-mono px-2 py-0.5 rounded text-slate-500">Last 30 Days</span>
+                    </div>
+                    <div class="grid grid-cols-10 gap-1.5 py-1" id="heatmap-grid"></div>
+                </div>
+
+                <!-- Retroactive Completed Task Archive -->
+                <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                    <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
+                        <h3 class="font-bold text-slate-800 text-sm">Completed Task Archive</h3>
+                    </div>
+                    <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto" id="analytics-log-container"></div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FULLSCREEN ZEN MODE -->
+    <div id="zen-overlay" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col font-sans-ui overflow-hidden transition-all duration-500 items-center justify-center">
+        <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+            <div id="mascot-roam-wrapper" class="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer mascot-roam hidden">
+                <div id="mascot-scale-wrapper" class="transition-transform duration-300" style="transform: scale(1.0);">
+                    <div id="mascot-anim-wrapper" class="mascot-bob relative" onclick="triggerMascotAnim('squish')">
+                        <div id="sleep-particle-z" class="hidden"><div class="z-particle z-1">Z</div></div>
+                        <div id="emote-pop-container" class="emote-icon text-rose-500"><i data-lucide="heart" class="w-6 h-6 fill-rose-500"></i></div>
+                        <div id="zen-mascot-mount" class="mascot-mount-box"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute top-6 left-6 right-6 flex items-center justify-between z-20">
+            <span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase tracking-widest font-mono">
+                Zen Mode
+            </span>
+
+            <div class="flex items-center gap-2">
+                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1.5 shadow">
+                    <i data-lucide="edit-3" class="w-3.5 h-3.5 text-brand-400"></i> Dump
+                </button>
+                <button onclick="toggleBackdropModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1.5 shadow">
+                    <i data-lucide="palette" class="w-3.5 h-3.5 text-indigo-400"></i> Backdrops
+                </button>
+                <button onclick="closeZenView()" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1 shadow">
+                    <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i> Exit
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-center justify-center z-20 space-y-6 w-full max-w-xl text-center my-auto px-4">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight" id="zen-active-task-title">Workspace Active</h2>
+
+            <div class="w-full flex justify-center items-center">
+                <button onclick="toggleTimer()" class="w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden relative shadow-2xl timer-red-container" id="zen-timer-btn">
+                    <div id="zen-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="zen-timer-state">Paused</div>
+                        <div class="text-5xl sm:text-6xl font-mono font-bold tracking-tighter" id="zen-timer-display">00:00:00</div>
+                    </div>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-300/80 font-mono w-full truncate max-w-md mx-auto" id="zen-task-notes">No notes attached</p>
+        </div>
+
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800 z-20 flex items-center justify-between gap-2 font-sans-ui shadow-2xl overflow-x-auto flex-nowrap">
+            <div class="flex items-center gap-2 shrink-0">
+                <div class="flex bg-slate-800 p-1 rounded-xl text-[10px] font-bold shrink-0">
+                    <button onclick="setMascotBehavior('still')" id="btn-beh-still" class="px-2 py-0.5 rounded text-slate-400">Still</button>
+                    <button onclick="setMascotBehavior('roam')" id="btn-beh-roam" class="px-2 py-0.5 rounded bg-indigo-600 text-white shadow">Roam</button>
+                    <button onclick="setMascotBehavior('float')" id="btn-beh-float" class="px-2 py-0.5 rounded text-slate-400">Float</button>
+                    <button onclick="setMascotBehavior('sleep')" id="btn-beh-sleep" class="px-2 py-0.5 rounded text-slate-400">Sleep</button>
+                </div>
+
+                <select id="mascot-scale-select" onchange="setMascotScale(parseFloat(this.value))" class="bg-slate-800 border border-slate-700 rounded-xl px-2 py-1 text-[11px] font-bold text-slate-200 outline-none shrink-0">
+                    <option value="1.0">1.0x</option>
+                    <option value="1.3">1.3x</option>
+                    <option value="1.6">1.6x</option>
+                    <option value="2.0">2.0x</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0 flex-nowrap">
+                <button onclick="triggerMascotAnim('squish')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold shrink-0">Squish</button>
+                <button onclick="triggerMascotAnim('hop')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold shrink-0">Hop</button>
+                <button onclick="triggerMascotAnim('frontflip')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold shrink-0">Flip</button>
+                
+                <div class="h-4 w-px bg-slate-700 mx-1 shrink-0"></div>
+
+                <button onclick="triggerEmote('heart')" class="p-1.5 bg-slate-800 text-rose-500 rounded-lg shrink-0"><i data-lucide="heart" class="w-3.5 h-3.5 fill-rose-500"></i></button>
+                <button onclick="triggerEmote('lightbulb')" class="p-1.5 bg-slate-800 text-amber-500 rounded-lg shrink-0"><i data-lucide="lightbulb" class="w-3.5 h-3.5 fill-amber-400"></i></button>
+                <button onclick="triggerEmote('flame')" class="p-1.5 bg-slate-800 text-orange-500 rounded-lg shrink-0"><i data-lucide="flame" class="w-3.5 h-3.5 fill-orange-500"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS & DRAWERS -->
+    <!-- Distraction Scratchpad Drawer -->
+    <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3>
+                        <p class="text-[11px] text-slate-400">Offload thoughts immediately without interrupting the clock.</p>
+                    </div>
+                </div>
+                <button onclick="toggleScratchpadModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type thought and press Enter...">
+                <button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button>
+            </div>
+            <div class="max-h-56 overflow-y-auto divide-y divide-slate-100 space-y-1" id="scratchpad-items-list"></div>
+        </div>
+    </div>
+
+    <!-- Park & Resume Dialog -->
+    <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div>
+                <div>
+                    <h3 class="font-bold text-sm text-slate-800">Anchor Your Momentum</h3>
+                    <p class="text-[11px] text-slate-400">Reduce reactivation fatigue when returning.</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Where did you stop?</label>
+                    <input type="text" id="park-stopped-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Finished reviewing part A">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Immediate next 60s launchpad action?</label>
+                    <input type="text" id="park-next60s-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Open test suite and run assertions">
+                </div>
+            </div>
+            <div class="flex justify-between items-center pt-2">
+                <button onclick="dismissParkModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Just Pause</button>
+                <button onclick="confirmParkAndPause()" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md">Anchor & Pause</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Instructions Modal -->
+    <div id="instructions-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h2 class="text-lg font-bold text-brand-700 flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> Focus Flow Complete Program Guide
+                </h2>
+                <button onclick="toggleInstructionsModal()" class="p-2 text-slate-400 hover:bg-slate-200 rounded-xl">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-4 leading-relaxed">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Strict 3-Tier Hierarchy (Main &rarr; Sub &rarr; Component)</h3>
+                    <p>Organize work across three structural depths: <strong>Main Project</strong>, <strong>Sub-Project</strong>, and <strong>Component Project</strong>. Tasks exist strictly at the lowest leaf level of any branch. If a project has children, tasks cannot be added directly to the container.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">2. Time-Blindness Sweep & The Amber Flow Zone</h3>
+                    <p>The central timer features an analog radial progress ring that fills gradually toward your target estimate. Exceeding your target activates the warm Amber Overtime Halo ("Flow Zone"), reframing extra duration as exploratory focus rather than punitive failure.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. Park & Resume Context Anchors</h3>
+                    <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a launchpad banner sits above the timer with one-click resumption to eliminate reactivation paralysis.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">4. 1-Click Micro-Step Decomposer</h3>
+                    <p>Break overwhelming tasks into atomic &le;5-minute chunks directly on the focus stage. Complete micro-steps to earn dopamine chimes and burst momentum.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">5. Calendar & Temporal Horizons</h3>
+                    <p>The calendar view separates work into digestible cognitive horizons (Today, Next 7 Days, and Gentle Recalibration). Dates that have passed are never displayed as punitive failures; they can be moved forward with a single click (+1 Day, +3 Days, +1 Week).</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Notes Modal -->
+    <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes & Resources
+                </h3>
+                <button onclick="toggleProjectNotesModal()" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-6">
+                <textarea id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea>
+            </div>
+            <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end">
+                <button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backdrop Designer Modal -->
+    <div id="backdrop-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-sm text-slate-800">Stage Backdrop Designer</h3>
+                <button onclick="toggleBackdropModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="grid grid-cols-3 gap-3">
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">Primary</label><input type="color" id="picker-primary" value="#090d16" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">Secondary</label><input type="color" id="picker-secondary" value="#1e1b4b" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">Tertiary</label><input type="color" id="picker-tertiary" value="#4338ca" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 block mb-1">Gradient Architecture</label>
+                <select id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-700 outline-none">
+                    <option value="radial-center">Radial Center Glow</option>
+                    <option value="spotlight">Corner Spotlight Glow</option>
+                    <option value="linear-diag">Diagonal Split (45°)</option>
+                    <option value="linear-vert">Vertical Gradient</option>
+                    <option value="mesh">3-Color Mesh Atmosphere</option>
+                    <option value="solid">Solid Primary Color</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- APPLICATION SCRIPTS (Loaded in exact dependency order) -->
+    <script src="js/mascots.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/calendar.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
