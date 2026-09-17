@@ -1,9 +1,11 @@
-// --- Core Application Logic & Workspace Coordination ---
+// --- Core Workspace & Interaction Coordinator ---
 let isPlaying = false, timerInterval = null, tickCounter = 0, currentView = 'focus';
 let jitterAudioTimer = null, jitterMascotTimer = null;
 let activeSessionStart = null, activeSessionMode = 'focus';
 
-function getActiveProject() { return appState.projects.find(p => p.id === appState.activeProjectId) || appState.projects[0]; }
+function getActiveProject() { 
+    return (appState.projects || []).find(p => p.id === appState.activeProjectId) || (appState.projects || [])[0]; 
+}
 
 function getRootProject(proj) {
     let curr = proj;
@@ -17,84 +19,62 @@ function getRootProject(proj) {
 
 function getActiveTask() { 
     const p = getActiveProject(); 
-    return p ? p.tasks.find(t => t.id === p.activeTaskId) : null; 
+    return p ? (p.tasks || []).find(t => t.id === p.activeTaskId) : null; 
 }
 
-function generateId() { return Math.random().toString(36).substr(2, 9); }
-function hasSubProjects(projectId) { return appState.projects.some(p => p.parentId === projectId); }
+function hasSubProjects(projectId) { 
+    return (appState.projects || []).some(p => p.parentId === projectId); 
+}
 
 function getProjectDepth(projectId) {
     let depth = 0;
-    let curr = appState.projects.find(p => p.id === projectId);
+    let curr = (appState.projects || []).find(p => p.id === projectId);
     while (curr && curr.parentId) {
         depth++;
-        curr = appState.projects.find(p => p.id === curr.parentId);
+        curr = (appState.projects || []).find(p => p.id === curr.parentId);
     }
     return depth;
 }
 
 function getCumulativeTime(projectId) {
-    const p = appState.projects.find(x => x.id === projectId);
+    const p = (appState.projects || []).find(x => x.id === projectId);
     if (!p) return 0;
     let total = p.totalTimeSpent || 0;
-    appState.projects.filter(sp => sp.parentId === projectId).forEach(sp => { total += getCumulativeTime(sp.id); });
+    (appState.projects || []).filter(sp => sp.parentId === projectId).forEach(sp => { 
+        total += getCumulativeTime(sp.id); 
+    });
     return total;
 }
 
-function formatTimeCompact(totalSeconds) {
-    if (isNaN(totalSeconds) || totalSeconds === null) totalSeconds = 0;
-    const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60), s = totalSeconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+// Mobile Slide-Out Drawer Controls
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar-drawer');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
+    const isClosed = sidebar.classList.contains('-translate-x-full');
+    if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+    }
 }
 
-function formatTimeHuman(totalSeconds) {
-    if(!totalSeconds || totalSeconds === 0) return '0m';
-    const h = Math.floor(totalSeconds / 3600), m = Math.floor((totalSeconds % 3600) / 60);
-    return h > 0 ? `${h}h ${m}m` : `${m}m`;
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar-drawer');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (backdrop) backdrop.classList.add('hidden');
 }
 
-function formatTimeFull(totalSeconds) {
-    if(!totalSeconds || totalSeconds === 0) return '0m';
-    const d = Math.floor(totalSeconds / 86400);
-    const h = Math.floor((totalSeconds % 86400) / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    let parts = [];
-    if (d > 0) parts.push(`${d}d`);
-    if (h > 0) parts.push(`${h}h`);
-    if (m > 0 || parts.length === 0) parts.push(`${m}m`);
-    return parts.join(' ');
-}
-
-function getLocalFormattedDate(d) {
-    const target = d || new Date();
-    const year = target.getFullYear();
-    const month = String(target.getMonth() + 1).padStart(2, '0');
-    const day = String(target.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-function safeCreateIcons() { try { lucide.createIcons(); } catch(e) {} }
-
-function syncHeaderInputsToState() {
-    const p = getActiveProject();
-    if (!p) return;
-    const tEl = document.getElementById('project-title-input');
-    const gEl = document.getElementById('project-goal-input');
-    const dEl = document.getElementById('project-deadline-input');
-    const nEl = document.getElementById('project-notes-summary-input');
-    if (tEl && tEl.value !== undefined) p.title = tEl.value;
-    if (gEl && gEl.value !== undefined) p.goal = gEl.value;
-    if (dEl && dEl.value !== undefined) p.deadline = dEl.value;
-    if (nEl && nEl.value !== undefined) p.notes = nEl.value;
-}
-
-// 3-Tier Hierarchy Management
+// 3-Tier Hierarchy Management (Main -> Sub -> Component)
 function createNewProject(parentId = null) {
     syncHeaderInputsToState();
     if (parentId) {
         const depth = getProjectDepth(parentId);
         if (depth >= 2) {
-            alert("Maximum 3-tier depth reached (Main Project -> Sub-Project -> Component Project).");
+            alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
             return;
         }
         const parent = appState.projects.find(p => p.id === parentId);
@@ -116,6 +96,7 @@ function createNewProject(parentId = null) {
     appState.activeProjectId = id;
     saveStateLocally();
     renderApp();
+    closeMobileSidebar();
 }
 
 function toggleProjectCollapse(projectId, e) {
@@ -150,7 +131,7 @@ function deleteProject(projectId, e) {
     }
 }
 
-// Operational Clock & Analog Time Dial
+// Operational Clock & Time-Blindness Sweep
 function toggleTimer() {
     const task = getActiveTask(); 
     if (!task || task.isCompleted) return;
@@ -176,7 +157,7 @@ function timerTick() {
     p.totalTimeSpent += 1;
     tickCounter++;
     if (tickCounter >= 5) {
-        saveStateLocally();
+        saveStateLocally(); // Safe local save: zero Firestore traffic on ticks
         tickCounter = 0;
     }
     updateTimerTexts(p, t);
@@ -289,7 +270,7 @@ function updateTimerTexts(p, task) {
     }
 }
 
-// Park & Resume Anchors
+// Park & Resume Anchor Handlers
 function openParkModal() {
     const modal = document.getElementById('park-resume-modal');
     if (!modal) { forcePause(); return; }
@@ -334,7 +315,7 @@ function dismissLaunchpad() {
     renderApp();
 }
 
-// Micro-Step Decomposer Handlers
+// Micro-Step Decomposer
 function renderMicroSteps(task) {
     const list = document.getElementById('active-task-microsteps-list');
     const summary = document.getElementById('microstep-summary');
@@ -484,7 +465,148 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-// View Navigation Router
+// Zen Mode Controls
+function openZenView() {
+    activeSessionMode = 'zen';
+    const task = getActiveTask();
+    const p = getActiveProject();
+    document.getElementById('zen-active-task-title').textContent = task ? `${task.title} (${p.title})` : p.title;
+    document.getElementById('zen-task-notes').textContent = task && task.notes ? task.notes : (p.notes || 'No notes attached.');
+    document.getElementById('zen-overlay').classList.remove('hidden');
+    applyStageStyle(appState.pickerPrimary, appState.pickerSecondary, appState.pickerTertiary, appState.selectPattern);
+    renderMascotStage();
+    renderTimerVisuals();
+    safeCreateIcons();
+}
+
+function closeZenView() {
+    activeSessionMode = 'focus';
+    document.getElementById('zen-overlay').classList.add('hidden');
+}
+
+function setMascotBehavior(mode) {
+    appState.mascotBehavior = mode;
+    const roam = document.getElementById('mascot-roam-wrapper');
+    const zParticle = document.getElementById('sleep-particle-z');
+
+    ['still', 'roam', 'float', 'sleep'].forEach(m => {
+        const btn = document.getElementById(`btn-beh-${m}`);
+        if (btn) btn.className = m === mode ? "px-2.5 py-1 rounded bg-indigo-600 text-white shadow" : "px-2.5 py-1 rounded text-slate-400";
+    });
+
+    if (roam) {
+        roam.classList.remove('mascot-roam', 'mascot-float');
+        if (mode === 'still') {
+            roam.style.top = '2rem'; roam.style.left = '2rem'; roam.style.transform = 'none';
+        } else if (mode === 'roam') {
+            roam.style.top = '50%'; roam.style.left = '2.5rem'; roam.classList.add('mascot-roam');
+        } else if (mode === 'float') {
+            roam.style.top = '30%'; roam.style.left = '5rem'; roam.classList.add('mascot-float');
+        }
+    }
+
+    if (zParticle) zParticle.classList.add('hidden');
+    toggleSleepingEyes(false);
+    if (mode === 'sleep') {
+        if (zParticle) zParticle.classList.remove('hidden');
+        toggleSleepingEyes(true);
+    }
+    scheduleNextMascotJitter();
+    saveStateLocally();
+}
+
+function setMascotScale(scale) {
+    appState.mascotScale = scale;
+    const wrap = document.getElementById('mascot-scale-wrapper');
+    if (wrap) wrap.style.transform = `scale(${scale})`;
+    const sel = document.getElementById('mascot-scale-select');
+    if (sel) sel.value = scale.toFixed(1);
+    saveStateLocally();
+}
+
+function triggerMascotAnim(type) {
+    const anim = document.getElementById('mascot-anim-wrapper');
+    if (!anim) return;
+    anim.classList.remove('anim-squish', 'anim-hop', 'anim-frontflip', 'anim-backflip');
+    void anim.offsetWidth;
+    anim.classList.add(`anim-${type}`);
+    playSound('start');
+}
+
+function triggerEmote(iconName) {
+    const container = document.getElementById('emote-pop-container');
+    if (!container) return;
+    const iconStyles = {
+        'heart': { color: 'text-rose-500', fill: 'fill-rose-500' },
+        'lightbulb': { color: 'text-amber-500', fill: 'fill-amber-400' },
+        'music': { color: 'text-sky-500', fill: '' },
+        'smile': { color: 'text-emerald-500', fill: '' },
+        'coffee': { color: 'text-amber-800', fill: '' },
+        'flame': { color: 'text-orange-500', fill: 'fill-orange-500' },
+        'trophy': { color: 'text-yellow-500', fill: 'fill-yellow-400' }
+    };
+    const style = iconStyles[iconName] || { color: 'text-indigo-500', fill: '' };
+    container.className = `emote-icon ${style.color}`;
+    container.innerHTML = `<i data-lucide="${iconName}" class="w-7 h-7 ${style.fill}"></i>`;
+    safeCreateIcons();
+    container.classList.remove('anim-emote');
+    void container.offsetWidth;
+    container.classList.add('anim-emote');
+}
+
+function toggleSleepingEyes(isSleeping) {
+    document.querySelectorAll('.rig-eye').forEach(e => {
+        e.style.transform = isSleeping ? 'scaleY(0.1)' : 'scaleY(1.0)';
+    });
+}
+
+function unlockAllMascotsTest() {
+    getRootProject(getActiveProject()).unlockAllMascotsTest = true;
+    saveStateLocally();
+    renderMascotStage();
+}
+
+function toggleHideUnlockBtn() {
+    appState.hideUnlockBtn = !appState.hideUnlockBtn;
+    saveStateLocally();
+    renderMascotStage();
+}
+
+function removeCompanion() {
+    syncHeaderInputsToState();
+    getRootProject(getActiveProject()).activeMascotId = null;
+    saveStateLocally();
+    renderApp();
+}
+
+function selectMascotCompanion(id) {
+    syncHeaderInputsToState();
+    getRootProject(getActiveProject()).activeMascotId = id;
+    saveStateLocally();
+    renderApp();
+}
+
+function onCustomColorChange() {
+    const p = document.getElementById('picker-primary').value;
+    const s = document.getElementById('picker-secondary').value;
+    const t = document.getElementById('picker-tertiary').value;
+    const style = document.getElementById('select-pattern').value;
+    appState.pickerPrimary = p; appState.pickerSecondary = s; appState.pickerTertiary = t; appState.selectPattern = style;
+    saveStateLocally();
+    applyStageStyle(p, s, t, style);
+}
+
+function applyStageStyle(p, s, t, style) {
+    const zen = document.getElementById('zen-overlay'); if (!zen) return;
+    if (style === 'solid') zen.style.background = p;
+    else if (style === 'linear-vert') zen.style.background = `linear-gradient(180deg, ${p} 0%, ${s} 100%)`;
+    else if (style === 'linear-diag') zen.style.background = `linear-gradient(135deg, ${p} 0%, ${s} 50%, ${t} 100%)`;
+    else if (style === 'radial-center') zen.style.background = `radial-gradient(circle at center, ${t} 0%, ${s} 55%, ${p} 100%)`;
+    else if (style === 'spotlight') zen.style.background = `radial-gradient(circle at 80% 20%, ${t} 0%, ${s} 45%, ${p} 90%)`;
+    else if (style === 'mesh') zen.style.background = `radial-gradient(at 0% 0%, ${t} 0px, transparent 50%), radial-gradient(at 100% 100%, ${s} 0px, transparent 50%), ${p}`;
+}
+
+// Router & Views
 function switchView(view) {
     syncHeaderInputsToState();
     if (isPlaying) forcePause();
@@ -507,10 +629,10 @@ function switchView(view) {
     else if (view === 'analytics') renderAnalytics(7);
     else renderApp();
 
+    closeMobileSidebar();
     safeCreateIcons();
 }
 
-// Render Core Application
 function renderApp() {
     const p = getActiveProject(); if (!p) return;
     renderSidebar();
@@ -524,13 +646,13 @@ function renderApp() {
 function renderSidebar() {
     const container = document.getElementById('project-list-container');
     function buildTreeHTML(parentId = null, depth = 0) {
-        const projectsAtLevel = appState.projects.filter(p => p.parentId === parentId);
+        const projectsAtLevel = (appState.projects || []).filter(p => p.parentId === parentId);
         if (projectsAtLevel.length === 0) return '';
 
         return projectsAtLevel.map(p => {
             const isActive = p.id === appState.activeProjectId;
             const isCollapsed = appState.collapsedProjects && appState.collapsedProjects[p.id];
-            const subProjects = appState.projects.filter(sp => sp.parentId === p.id);
+            const subProjects = (appState.projects || []).filter(sp => sp.parentId === p.id);
             const hasSubs = subProjects.length > 0;
             
             const rootProj = getRootProject(p);
@@ -546,7 +668,7 @@ function renderSidebar() {
                     
                     <div class="flex items-center gap-2 min-w-0 flex-1 pr-2">
                         ${hasSubs ? `
-                            <button onclick="toggleProjectCollapse('${p.id}', event)" class="p-0.5 hover:bg-slate-200 rounded text-slate-500 shrink-0">
+                            <button onclick="toggleProjectCollapse('${p.id}', event)" class="p-1 hover:bg-slate-200 rounded text-slate-500 shrink-0">
                                 <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
                             </button>
                         ` : `<span class="w-3.5 shrink-0"></span>`}
@@ -564,12 +686,12 @@ function renderSidebar() {
 
                     <div class="flex items-center gap-1 shrink-0">
                         ${depth < 2 ? `
-                        <button onclick="createNewProject('${p.id}'); event.stopPropagation();" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-brand-50 text-brand-600 rounded transition-opacity" title="${depth === 0 ? 'Add Sub-Project' : 'Add Component Project'}">
+                        <button onclick="createNewProject('${p.id}'); event.stopPropagation();" class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-brand-50 text-brand-600 rounded transition-opacity" title="${depth === 0 ? 'Add Sub-Project' : 'Add Component Project'}">
                             <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
                         </button>
                         ` : ''}
                         
-                        <button onclick="deleteProject('${p.id}', event)" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-50 text-rose-500 rounded transition-opacity" title="Delete Project">
+                        <button onclick="deleteProject('${p.id}', event)" class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-rose-50 text-rose-500 rounded transition-opacity" title="Delete Project">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
 
@@ -682,7 +804,7 @@ function renderMascotStage() {
     grid.innerHTML = mascotDatabase.map(m => {
         const isSelected = m.id === activeMascotId;
         const isUnlocked = rootProj.unlockAllMascotsTest || m.unlockSec === 0 || (projectTime >= m.unlockSec);
-        const assignedOther = appState.projects.find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
+        const assignedOther = (appState.projects || []).find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
 
         let statusText = `${m.shapes}`;
         let cardClick = `selectMascotCompanion('${m.id}')`;
@@ -764,7 +886,7 @@ function renderTimerVisuals() {
 
     [mainBtn, zenBtn].forEach(b => {
         if (!b) return;
-        b.className = `relative flex flex-col items-center justify-center w-72 h-72 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 cursor-pointer outline-none overflow-hidden ${isPlaying ? 'timer-green-container' : 'timer-red-container'}`;
+        b.className = `relative flex flex-col items-center justify-center w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 cursor-pointer outline-none overflow-hidden ${isPlaying ? 'timer-green-container' : 'timer-red-container'}`;
     });
     [mainBloom, zenBloom].forEach(bl => {
         if (!bl) return;
@@ -773,7 +895,7 @@ function renderTimerVisuals() {
 }
 
 function toggleTaskStatus(id) {
-    const p = getActiveProject(), t = p.tasks.find(x => x.id === id);
+    const p = getActiveProject(), t = (p.tasks || []).find(x => x.id === id);
     if (t) {
         t.isCompleted = !t.isCompleted;
         if (t.isCompleted) t.completionDate = new Date().toISOString();
@@ -786,6 +908,7 @@ function selectProject(id) {
     syncHeaderInputsToState();
     appState.activeProjectId = id;
     renderApp();
+    closeMobileSidebar();
 }
 
 function selectTask(id) {
@@ -852,7 +975,34 @@ function saveFullProjectNotes() {
     toggleProjectNotesModal();
 }
 
-// Global auto-sync on project header fields
+function toggleBloomPopover() { 
+    document.getElementById('bloom-popover').classList.toggle('hidden'); 
+    document.getElementById('audio-popover').classList.add('hidden'); 
+}
+
+function toggleAudioPopover() { 
+    document.getElementById('audio-popover').classList.toggle('hidden'); 
+    document.getElementById('bloom-popover').classList.add('hidden'); 
+}
+
+// Global Initialization Hook
+function initSettings() {
+    if (document.getElementById('volume-slider')) document.getElementById('volume-slider').value = appState.audioVolume || 80;
+    if (document.getElementById('volume-label')) document.getElementById('volume-label').textContent = (appState.audioVolume || 80) + '%';
+    if (document.getElementById('audio-family-select')) document.getElementById('audio-family-select').value = appState.audioFamily || 'woodblock';
+    if (document.getElementById('bloom-slider')) document.getElementById('bloom-slider').value = appState.bloomOpacity || 60;
+    if (document.getElementById('jitter-audio-base')) document.getElementById('jitter-audio-base').value = appState.jitterAudioBase || 300;
+    if (document.getElementById('jitter-audio-window')) document.getElementById('jitter-audio-window').value = appState.jitterAudioWindow || 30;
+    updateBloomOpacity(appState.bloomOpacity || 60);
+    if (appState.audioMuted) {
+        const btn = document.getElementById('btn-mute-toggle');
+        if (btn) { btn.classList.add('bg-rose-100'); btn.textContent = "Unmute"; }
+        const icon = document.getElementById('audio-icon-display');
+        if (icon) icon.setAttribute('data-lucide', "volume-x");
+    }
+}
+
+// Auto-save listeners on project header fields
 ['project-title-input', 'project-goal-input', 'project-deadline-input', 'project-notes-summary-input'].forEach(id => {
     const elem = document.getElementById(id);
     if (elem) {
@@ -881,6 +1031,6 @@ document.getElementById('active-task-deadline').addEventListener('change', (e) =
     if (el) el.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleAddTask(); });
 });
 
-// App Startup Sequence
+// Boot Sequence
 initSettings();
 renderApp();
