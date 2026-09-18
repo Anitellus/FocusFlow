@@ -1,5 +1,7 @@
 # FocusFlow
 
+This is an AI summary. I can't confirm if all the steps are accurate. I'm not going to test, but if I learn of an issue I can revise! I'm personally trying to test and learn the application myself.
+
 FocusFlow is a single-task productivity application tailored to neurodivergent executive function and ADHD execution support. It eliminates activation paralysis, temporal distortion, and context collapse using single-task containment, visual time-blindness sweeps, and non-punitive momentum tracking.
 
 ---
