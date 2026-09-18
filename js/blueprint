@@ -1,0 +1,274 @@
+// --- Momentum Blueprint Ingestion Engine ---
+
+const BlueprintEngine = {
+    // Generates a pre-made prompt for AI chats
+    copyAiPrompt() {
+        const promptText = `Please format the schedule/plan above into a FocusFlow Markdown Blueprint using the following format:
+
+# Project Name [Optional Deadline YYYY-MM-DD]
+Goal: Optional goal description
+## Sub-Project Name
+### Component Project Name
+- Task title (estimated_minutes) [Optional Deadline YYYY-MM-DD]
+- Another task title (30m) [2026-05-15]
+
+Ensure tasks are placed at the lowest project level and include duration in minutes like (25m) or (45m).`;
+
+        navigator.clipboard.writeText(promptText).then(() => {
+            const btn = document.getElementById('btn-copy-blueprint-prompt');
+            if (btn) {
+                const original = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Copied AI Prompt!`;
+                safeCreateIcons();
+                setTimeout(() => { btn.innerHTML = original; safeCreateIcons(); }, 2500);
+            }
+        }).catch(() => {
+            alert("Copy failed. Please manually select the prompt template.");
+        });
+    },
+
+    openModal() {
+        const modal = document.getElementById('blueprint-modal');
+        if (!modal) return;
+        const activeProj = getActiveProject();
+        const activeDepth = activeProj ? getProjectDepth(activeProj.id) : 0;
+        const targetSelect = document.getElementById('blueprint-target-select');
+        
+        if (targetSelect) {
+            targetSelect.innerHTML = `
+                <option value="root">New Root Project</option>
+                ${activeProj && activeDepth < 2 ? `<option value="nest">Nest inside active: "${activeProj.title}" (Tier ${activeDepth + 1})</option>` : ''}
+            `;
+        }
+
+        const input = document.getElementById('blueprint-input');
+        if (input) input.value = '';
+        modal.classList.remove('hidden');
+        safeCreateIcons();
+    },
+
+    closeModal() {
+        const modal = document.getElementById('blueprint-modal');
+        if (modal) modal.classList.add('hidden');
+    },
+
+    // Ingests either Markdown or JSON format
+    executeImport() {
+        const input = document.getElementById('blueprint-input');
+        const rawText = input ? input.value.trim() : '';
+        const targetMode = document.getElementById('blueprint-target-select')?.value || 'root';
+
+        if (!rawText) {
+            alert("Please paste a Markdown outline or JSON blueprint.");
+            return;
+        }
+
+        try {
+            if (rawText.startsWith('{') || rawText.startsWith('[')) {
+                this.parseJSON(rawText, targetMode);
+            } else {
+                this.parseMarkdown(rawText, targetMode);
+            }
+            saveStateLocally();
+            renderApp();
+            this.closeModal();
+            alert("Blueprint successfully ingested into FocusFlow!");
+        } catch (err) {
+            console.error("Blueprint Ingest Error:", err);
+            alert("Error importing blueprint: " + err.message);
+        }
+    },
+
+    // Markdown Parser
+    parseMarkdown(text, targetMode) {
+        const lines = text.split('\n');
+        const activeProj = getActiveProject();
+        const baseParentId = (targetMode === 'nest' && activeProj) ? activeProj.id : null;
+        const baseDepth = baseParentId ? getProjectDepth(baseParentId) + 1 : 0;
+
+        let currentTier1 = null; // Root or Level 1
+        let currentTier2 = null; // Subproject or Level 2
+        let currentTier3 = null; // Component or Level 3
+        let currentActiveContainer = null;
+
+        lines.forEach(rawLine => {
+            const line = rawLine.trim();
+            if (!line) return;
+
+            // Tier 1 Header (# Project)
+            if (line.startsWith('# ')) {
+                const { title, deadline } = this.extractTitleAndMeta(line.replace(/^#\s+/, ''));
+                if (baseDepth === 0) {
+                    currentTier1 = this.createProject(title, null, deadline);
+                    currentTier2 = null;
+                    currentTier3 = null;
+                    currentActiveContainer = currentTier1;
+                } else if (baseDepth === 1) {
+                    currentTier2 = this.createProject(title, baseParentId, deadline);
+                    currentTier3 = null;
+                    currentActiveContainer = currentTier2;
+                } else {
+                    currentTier3 = this.createProject(title, baseParentId, deadline);
+                    currentActiveContainer = currentTier3;
+                }
+            }
+            // Tier 2 Header (## Sub-Project)
+            else if (line.startsWith('## ')) {
+                const { title, deadline } = this.extractTitleAndMeta(line.replace(/^##\s+/, ''));
+                const parentId = currentTier1 ? currentTier1.id : baseParentId;
+                if (getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
+                currentTier2 = this.createProject(title, parentId, deadline);
+                currentTier3 = null;
+                currentActiveContainer = currentTier2;
+            }
+            // Tier 3 Header (### Component Project)
+            else if (line.startsWith('### ')) {
+                const { title, deadline } = this.extractTitleAndMeta(line.replace(/^###\s+/, ''));
+                const parentId = currentTier2 ? currentTier2.id : (currentTier1 ? currentTier1.id : baseParentId);
+                if (getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
+                currentTier3 = this.createProject(title, parentId, deadline);
+                currentActiveContainer = currentTier3;
+            }
+            // Goal Definition (Goal: ...)
+            else if (line.toLowerCase().startsWith('goal:')) {
+                if (currentActiveContainer) {
+                    currentActiveContainer.goal = line.replace(/^goal:\s*/i, '').trim();
+                }
+            }
+            // Task Items (- Task Name (30m) [2026-05-15])
+            else if (line.startsWith('- ') || line.startsWith('* ')) {
+                const taskContent = line.replace(/^[-*]\s+/, '');
+                const { title, minutes, deadline } = this.extractTaskMeta(taskContent);
+                
+                // If no container declared yet, create a default root container
+                if (!currentActiveContainer) {
+                    currentTier1 = this.createProject("Imported Blueprint", baseParentId);
+                    currentActiveContainer = currentTier1;
+                }
+
+                currentActiveContainer.tasks = currentActiveContainer.tasks || [];
+                currentActiveContainer.tasks.push({
+                    id: 't-' + generateId(),
+                    title: title,
+                    estimatedTime: minutes * 60,
+                    actualTime: 0,
+                    isCompleted: false,
+                    deadline: deadline || '',
+                    notes: '',
+                    createdAt: new Date().toISOString(),
+                    microSteps: [],
+                    lastParkedContext: null
+                });
+
+                if (!currentActiveContainer.activeTaskId) {
+                    currentActiveContainer.activeTaskId = currentActiveContainer.tasks[0].id;
+                }
+            }
+        });
+    },
+
+    // JSON Parser
+    parseJSON(jsonText, targetMode) {
+        const data = JSON.parse(jsonText);
+        const activeProj = getActiveProject();
+        const baseParentId = (targetMode === 'nest' && activeProj) ? activeProj.id : null;
+        const items = Array.isArray(data) ? data : [data];
+
+        items.forEach(item => {
+            const root = this.createProject(item.title || "Imported Plan", baseParentId, item.deadline, item.goal);
+            if (Array.isArray(item.tasks)) {
+                item.tasks.forEach(t => {
+                    root.tasks.push({
+                        id: 't-' + generateId(),
+                        title: t.title || "Untitled Task",
+                        estimatedTime: (t.estimatedMinutes || t.minutes || 15) * 60,
+                        actualTime: 0,
+                        isCompleted: false,
+                        deadline: t.deadline || '',
+                        notes: t.notes || '',
+                        createdAt: new Date().toISOString(),
+                        microSteps: [],
+                        lastParkedContext: null
+                    });
+                });
+                root.activeTaskId = root.tasks[0]?.id || null;
+            }
+            if (Array.isArray(item.children)) {
+                item.children.forEach(sub => {
+                    const subProj = this.createProject(sub.title || "Sub-Project", root.id, sub.deadline, sub.goal);
+                    if (Array.isArray(sub.tasks)) {
+                        sub.tasks.forEach(st => {
+                            subProj.tasks.push({
+                                id: 't-' + generateId(),
+                                title: st.title || "Untitled Sub-Task",
+                                estimatedTime: (st.estimatedMinutes || st.minutes || 15) * 60,
+                                actualTime: 0,
+                                isCompleted: false,
+                                deadline: st.deadline || '',
+                                notes: st.notes || '',
+                                createdAt: new Date().toISOString(),
+                                microSteps: [],
+                                lastParkedContext: null
+                            });
+                        });
+                        subProj.activeTaskId = subProj.tasks[0]?.id || null;
+                    }
+                });
+            }
+        });
+    },
+
+    createProject(title, parentId = null, deadline = '', goal = '') {
+        const id = 'proj-' + generateId();
+        const project = {
+            id,
+            parentId,
+            title: title || "New Ingested Project",
+            goal: goal || '',
+            deadline: deadline || '',
+            notes: 'Imported via Momentum Blueprint',
+            totalTimeSpent: 0,
+            activeTaskId: null,
+            activeMascotId: null,
+            unlockAllMascotsTest: false,
+            createdAt: new Date().toISOString(),
+            completedAt: null,
+            tasks: []
+        };
+        appState.projects = appState.projects || [];
+        appState.projects.push(project);
+        appState.activeProjectId = id;
+        return project;
+    },
+
+    extractTitleAndMeta(str) {
+        let title = str;
+        let deadline = '';
+        const deadMatch = str.match(/\[(\d{4}-\d{2}-\d{2})\]/);
+        if (deadMatch) {
+            deadline = deadMatch[1];
+            title = title.replace(deadMatch[0], '');
+        }
+        return { title: title.trim(), deadline };
+    },
+
+    extractTaskMeta(str) {
+        let title = str;
+        let minutes = 15;
+        let deadline = '';
+
+        const deadMatch = str.match(/\[(\d{4}-\d{2}-\d{2})\]/);
+        if (deadMatch) {
+            deadline = deadMatch[1];
+            title = title.replace(deadMatch[0], '');
+        }
+
+        const minMatch = title.match(/\((\d+)\s*(?:m\vert{}min\vert{}mins)?\)/i) || title.match(/\[(\d+)\s*(?:m\vert{}min\vert{}mins)?\]/i);
+        if (minMatch) {
+            minutes = parseInt(minMatch[1], 10);
+            title = title.replace(minMatch[0], '');
+        }
+
+        return { title: title.trim(), minutes: isNaN(minutes) ? 15 : minutes, deadline };
+    }
+};
