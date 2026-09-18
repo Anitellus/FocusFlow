@@ -42,6 +42,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="css/style.css">
@@ -98,9 +99,13 @@
         <div class="flex-1 overflow-y-auto p-3 space-y-1 font-sans-ui" id="project-list-container"></div>
 
         <div class="p-4 border-t border-slate-200/60 bg-white/50 space-y-2 font-sans-ui">
+            <!-- Auth Status Banner / Login Button -->
+            <div id="auth-status-container" class="pb-1"></div>
+
             <button onclick="createNewProject()" class="w-full py-2.5 bg-brand-600 text-white rounded-xl font-semibold text-xs hover:bg-brand-500 hover:shadow-md transition-all flex items-center justify-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i> New Root Project
             </button>
+            
             <button onclick="BlueprintEngine.openModal()" class="w-full py-2 bg-indigo-50 border border-indigo-200 text-brand-700 hover:bg-indigo-100 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
                 <i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-600"></i> Momentum Blueprint
             </button>
