@@ -1,35 +1,60 @@
 // --- Momentum Blueprint Ingestion Engine ---
 
 const BlueprintEngine = {
-    // Copies the prompt template with mobile clipboard fallback
-    copyAiPrompt() {
-        const promptText = `Please format the schedule/plan above into a FocusFlow Markdown Blueprint using the following format:
+    // Stage 1: Brainstorming & Architecture Prompt
+    copyArchitectPrompt() {
+        const text = `Act as an ADHD Executive Function Architect and Project Strategist.
 
-# Project Name [Optional Deadline YYYY-MM-DD]
-Goal: Optional goal description
-## Sub-Project Name [Optional Deadline YYYY-MM-DD]
-### Component Project Name [Optional Deadline YYYY-MM-DD]
-- Task title (estimated_minutes) [Optional Deadline YYYY-MM-DD]
-- Another task title (30m) [2026-05-15]
+I have a project vision I want to break down:
+[Insert your goal, footage, or North Star here]
 
-Ensure tasks are placed at the lowest project level and include duration in minutes like (25m) or (45m).`;
+My Constraints & Reality Check:
+- Weekly focus budget: [e.g., 90m weekdays, 2-3h weekends]
+- Target timeframe: [e.g., 30 days]
+- ADHD friction points: [e.g., Task paralysis, perfectionism, getting lost in details]
 
-        const notifySuccess = () => {
-            const btn = document.getElementById('btn-copy-blueprint-prompt');
+Rules for your response:
+1. Organize into a 3-tier hierarchy: # Main Project -> ## Sub-Project -> ### Component Track.
+2. Break work into atomic, low-friction action steps (<= 30-45m max).
+3. CRITICAL: DO NOT invent estimated times. Output placeholders like ( ___m ) for me to fill in.
+4. Suggest where quick 5-10m warm-ups or recovery sessions should live.`;
+
+        this.copyToClipboard(text, 'btn-copy-architect', 'Copied Architect Prompt!');
+    },
+
+    // Stage 2: Direct Markdown Ingestion Prompt
+    copyFormatterPrompt() {
+        const text = `Format our agreed-upon plan into a FocusFlow Markdown Blueprint using the strict format below:
+
+# Project Name [YYYY-MM-DD]
+Goal: One-sentence North Star goal
+## Sub-Project Name [YYYY-MM-DD]
+### Component Track [YYYY-MM-DD]
+- Task title (duration) [YYYY-MM-DD]
+
+Formatting Rules:
+- Include duration in parentheses: (25m), (1h 15m), (5m 30s), (90s), or (05:30).
+- Tasks must live under leaf headers (## or ###).
+- Dates inside [YYYY-MM-DD] brackets are optional.`;
+
+        this.copyToClipboard(text, 'btn-copy-formatter', 'Copied Formatter Prompt!');
+    },
+
+    copyToClipboard(text, buttonId, successMessage) {
+        const notify = () => {
+            const btn = document.getElementById(buttonId);
             if (btn) {
                 const original = btn.innerHTML;
-                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Copied AI Prompt!`;
+                btn.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-emerald-600"></i> ${successMessage}`;
                 safeCreateIcons();
                 setTimeout(() => { btn.innerHTML = original; safeCreateIcons(); }, 2500);
             }
         };
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(promptText)
-                .then(notifySuccess)
-                .catch(() => this.fallbackCopy(promptText, notifySuccess));
+            navigator.clipboard.writeText(text).then(notify).catch(() => this.fallbackCopy(text, notify));
         } else {
-            this.fallbackCopy(promptText, notifySuccess);
+            this.fallbackCopy(text, notify);
         }
     },
 
@@ -44,8 +69,8 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         try {
             document.execCommand('copy');
             if (callback) callback();
-        } catch (err) {
-            alert("Copy failed. Please manually copy the template from the instructions guide.");
+        } catch (e) {
+            alert("Copy failed. Please manually select the template.");
         }
         document.body.removeChild(textArea);
     },
@@ -77,7 +102,6 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         if (modal) modal.classList.add('hidden');
     },
 
-    // Ingests either Markdown outline or JSON format
     executeImport() {
         const input = document.getElementById('blueprint-input');
         const rawText = input ? input.value.trim() : '';
@@ -96,7 +120,6 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 createdProjects = this.parseMarkdown(rawText, targetMode);
             }
 
-            // Automatically select the first project that has tasks
             const projectWithTasks = createdProjects.find(p => p.tasks && p.tasks.length > 0);
             if (projectWithTasks) {
                 appState.activeProjectId = projectWithTasks.id;
@@ -105,11 +128,10 @@ Ensure tasks are placed at the lowest project level and include duration in minu
             }
 
             saveStateLocally();
-            
-            // Push immediately to Firestore
+
             if (typeof docRef !== 'undefined' && docRef) {
                 const cleanData = JSON.parse(JSON.stringify(appState));
-                docRef.set(cleanData, { merge: true }).catch(err => console.warn("Blueprint sync note:", err));
+                docRef.set(cleanData, { merge: true }).catch(err => console.warn("Blueprint sync notice:", err));
             }
 
             renderApp();
@@ -121,7 +143,6 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         }
     },
 
-    // Markdown Parser
     parseMarkdown(text, targetMode) {
         const lines = text.split('\n');
         const activeProj = getActiveProject();
@@ -138,7 +159,6 @@ Ensure tasks are placed at the lowest project level and include duration in minu
             const line = rawLine.trim();
             if (!line) return;
 
-            // Tier 1 Header (# Project)
             if (line.startsWith('# ')) {
                 const { title, deadline } = this.extractTitleAndMeta(line.replace(/^#\s+/, ''));
                 if (baseDepth === 0) {
@@ -157,36 +177,28 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                     created.push(currentTier3);
                     currentActiveContainer = currentTier3;
                 }
-            }
-            // Tier 2 Header (## Sub-Project)
-            else if (line.startsWith('## ')) {
+            } else if (line.startsWith('## ')) {
                 const { title, deadline } = this.extractTitleAndMeta(line.replace(/^##\s+/, ''));
                 const parentId = currentTier1 ? currentTier1.id : baseParentId;
-                if (parentId && getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
+                if (parentId && getProjectDepth(parentId) >= 2) throw new Error("Hierarchy limit reached at: " + title);
                 currentTier2 = this.createProject(title, parentId, deadline);
                 created.push(currentTier2);
                 currentTier3 = null;
                 currentActiveContainer = currentTier2;
-            }
-            // Tier 3 Header (### Component Project)
-            else if (line.startsWith('### ')) {
+            } else if (line.startsWith('### ')) {
                 const { title, deadline } = this.extractTitleAndMeta(line.replace(/^###\s+/, ''));
                 const parentId = currentTier2 ? currentTier2.id : (currentTier1 ? currentTier1.id : baseParentId);
-                if (parentId && getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
+                if (parentId && getProjectDepth(parentId) >= 2) throw new Error("Hierarchy limit reached at: " + title);
                 currentTier3 = this.createProject(title, parentId, deadline);
                 created.push(currentTier3);
                 currentActiveContainer = currentTier3;
-            }
-            // Goal Definition (Goal: ...)
-            else if (line.toLowerCase().startsWith('goal:')) {
+            } else if (line.toLowerCase().startsWith('goal:')) {
                 if (currentActiveContainer) {
                     currentActiveContainer.goal = line.replace(/^goal:\s*/i, '').trim();
                 }
-            }
-            // Task Items (- Task Name (30m) [2026-05-15])
-            else if (line.startsWith('- ') || line.startsWith('* ')) {
+            } else if (line.startsWith('- ') || line.startsWith('* ')) {
                 const taskContent = line.replace(/^[-*]\s+/, '');
-                const { title, minutes, deadline } = this.extractTaskMeta(taskContent);
+                const { title, seconds, deadline } = this.extractTaskMeta(taskContent);
                 
                 if (!currentActiveContainer) {
                     currentTier1 = this.createProject("Imported Blueprint", baseParentId);
@@ -198,7 +210,7 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 currentActiveContainer.tasks.push({
                     id: 't-' + generateId(),
                     title: title,
-                    estimatedTime: minutes * 60,
+                    estimatedTime: seconds,
                     actualTime: 0,
                     isCompleted: false,
                     deadline: deadline || '',
@@ -217,7 +229,6 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         return created;
     },
 
-    // JSON Parser
     parseJSON(jsonText, targetMode) {
         const data = JSON.parse(jsonText);
         const activeProj = getActiveProject();
@@ -234,7 +245,7 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                     root.tasks.push({
                         id: 't-' + generateId(),
                         title: t.title || "Untitled Task",
-                        estimatedTime: (t.estimatedMinutes || t.minutes || 15) * 60,
+                        estimatedTime: this.parseDurationToSeconds(t.estimatedTime || t.duration || t.minutes || 15),
                         actualTime: 0,
                         isCompleted: false,
                         deadline: t.deadline || '',
@@ -257,7 +268,7 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                             subProj.tasks.push({
                                 id: 't-' + generateId(),
                                 title: st.title || "Untitled Sub-Task",
-                                estimatedTime: (st.estimatedMinutes || st.minutes || 15) * 60,
+                                estimatedTime: this.parseDurationToSeconds(st.estimatedTime || st.duration || st.minutes || 15),
                                 actualTime: 0,
                                 isCompleted: false,
                                 deadline: st.deadline || '',
@@ -309,10 +320,10 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         return { title: title.trim(), deadline };
     },
 
-    // Fixed Regex: removes \vert{} and uses standard pipe |
+    // Multi-format natural time parser
     extractTaskMeta(str) {
         let title = str;
-        let minutes = 15;
+        let seconds = 900; // 15 min default
         let deadline = '';
 
         const deadMatch = str.match(/\[(\d{4}-\d{2}-\d{2})\]/);
@@ -321,19 +332,59 @@ Ensure tasks are placed at the lowest project level and include duration in minu
             title = title.replace(deadMatch[0], '');
         }
 
-        const minMatch = title.match(/\((\d+)\s*(?:m\vert{}min\vert{}mins)?\)/i) || 
-                         title.match(/\[(\d+)\s*(?:m\vert{}min\vert{}mins)?\]/i);
-        if (minMatch) {
-            minutes = parseInt(minMatch[1], 10);
-            title = title.replace(minMatch[0], '');
+        const durationMatch = title.match(/\(([^)]+)\)/) || title.match(/\[([^\]]+)\]/);
+        if (durationMatch) {
+            const parsed = this.parseDurationToSeconds(durationMatch[1]);
+            if (parsed > 0) {
+                seconds = parsed;
+                title = title.replace(durationMatch[0], '');
+            }
         }
 
         title = title.trim().replace(/^[-–—:]\s*/, '').replace(/\s*[-–—:]$/, '');
 
         return { 
             title: title.trim() || "Untitled Task", 
-            minutes: (!isNaN(minutes) && minutes > 0) ? minutes : 15, 
+            seconds, 
             deadline 
         };
+    },
+
+    // Resolves strings like "5m 30s", "1h 15m", "90s", "5.5m", "05:30", or plain numbers
+    parseDurationToSeconds(raw) {
+        if (typeof raw === 'number') return Math.round(raw * 60);
+        const str = String(raw).trim().toLowerCase();
+        let total = 0;
+
+        // Matches digital clock "MM:SS" (e.g. 05:30)
+        if (/^\d{1,3}:\d{2}$/.test(str)) {
+            const [m, s] = str.split(':').map(Number);
+            return (m * 60) + s;
+        }
+
+        // Matches fractional hours (e.g. "1.5h")
+        const decHourMatch = str.match(/^([\d.]+)\s*h(?:ours?)?$/);
+        if (decHourMatch) return Math.round(parseFloat(decHourMatch[1]) * 3600);
+
+        // Matches fractional minutes (e.g. "5.5m")
+        const decMinMatch = str.match(/^([\d.]+)\s*m(?:in|ins|inutes?)?$/);
+        if (decMinMatch) return Math.round(parseFloat(decMinMatch[1]) * 60);
+
+        // Matches mixed components: "1h 30m 15s"
+        const hoursMatch = str.match(/(\d+)\s*h/);
+        const minsMatch = str.match(/(\d+)\s*m/);
+        const secsMatch = str.match(/(\d+)\s*s/);
+
+        if (hoursMatch) total += parseInt(hoursMatch[1], 10) * 3600;
+        if (minsMatch) total += parseInt(minsMatch[1], 10) * 60;
+        if (secsMatch) total += parseInt(secsMatch[1], 10);
+
+        // Plain raw integer fallback (assumed to be minutes)
+        if (!hoursMatch && !minsMatch && !secsMatch) {
+            const rawNum = parseInt(str.replace(/[^\d]/g, ''), 10);
+            if (!isNaN(rawNum) && rawNum > 0) total = rawNum * 60;
+        }
+
+        return total > 0 ? total : 900;
     }
 };
