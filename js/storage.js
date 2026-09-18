@@ -1,4 +1,4 @@
-// --- Core Shared Utilities (Hoisted for Safe Startup) ---
+// --- Core Shared Utilities ---
 function generateId() { 
     return Math.random().toString(36).substr(2, 9); 
 }
@@ -55,8 +55,12 @@ const firebaseConfig = {
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
+const auth = firebase.auth();
 const db = firebase.firestore();
 const docRef = db.collection('focus_flow').doc('user_workspace');
+
+let currentUser = null;
+let firestoreUnsubscribe = null;
 
 let appState = {
     version: 10,
@@ -80,6 +84,7 @@ let appState = {
     projects: []
 };
 
+// --- Migration & Local Storage ---
 function initializeAndMigrateStorage() {
     const rawV10 = localStorage.getItem(STORAGE_KEY_V10);
     if (rawV10) {
@@ -145,10 +150,7 @@ function loadDefaultData() {
                 notes: 'Check all complexity steps.', 
                 completionDate: null,
                 createdAt: new Date().toISOString(),
-                microSteps: [
-                    { id: 'ms-1', title: 'Open SVG files', isCompleted: false },
-                    { id: 'ms-2', title: 'Check bounds clipping', isCompleted: false }
-                ],
+                microSteps: [],
                 lastParkedContext: null
             }
         ]
@@ -178,7 +180,50 @@ function saveState() {
     saveStateLocally();
 }
 
+// --- Google Authentication & Cloud Sync ---
+function signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(err => {
+        console.error("Sign-in error:", err);
+        alert("Google Sign-in failed: " + err.message);
+    });
+}
+
+function signOutUser() {
+    auth.signOut().then(() => {
+        if (firestoreUnsubscribe) {
+            firestoreUnsubscribe();
+            firestoreUnsubscribe = null;
+        }
+    });
+}
+
+function renderAuthUI(user) {
+    const container = document.getElementById('auth-status-container');
+    if (!container) return;
+
+    if (user) {
+        container.innerHTML = `
+            <div class="flex items-center justify-between bg-slate-200/60 rounded-xl px-2.5 py-1.5 text-xs">
+                <span class="truncate font-semibold text-slate-700 text-[11px]" title="${user.email}">${user.email}</span>
+                <button onclick="signOutUser()" class="text-rose-600 hover:text-rose-700 text-[10px] font-bold shrink-0 ml-1">Sign out</button>
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <button onclick="signInWithGoogle()" class="w-full py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl font-bold text-xs text-slate-700 shadow-xs flex items-center justify-center gap-2 transition-colors">
+                <i data-lucide="log-in" class="w-3.5 h-3.5 text-brand-600"></i> Sign in with Google
+            </button>
+        `;
+    }
+    safeCreateIcons();
+}
+
 function manualCloudSave() {
+    if (!currentUser) {
+        alert("Please sign in with Google before saving to the cloud.");
+        return;
+    }
     syncHeaderInputsToState();
     saveStateLocally();
     const btn = document.getElementById('btn-manual-save');
@@ -195,26 +240,47 @@ function manualCloudSave() {
         }, 2500);
     }).catch(err => {
         console.error("Cloud Save Error:", err);
+        alert("Cloud Save Failed: " + err.message);
         if (btn) btn.innerHTML = `Save Failed`;
+        safeCreateIcons();
     });
 }
 
-// Background auto-sync throttled to every 5 minutes
+// Throttled background sync (active only when logged in)
 setInterval(() => {
+    if (!currentUser) return;
     syncHeaderInputsToState();
     const cleanData = JSON.parse(JSON.stringify(appState));
-    docRef.set(cleanData, { merge: true }).catch(err => console.warn("Auto-sync note:", err));
+    docRef.set(cleanData, { merge: true }).catch(err => console.warn("Background auto-sync notice:", err));
 }, 5 * 60 * 1000);
 
-// Real-time listener: ignores own pending writes
-docRef.onSnapshot((doc) => {
-    if (doc.metadata && doc.metadata.hasPendingWrites) return;
-    if (doc.exists) {
-        const cloudData = doc.data();
-        if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
-            appState = Object.assign(appState, cloudData);
-            saveStateLocally();
-            if (typeof renderApp === 'function') renderApp();
+// Auth state listener: attaches Firestore listener only when signed in
+auth.onAuthStateChanged(user => {
+    currentUser = user;
+    renderAuthUI(user);
+
+    if (user) {
+        if (firestoreUnsubscribe) firestoreUnsubscribe();
+        firestoreUnsubscribe = docRef.onSnapshot((doc) => {
+            if (doc.metadata && doc.metadata.hasPendingWrites) return;
+            if (doc.exists) {
+                const cloudData = doc.data();
+                if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
+                    appState = Object.assign(appState, cloudData);
+                    saveStateLocally();
+                    if (typeof renderApp === 'function') renderApp();
+                }
+            }
+        }, err => {
+            console.error("Firestore Listener Error:", err);
+            if (err.code === 'permission-denied') {
+                alert("Permission denied. Check that the email in your Firestore rules matches: " + user.email);
+            }
+        });
+    } else {
+        if (firestoreUnsubscribe) {
+            firestoreUnsubscribe();
+            firestoreUnsubscribe = null;
         }
     }
 });
