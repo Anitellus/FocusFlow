@@ -1,20 +1,20 @@
 // --- Momentum Blueprint Ingestion Engine ---
 
 const BlueprintEngine = {
-    // Generates a pre-made prompt for AI chats
+    // Copies the prompt template with mobile clipboard fallback
     copyAiPrompt() {
         const promptText = `Please format the schedule/plan above into a FocusFlow Markdown Blueprint using the following format:
 
 # Project Name [Optional Deadline YYYY-MM-DD]
 Goal: Optional goal description
-## Sub-Project Name
-### Component Project Name
+## Sub-Project Name [Optional Deadline YYYY-MM-DD]
+### Component Project Name [Optional Deadline YYYY-MM-DD]
 - Task title (estimated_minutes) [Optional Deadline YYYY-MM-DD]
 - Another task title (30m) [2026-05-15]
 
 Ensure tasks are placed at the lowest project level and include duration in minutes like (25m) or (45m).`;
 
-        navigator.clipboard.writeText(promptText).then(() => {
+        const notifySuccess = () => {
             const btn = document.getElementById('btn-copy-blueprint-prompt');
             if (btn) {
                 const original = btn.innerHTML;
@@ -22,14 +22,39 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 safeCreateIcons();
                 setTimeout(() => { btn.innerHTML = original; safeCreateIcons(); }, 2500);
             }
-        }).catch(() => {
-            alert("Copy failed. Please manually select the prompt template.");
-        });
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(promptText)
+                .then(notifySuccess)
+                .catch(() => this.fallbackCopy(promptText, notifySuccess));
+        } else {
+            this.fallbackCopy(promptText, notifySuccess);
+        }
+    },
+
+    fallbackCopy(text, callback) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            if (callback) callback();
+        } catch (err) {
+            alert("Copy failed. Please manually copy the template from the instructions guide.");
+        }
+        document.body.removeChild(textArea);
     },
 
     openModal() {
         const modal = document.getElementById('blueprint-modal');
         if (!modal) return;
+        if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
+
         const activeProj = getActiveProject();
         const activeDepth = activeProj ? getProjectDepth(activeProj.id) : 0;
         const targetSelect = document.getElementById('blueprint-target-select');
@@ -52,7 +77,7 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         if (modal) modal.classList.add('hidden');
     },
 
-    // Ingests either Markdown or JSON format
+    // Ingests either Markdown outline or JSON format
     executeImport() {
         const input = document.getElementById('blueprint-input');
         const rawText = input ? input.value.trim() : '';
@@ -64,12 +89,29 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         }
 
         try {
+            let createdProjects = [];
             if (rawText.startsWith('{') || rawText.startsWith('[')) {
-                this.parseJSON(rawText, targetMode);
+                createdProjects = this.parseJSON(rawText, targetMode);
             } else {
-                this.parseMarkdown(rawText, targetMode);
+                createdProjects = this.parseMarkdown(rawText, targetMode);
             }
+
+            // Automatically select the first project that has tasks
+            const projectWithTasks = createdProjects.find(p => p.tasks && p.tasks.length > 0);
+            if (projectWithTasks) {
+                appState.activeProjectId = projectWithTasks.id;
+            } else if (createdProjects.length > 0) {
+                appState.activeProjectId = createdProjects[0].id;
+            }
+
             saveStateLocally();
+            
+            // Push immediately to Firestore
+            if (typeof docRef !== 'undefined' && docRef) {
+                const cleanData = JSON.parse(JSON.stringify(appState));
+                docRef.set(cleanData, { merge: true }).catch(err => console.warn("Blueprint sync note:", err));
+            }
+
             renderApp();
             this.closeModal();
             alert("Blueprint successfully ingested into FocusFlow!");
@@ -86,10 +128,11 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         const baseParentId = (targetMode === 'nest' && activeProj) ? activeProj.id : null;
         const baseDepth = baseParentId ? getProjectDepth(baseParentId) + 1 : 0;
 
-        let currentTier1 = null; // Root or Level 1
-        let currentTier2 = null; // Subproject or Level 2
-        let currentTier3 = null; // Component or Level 3
+        let currentTier1 = null;
+        let currentTier2 = null;
+        let currentTier3 = null;
         let currentActiveContainer = null;
+        const created = [];
 
         lines.forEach(rawLine => {
             const line = rawLine.trim();
@@ -100,15 +143,18 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 const { title, deadline } = this.extractTitleAndMeta(line.replace(/^#\s+/, ''));
                 if (baseDepth === 0) {
                     currentTier1 = this.createProject(title, null, deadline);
+                    created.push(currentTier1);
                     currentTier2 = null;
                     currentTier3 = null;
                     currentActiveContainer = currentTier1;
                 } else if (baseDepth === 1) {
                     currentTier2 = this.createProject(title, baseParentId, deadline);
+                    created.push(currentTier2);
                     currentTier3 = null;
                     currentActiveContainer = currentTier2;
                 } else {
                     currentTier3 = this.createProject(title, baseParentId, deadline);
+                    created.push(currentTier3);
                     currentActiveContainer = currentTier3;
                 }
             }
@@ -116,8 +162,9 @@ Ensure tasks are placed at the lowest project level and include duration in minu
             else if (line.startsWith('## ')) {
                 const { title, deadline } = this.extractTitleAndMeta(line.replace(/^##\s+/, ''));
                 const parentId = currentTier1 ? currentTier1.id : baseParentId;
-                if (getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
+                if (parentId && getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
                 currentTier2 = this.createProject(title, parentId, deadline);
+                created.push(currentTier2);
                 currentTier3 = null;
                 currentActiveContainer = currentTier2;
             }
@@ -125,8 +172,9 @@ Ensure tasks are placed at the lowest project level and include duration in minu
             else if (line.startsWith('### ')) {
                 const { title, deadline } = this.extractTitleAndMeta(line.replace(/^###\s+/, ''));
                 const parentId = currentTier2 ? currentTier2.id : (currentTier1 ? currentTier1.id : baseParentId);
-                if (getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
+                if (parentId && getProjectDepth(parentId) >= 2) throw new Error("Hierarchy depth exceeded at: " + title);
                 currentTier3 = this.createProject(title, parentId, deadline);
+                created.push(currentTier3);
                 currentActiveContainer = currentTier3;
             }
             // Goal Definition (Goal: ...)
@@ -140,9 +188,9 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 const taskContent = line.replace(/^[-*]\s+/, '');
                 const { title, minutes, deadline } = this.extractTaskMeta(taskContent);
                 
-                // If no container declared yet, create a default root container
                 if (!currentActiveContainer) {
                     currentTier1 = this.createProject("Imported Blueprint", baseParentId);
+                    created.push(currentTier1);
                     currentActiveContainer = currentTier1;
                 }
 
@@ -165,6 +213,8 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 }
             }
         });
+
+        return created;
     },
 
     // JSON Parser
@@ -173,9 +223,12 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         const activeProj = getActiveProject();
         const baseParentId = (targetMode === 'nest' && activeProj) ? activeProj.id : null;
         const items = Array.isArray(data) ? data : [data];
+        const created = [];
 
         items.forEach(item => {
             const root = this.createProject(item.title || "Imported Plan", baseParentId, item.deadline, item.goal);
+            created.push(root);
+
             if (Array.isArray(item.tasks)) {
                 item.tasks.forEach(t => {
                     root.tasks.push({
@@ -193,9 +246,12 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 });
                 root.activeTaskId = root.tasks[0]?.id || null;
             }
+
             if (Array.isArray(item.children)) {
                 item.children.forEach(sub => {
                     const subProj = this.createProject(sub.title || "Sub-Project", root.id, sub.deadline, sub.goal);
+                    created.push(subProj);
+
                     if (Array.isArray(sub.tasks)) {
                         sub.tasks.forEach(st => {
                             subProj.tasks.push({
@@ -216,6 +272,8 @@ Ensure tasks are placed at the lowest project level and include duration in minu
                 });
             }
         });
+
+        return created;
     },
 
     createProject(title, parentId = null, deadline = '', goal = '') {
@@ -237,7 +295,6 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         };
         appState.projects = appState.projects || [];
         appState.projects.push(project);
-        appState.activeProjectId = id;
         return project;
     },
 
@@ -252,6 +309,7 @@ Ensure tasks are placed at the lowest project level and include duration in minu
         return { title: title.trim(), deadline };
     },
 
+    // Fixed Regex: removes \vert{} and uses standard pipe |
     extractTaskMeta(str) {
         let title = str;
         let minutes = 15;
@@ -263,12 +321,19 @@ Ensure tasks are placed at the lowest project level and include duration in minu
             title = title.replace(deadMatch[0], '');
         }
 
-        const minMatch = title.match(/\((\d+)\s*(?:m\vert{}min\vert{}mins)?\)/i) || title.match(/\[(\d+)\s*(?:m\vert{}min\vert{}mins)?\]/i);
+        const minMatch = title.match(/\((\d+)\s*(?:m\vert{}min\vert{}mins)?\)/i) || 
+                         title.match(/\[(\d+)\s*(?:m\vert{}min\vert{}mins)?\]/i);
         if (minMatch) {
             minutes = parseInt(minMatch[1], 10);
             title = title.replace(minMatch[0], '');
         }
 
-        return { title: title.trim(), minutes: isNaN(minutes) ? 15 : minutes, deadline };
+        title = title.trim().replace(/^[-–—:]\s*/, '').replace(/\s*[-–—:]$/, '');
+
+        return { 
+            title: title.trim() || "Untitled Task", 
+            minutes: (!isNaN(minutes) && minutes > 0) ? minutes : 15, 
+            deadline 
+        };
     }
 };
