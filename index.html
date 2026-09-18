@@ -621,26 +621,33 @@
                     <div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div>
                     <div>
                         <h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3>
-                        <p class="text-[11px] text-slate-400">Import structured multi-task roadmaps without manual admin work.</p>
+                        <p class="text-[11px] text-slate-400">Transform conversational plans into active FocusFlow workspaces.</p>
                     </div>
                 </div>
                 <button onclick="BlueprintEngine.closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
             <div class="space-y-3 flex-1 overflow-y-auto">
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Location</label>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-brand-200">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Architect Prompt
+                    </button>
+                    <button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt
+                    </button>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Destination</label>
                     <select id="blueprint-target-select" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"></select>
                 </div>
 
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paste Markdown Outline or JSON</label>
-                        <button onclick="BlueprintEngine.copyAiPrompt()" id="btn-copy-blueprint-prompt" class="text-[10px] font-bold text-brand-600 hover:text-brand-700 flex items-center gap-1">
-                            <i data-lucide="copy" class="w-3 h-3"></i> Copy AI Prompt Template
-                        </button>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paste Markdown Blueprint</label>
+                        <span class="text-[10px] text-slate-400 font-mono">Accepts: (25m), (1h 15m), (5m 30s), (90s)</span>
                     </div>
-                    <textarea id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines&#10;Goal: Organize footage & learn fundamentals&#10;## Mira Footage&#10;- Review footage 0-4h (45m) [2026-05-02]&#10;- Review footage 5-8h (45m)&#10;## Drawing Practice&#10;- Ghosting & Lines (25m)&#10;- Animal Gesture Sweeps (25m)"></textarea>
+                    <textarea id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]&#10;Goal: Master lines and animal gesture foundations&#10;## Lesson 1 Technical Track&#10;- Ghosted Lines & Planes (15m) [2026-05-02]&#10;- Table of Ellipses (30m) [2026-05-04]&#10;## Animal Anatomy Track&#10;- 5-Minute Gesture Sweeps (25m) [2026-05-02]&#10;- Animal Silhouettes (5m 30s) [2026-05-04]"></textarea>
                 </div>
             </div>
 
