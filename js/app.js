@@ -1042,6 +1042,15 @@ function toggleAudioPopover() {
     document.getElementById('bloom-popover').classList.add('hidden'); 
 }
 
+function updateBloomOpacity(val) {
+    const intVal = parseInt(val, 10);
+    appState.bloomOpacity = intVal;
+    document.documentElement.style.setProperty('--bloom-opacity', (intVal / 100).toString());
+    const label = document.getElementById('bloom-val-label');
+    if (label) label.textContent = intVal + '%';
+    saveStateLocally();
+}
+
 // Global Setting Initializer
 function initSettings() {
     if (document.getElementById('volume-slider')) document.getElementById('volume-slider').value = appState.audioVolume || 80;
