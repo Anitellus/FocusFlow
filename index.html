@@ -71,11 +71,11 @@
     <!-- MOBILE DRAWER BACKDROP -->
     <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 hidden md:hidden"></div>
 
-    <!-- SIDEBAR NAVIGATION (Drawer on Mobile, Static on Desktop) -->
+    <!-- SIDEBAR NAVIGATION -->
     <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 w-80 bg-slate-100/95 border-r border-slate-200 flex flex-col backdrop-blur-xl shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-6 border-b border-slate-200/60 flex items-center justify-between">
-            <button onclick="toggleInstructionsModal()" class="flex items-center gap-3 text-brand-600 font-bold text-xl tracking-tight text-left focus:outline-none group">
-                <i data-lucide="layers" class="w-7 h-7 group-hover:scale-110 transition-transform"></i>
+        <div class="p-5 border-b border-slate-200/60 flex items-center justify-between">
+            <button onclick="toggleInstructionsModal()" class="flex items-center gap-2.5 text-brand-600 font-bold text-xl tracking-tight text-left focus:outline-none group">
+                <i data-lucide="layers" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
                 <span>Focus Flow</span>
                 <i data-lucide="help-circle" class="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors"></i>
             </button>
@@ -84,43 +84,76 @@
             </button>
         </div>
 
-        <div class="px-3 py-3 flex gap-1.5 border-b border-slate-200/60 font-sans-ui">
-            <button onclick="switchView('focus')" id="nav-focus" class="flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1">
+        <!-- View Switcher -->
+        <div class="px-3 py-2.5 flex gap-1.5 border-b border-slate-200/60 font-sans-ui">
+            <button onclick="switchView('focus')" id="nav-focus" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1">
                 <i data-lucide="target" class="w-3.5 h-3.5"></i> Focus
             </button>
-            <button onclick="switchView('calendar')" id="nav-calendar" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1">
+            <button onclick="switchView('calendar')" id="nav-calendar" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1">
                 <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Calendar
             </button>
-            <button onclick="switchView('analytics')" id="nav-analytics" class="flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1">
+            <button onclick="switchView('analytics')" id="nav-analytics" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1">
                 <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Analytics
             </button>
         </div>
+
+        <!-- 30-Day Sprint Cadence Runway Banner -->
+        <div id="sprint-cycle-container" class="px-3.5 py-2.5 bg-indigo-50/70 border-b border-slate-200/60 font-sans-ui">
+            <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950">
+                <span class="flex items-center gap-1.5 cursor-pointer" onclick="openSprintReviewModal()" title="Review 30-Day Sprint">
+                    <i data-lucide="compass" class="w-3.5 h-3.5 text-brand-600"></i>
+                    <span id="sprint-cycle-label">Sprint: Day 1 of 30</span>
+                </span>
+                <span class="text-[10px] text-brand-600 font-mono font-semibold" id="sprint-days-remaining">30d left</span>
+            </div>
+            <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden">
+                <div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div>
+            </div>
+        </div>
         
-        <div class="flex-1 overflow-y-auto p-3 space-y-1 font-sans-ui" id="project-list-container"></div>
+        <!-- Project Tree & Parking Lot List Container -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-3 font-sans-ui" id="project-list-container"></div>
 
-        <div class="p-4 border-t border-slate-200/60 bg-white/50 space-y-2 font-sans-ui">
-            <!-- Auth Status Banner / Login Button -->
-            <div id="auth-status-container" class="pb-1"></div>
-
-            <button onclick="createNewProject()" class="w-full py-2.5 bg-brand-600 text-white rounded-xl font-semibold text-xs hover:bg-brand-500 hover:shadow-md transition-all flex items-center justify-center gap-2">
-                <i data-lucide="plus" class="w-4 h-4"></i> New Root Project
-            </button>
+        <!-- Consolidated Controls Footer -->
+        <div class="p-3 border-t border-slate-200/60 bg-white/70 space-y-2 font-sans-ui">
             
-            <button onclick="BlueprintEngine.openModal()" class="w-full py-2 bg-indigo-50 border border-indigo-200 text-brand-700 hover:bg-indigo-100 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5">
-                <i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-600"></i> Momentum Blueprint
-            </button>
-            <button onclick="manualCloudSave()" id="btn-manual-save" class="w-full py-2 bg-emerald-600 text-white rounded-xl font-semibold text-xs hover:bg-emerald-500 transition-all flex items-center justify-center gap-2 shadow-sm">
-                <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud
-            </button>
-            <div class="flex gap-2">
-                <button onclick="exportDataJSON()" class="flex-1 py-2 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-600 text-[11px] font-semibold hover:text-brand-600 transition-all flex items-center justify-center gap-1">
-                    <i data-lucide="download" class="w-3.5 h-3.5"></i> Backup
+            <!-- Combined Project Creation Bar -->
+            <div class="flex items-center gap-1.5">
+                <button onclick="createNewProject()" class="flex-1 py-2 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-500 hover:shadow-md transition-all flex items-center justify-center gap-1.5">
+                    <i data-lucide="plus" class="w-4 h-4"></i> New Project
                 </button>
-                <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
-                <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-2 bg-white border border-slate-200 shadow-sm rounded-xl text-slate-600 text-[11px] font-semibold hover:text-brand-600 transition-all flex items-center justify-center gap-1">
-                    <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore
+                <button onclick="BlueprintEngine.openModal()" class="px-3 py-2 bg-indigo-50 border border-indigo-200 text-brand-700 hover:bg-indigo-100 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 shrink-0" title="Ingest AI Blueprint">
+                    <i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-600"></i> Blueprint
                 </button>
             </div>
+
+            <!-- Consolidated Save State Accordion -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
+                <button onclick="toggleSaveStateDrawer()" id="btn-save-state-toggle" class="w-full py-2 px-3 flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-100/80 transition-colors">
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="hard-drive" class="w-3.5 h-3.5 text-slate-500"></i>
+                        <span>Project Save State</span>
+                    </span>
+                    <i data-lucide="chevron-down" id="save-state-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i>
+                </button>
+                <div id="save-state-drawer" class="hidden p-2 space-y-1.5 border-t border-slate-200 bg-white">
+                    <button onclick="manualCloudSave()" id="btn-manual-save" class="w-full py-1.5 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-xs">
+                        <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud
+                    </button>
+                    <div class="flex gap-1.5">
+                        <button onclick="exportDataJSON()" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 transition-all flex items-center justify-center gap-1">
+                            <i data-lucide="download" class="w-3 h-3"></i> Backup
+                        </button>
+                        <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                        <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 transition-all flex items-center justify-center gap-1">
+                            <i data-lucide="upload" class="w-3 h-3"></i> Restore
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication Button at Bottom -->
+            <div id="auth-status-container" class="pt-0.5"></div>
         </div>
     </aside>
 
@@ -332,24 +365,39 @@
                 <section class="font-sans-ui">
                     <div class="flex items-center justify-between mb-3 px-1">
                         <h3 class="text-base font-bold text-slate-700 flex items-center gap-2">
-                            <i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Project Tasks
+                            <i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Active Tasks
                         </h3>
                         <span class="text-xs font-semibold text-slate-500 bg-white px-2.5 py-0.5 rounded-full ring-1 ring-slate-200" id="task-progress-text">0/0 Completed</span>
                     </div>
 
+                    <!-- Active Tasks Only -->
                     <div class="space-y-2" id="task-list-container"></div>
 
+                    <!-- Add Task Box -->
                     <div id="add-task-container" class="mt-3 bg-white p-2 rounded-2xl shadow-sm ring-1 ring-slate-200 flex flex-col sm:flex-row items-center gap-2">
-                        <input type="text" id="new-task-title-input" class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-slate-700 placeholder-slate-400 py-1.5 font-medium text-xs px-2 w-full" placeholder="Add task... (Enter)">
+                        <input type="text" id="new-task-title-input" class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-slate-700 placeholder-slate-400 py-1.5 font-medium text-xs px-2 w-full" placeholder="Add atomic task... (Enter)">
                         <div class="flex items-center gap-2 w-full sm:w-auto justify-end pr-1">
                             <span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">*Target:</span>
                             <input type="number" id="new-task-est-input" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none text-center font-mono" placeholder="min" min="1" max="999">
                             <button onclick="handleAddTask()" class="bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0">Add</button>
                         </div>
                     </div>
+
                     <div id="parent-task-blocked-notice" class="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-semibold flex items-center gap-2 hidden">
                         <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-amber-600"></i>
                         <span>This project contains sub-projects. Tasks can only exist at the lowest leaf project levels.</span>
+                    </div>
+
+                    <!-- Completed Tasks Collapsible Drawer -->
+                    <div id="completed-tasks-wrapper" class="mt-4 pt-2 border-t border-slate-200/60 hidden">
+                        <button onclick="toggleCompletedTasksDrawer()" id="btn-completed-toggle" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200/80 rounded-xl text-xs font-bold text-slate-500 flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                                <span id="completed-tasks-count-label">Completed Tasks (0)</span>
+                            </span>
+                            <i data-lucide="chevron-down" id="completed-tasks-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i>
+                        </button>
+                        <div id="completed-tasks-container" class="mt-2 space-y-2 hidden"></div>
                     </div>
                 </section>
 
@@ -618,6 +666,44 @@
     </div>
 
     <!-- MODALS & DRAWERS -->
+    <!-- 30-Day Sprint Checkpoint Modal -->
+    <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3>
+                        <p class="text-[11px] text-slate-400">Dopamine checkpoint and shame-free sprint calibration.</p>
+                    </div>
+                </div>
+                <button onclick="closeSprintReviewModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="space-y-3 text-xs text-slate-600 leading-relaxed">
+                <div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5">
+                    <div class="flex items-center justify-between font-bold text-indigo-950">
+                        <span>Current Cycle Status</span>
+                        <span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Every 30 days is a natural reset boundary. ADHD brains thrive on novelty: use this checkpoint to rotate dormant projects to the Parking Lot and start a fresh sprint.</p>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sprint Actions</label>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle Runway
+                        </button>
+                        <button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Retrospective Analytics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Momentum Blueprint Modal -->
     <div id="blueprint-modal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col">
@@ -734,16 +820,12 @@
                     <p>The central timer features an analog radial progress ring that fills gradually toward your target estimate. Exceeding your target activates the warm Amber Overtime Halo ("Flow Zone"), reframing extra duration as exploratory focus rather than punitive failure.</p>
                 </div>
                 <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. Momentum Blueprint Ingest</h3>
-                    <p>Convert macro goals and AI study plans into FocusFlow hierarchy in one step. Paste any Markdown outline with tasks and durations (e.g., <code>- Draw boxes (25m) [2026-05-15]</code>), and the app automatically maps the project and sub-projects.</p>
+                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. 30-Day Cycles & The Parking Lot</h3>
+                    <p>Cognitive working memory can realistically hold a maximum of 4 active root projects. Ideas beyond the active limit are stored in the Parking Lot, freeing attention while preventing ideas from getting lost. Every 30 days, review your cycle runway without shame.</p>
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">4. Park & Resume Context Anchors</h3>
                     <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a launchpad banner sits above the timer with one-click resumption to eliminate reactivation paralysis.</p>
-                </div>
-                <div>
-                    <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">5. Calendar & Temporal Horizons</h3>
-                    <p>The calendar view separates work into digestible cognitive horizons (Today, Next 7 Days, and Gentle Recalibration). Dates that have passed are never displayed as punitive failures; they can be moved forward with a single click (+1 Day, +3 Days, +1 Week).</p>
                 </div>
             </div>
         </div>
@@ -793,7 +875,7 @@
         </div>
     </div>
 
-    <!-- APPLICATION SCRIPTS (Loaded in exact dependency order) -->
+    <!-- APPLICATION SCRIPTS -->
     <script src="js/mascots.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/audio.js"></script>
