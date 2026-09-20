@@ -23,8 +23,19 @@ function renderTemporalHorizons() {
     const sevenDaysLater = new Date(Date.now() + 7 * 86400000);
     const allItems = [];
 
+    function isProjectParked(proj) {
+        let curr = proj;
+        while (curr) {
+            if (curr.isParked) return true;
+            if (!curr.parentId) break;
+            curr = (appState.projects || []).find(p => p.id === curr.parentId);
+        }
+        return false;
+    }
+
     // Collect all tasks and projects with deadlines
-    (appState.projects || []).forEach(p => {
+   (appState.projects || []).forEach(p => {
+        if (isProjectParked(p)) return; // Suppress parked deadlines from horizons
         if (p.deadline) {
             allItems.push({ id: p.id, type: 'project', title: p.title, deadline: p.deadline, projectId: p.id, isCompleted: !!p.completedAt });
         }
