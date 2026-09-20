@@ -1026,7 +1026,7 @@ function renderMascotStage() {
     grid.innerHTML = mascotDatabase.map(m => {
         const isSelected = m.id === activeMascotId;
         const isUnlocked = isTestUnlocked || m.unlockSec === 0 || (projectTime >= m.unlockSec);
-        const assignedOther = (appState.projects || []).find(p => !p.parentId && p.id !== rootProj.id && p.activeMascotId === m.id);
+        const assignedOther = (appState.projects || []).find(p => !p.parentId && !p.isParked && p.id !== rootProj.id && p.activeMascotId === m.id);
 
         let statusText = `${m.shapes}`;
         let cardClick = `selectMascotCompanion('${m.id}')`;
