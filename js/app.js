@@ -807,22 +807,56 @@ function renderApp() {
 
 // Dynamic Sidebar Renderer
 function renderSidebar() {
-    // 1. Render Sprint Cadence Runway
+    // 1. 30-Day Sprint Runway Cadence & Checkpoint Trigger
     const sprint = getSprintCycleInfo();
     const sprintLabel = document.getElementById('sprint-cycle-label');
     const sprintRemaining = document.getElementById('sprint-days-remaining');
     const sprintBar = document.getElementById('sprint-cycle-bar');
-    if (sprintLabel) sprintLabel.textContent = `Sprint: Day ${sprint.elapsedDays} of ${sprint.totalDays}`;
-    if (sprintRemaining) sprintRemaining.textContent = `${sprint.remainingDays}d left`;
-    if (sprintBar) sprintBar.style.width = `${sprint.progressPct}%`;
 
-    // 2. Restore Save State Drawer UI
+    if (sprint.isCompleted) {
+        if (sprintLabel) {
+            sprintLabel.innerHTML = `
+                <span class="text-amber-700 animate-pulse flex items-center gap-1.5 cursor-pointer" onclick="openSprintReviewModal()">
+                    <i data-lucide="bell" class="w-3.5 h-3.5 text-amber-600"></i> Sprint Checkpoint Ready!
+                </span>
+            `;
+        }
+        if (sprintRemaining) {
+            sprintRemaining.innerHTML = `
+                <button onclick="openSprintReviewModal()" class="px-2 py-0.5 bg-amber-500 hover:bg-amber-600 text-white rounded text-[10px] font-bold shadow-xs transition-colors">
+                    Review
+                </button>
+            `;
+        }
+        if (sprintBar) {
+            sprintBar.style.width = '100%';
+            sprintBar.className = 'h-full bg-amber-500 rounded-full transition-all duration-500';
+        }
+    } else {
+        if (sprintLabel) {
+            sprintLabel.innerHTML = `
+                <span class="flex items-center gap-1.5 cursor-pointer" onclick="openSprintReviewModal()" title="View Sprint Status">
+                    <i data-lucide="compass" class="w-3.5 h-3.5 text-brand-600"></i>
+                    <span>Sprint: Day ${sprint.elapsedDays} of ${sprint.totalDays}</span>
+                </span>
+            `;
+        }
+        if (sprintRemaining) {
+            sprintRemaining.textContent = `${sprint.remainingDays}d left`;
+        }
+        if (sprintBar) {
+            sprintBar.style.width = `${sprint.progressPct}%`;
+            sprintBar.className = 'h-full bg-brand-600 rounded-full transition-all duration-500';
+        }
+    }
+
+    // 2. Save State Drawer Accordion State
     const saveDrawer = document.getElementById('save-state-drawer');
     const saveChevron = document.getElementById('save-state-chevron');
     if (saveDrawer) saveDrawer.classList.toggle('hidden', !appState.saveStateDrawerOpen);
     if (saveChevron) saveChevron.style.transform = appState.saveStateDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
 
-    // 3. Render Tree Hierarchy
+    // 3. Project Hierarchy Tree Builder
     const container = document.getElementById('project-list-container');
     function buildProjectNodeHTML(p, depth = 0) {
         const isActive = p.id === appState.activeProjectId;
@@ -878,7 +912,7 @@ function renderSidebar() {
                     </button>
 
                     ${activeMascot && isRoot ? `
-                        <div class="w-5 h-5 ml-0.5 flex items-center justify-center p-0.5 bg-slate-100 rounded border border-slate-200 shrink-0">
+                        <div class="w-5 h-5 ml-0.5 flex items-center justify-center p-0.5 bg-slate-100 rounded border border-slate-200 shrink-0" title="Companion: ${activeMascot.name}">
                             ${activeMascot.svg}
                         </div>
                     ` : ''}
@@ -889,6 +923,7 @@ function renderSidebar() {
         </div>`;
     }
 
+    // 4. Render Active vs. Parked Groups
     const activeRoots = getActiveRootProjects();
     const parkedRoots = getParkedRootProjects();
 
@@ -916,11 +951,7 @@ function renderSidebar() {
             ${appState.parkingLotOpen ? `
                 <div class="space-y-1 mt-1 bg-slate-200/40 p-1.5 rounded-xl">
                     ${parkedRoots.length === 0 ? `<p class="text-[11px] text-slate-400 italic px-1 py-1">Parking lot is empty.</p>` : ''}
-                    ${parkedRoots.map(root => `
-                        <div class="space-y-1 opacity-80 hover:opacity-100 transition-opacity">
-                            ${buildProjectNodeHTML(root, 0)}
-                        </div>
-                    `).join('')}
+                    ${parkedRoots.map(root => buildProjectNodeHTML(root, 0)).join('')}
                 </div>
             ` : ''}
         </div>
