@@ -46,7 +46,73 @@ function getCumulativeTime(projectId) {
     return total;
 }
 
-// Mobile Slide-Out Drawer Controls
+// --- 30-Day Sprint Cycle Cadence Engine ---
+function getSprintCycleInfo() {
+    const start = appState.sprintStartDate ? new Date(appState.sprintStartDate) : new Date();
+    const now = new Date();
+    const diffMs = now.getTime() - start.getTime();
+    const elapsedDays = Math.max(1, Math.floor(diffMs / 86400000) + 1);
+    const totalDays = appState.sprintCycleDays || 30;
+    const remainingDays = Math.max(0, totalDays - elapsedDays);
+    const progressPct = Math.min(100, Math.round((elapsedDays / totalDays) * 100));
+    const isCompleted = elapsedDays >= totalDays;
+
+    return { elapsedDays, totalDays, remainingDays, progressPct, isCompleted };
+}
+
+function openSprintReviewModal() {
+    const info = getSprintCycleInfo();
+    const badge = document.getElementById('sprint-modal-status-badge');
+    if (badge) {
+        badge.textContent = `Day ${info.elapsedDays} / ${info.totalDays} • ${info.remainingDays}d runway left`;
+        badge.className = info.isCompleted 
+            ? "px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold"
+            : "px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700 font-bold";
+    }
+    const modal = document.getElementById('sprint-review-modal');
+    if (modal) modal.classList.remove('hidden');
+    safeCreateIcons();
+}
+
+function closeSprintReviewModal() {
+    const modal = document.getElementById('sprint-review-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function confirmSprintReset() {
+    appState.sprintStartDate = new Date().toISOString();
+    saveStateLocally();
+    closeSprintReviewModal();
+    renderApp();
+    confetti({ particleCount: 60, spread: 55 });
+}
+
+// --- UI Drawer Toggles ---
+function toggleSaveStateDrawer() {
+    appState.saveStateDrawerOpen = !appState.saveStateDrawerOpen;
+    const drawer = document.getElementById('save-state-drawer');
+    const chevron = document.getElementById('save-state-chevron');
+    if (drawer) drawer.classList.toggle('hidden', !appState.saveStateDrawerOpen);
+    if (chevron) chevron.style.transform = appState.saveStateDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    saveStateLocally();
+}
+
+function toggleParkingLotDrawer() {
+    appState.parkingLotOpen = !appState.parkingLotOpen;
+    saveStateLocally();
+    renderSidebar();
+}
+
+function toggleCompletedTasksDrawer() {
+    appState.completedTasksDrawerOpen = !appState.completedTasksDrawerOpen;
+    const container = document.getElementById('completed-tasks-container');
+    const chevron = document.getElementById('completed-tasks-chevron');
+    if (container) container.classList.toggle('hidden', !appState.completedTasksDrawerOpen);
+    if (chevron) chevron.style.transform = appState.completedTasksDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    saveStateLocally();
+}
+
+// --- Mobile Slide-Out Drawer Controls ---
 function toggleMobileSidebar() {
     const sidebar = document.getElementById('sidebar-drawer');
     const backdrop = document.getElementById('sidebar-backdrop');
@@ -68,10 +134,29 @@ function closeMobileSidebar() {
     if (backdrop) backdrop.classList.add('hidden');
 }
 
-// 3-Tier Hierarchy Management (Main -> Sub -> Component)
+// --- 4 Active Projects & Parking Lot Architecture ---
+function getActiveRootProjects() {
+    return (appState.projects || []).filter(p => !p.parentId && !p.isParked);
+}
+
+function getParkedRootProjects() {
+    return (appState.projects || []).filter(p => !p.parentId && p.isParked);
+}
+
 function createNewProject(parentId = null) {
     syncHeaderInputsToState();
-    if (parentId) {
+    
+    let makeParked = false;
+    if (!parentId) {
+        const activeRoots = getActiveRootProjects();
+        if (activeRoots.length >= 4) {
+            const proceed = confirm(
+                `Your Active Sprint already contains 4 projects.\n\nTo preserve focus, this new project will be created directly into the Parking Lot.\n\nContinue?`
+            );
+            if (!proceed) return;
+            makeParked = true;
+        }
+    } else {
         const depth = getProjectDepth(parentId);
         if (depth >= 2) {
             alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
@@ -89,14 +174,51 @@ function createNewProject(parentId = null) {
     const projectTitle = parentDepth === 0 ? 'New Sub-Project' : (parentDepth === 1 ? 'New Component Project' : 'New Root Project');
 
     appState.projects.push({
-        id, parentId: parentId, title: projectTitle, goal: '', deadline: '', notes: '',
-        totalTimeSpent: 0, activeTaskId: null, activeMascotId: null, unlockAllMascotsTest: false,
-        createdAt: new Date().toISOString(), completedAt: null, tasks: []
+        id, 
+        parentId: parentId, 
+        title: projectTitle, 
+        goal: '', 
+        deadline: '', 
+        notes: '',
+        isParked: makeParked,
+        totalTimeSpent: 0, 
+        activeTaskId: null, 
+        activeMascotId: null, 
+        unlockAllMascotsTest: false,
+        createdAt: new Date().toISOString(), 
+        completedAt: null, 
+        tasks: []
     });
+
     appState.activeProjectId = id;
     saveStateLocally();
     renderApp();
     closeMobileSidebar();
+}
+
+function toggleParkProject(projectId, e) {
+    if (e) e.stopPropagation();
+    const p = (appState.projects || []).find(x => x.id === projectId);
+    if (!p) return;
+
+    if (p.isParked) {
+        const activeRoots = getActiveRootProjects();
+        if (activeRoots.length >= 4) {
+            alert(`Active sprint is full (4/4 projects).\n\nPlease park one of your 4 active projects before activating "${p.title}".`);
+            return;
+        }
+        p.isParked = false;
+        appState.activeProjectId = p.id;
+    } else {
+        p.isParked = true;
+        const remainingActive = getActiveRootProjects();
+        if (appState.activeProjectId === p.id) {
+            appState.activeProjectId = remainingActive.length > 0 ? remainingActive[0].id : null;
+        }
+    }
+
+    saveStateLocally();
+    renderApp();
 }
 
 function toggleProjectCollapse(projectId, e) {
@@ -124,7 +246,8 @@ function deleteProject(projectId, e) {
         if (appState.projects.length === 0) {
             loadDefaultData();
         } else if (toDelete.has(appState.activeProjectId)) {
-            appState.activeProjectId = appState.projects[0].id;
+            const activeRoots = getActiveRootProjects();
+            appState.activeProjectId = activeRoots.length > 0 ? activeRoots[0].id : appState.projects[0].id;
         }
         saveStateLocally();
         renderApp();
@@ -587,7 +710,6 @@ function scheduleNextMascotJitter() {
     }, intervalMs);
 }
 
-// --- Companion Unlock & Relock Actions ---
 function unlockAllMascotsTest() {
     const rootProj = getRootProject(getActiveProject());
     rootProj.unlockAllMascotsTest = true;
@@ -607,12 +729,6 @@ function lockedMascotPrompt(name, requiredSec, currentSec) {
     if (confirm(msg)) {
         unlockAllMascotsTest();
     }
-}
-
-function toggleHideUnlockBtn() {
-    appState.hideUnlockBtn = !appState.hideUnlockBtn;
-    saveStateLocally();
-    renderMascotStage();
 }
 
 function removeCompanion() {
@@ -663,8 +779,8 @@ function switchView(view) {
         const btn = document.getElementById(`nav-${v}`);
         if (btn) {
             btn.className = (v === view)
-                ? "flex-1 py-2 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"
-                : "flex-1 py-2 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1";
+                ? "flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"
+                : "flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1";
         }
     });
 
@@ -686,71 +802,128 @@ function renderApp() {
     safeCreateIcons();
 }
 
+// Dynamic Sidebar Renderer
 function renderSidebar() {
+    // 1. Render Sprint Cadence Runway
+    const sprint = getSprintCycleInfo();
+    const sprintLabel = document.getElementById('sprint-cycle-label');
+    const sprintRemaining = document.getElementById('sprint-days-remaining');
+    const sprintBar = document.getElementById('sprint-cycle-bar');
+    if (sprintLabel) sprintLabel.textContent = `Sprint: Day ${sprint.elapsedDays} of ${sprint.totalDays}`;
+    if (sprintRemaining) sprintRemaining.textContent = `${sprint.remainingDays}d left`;
+    if (sprintBar) sprintBar.style.width = `${sprint.progressPct}%`;
+
+    // 2. Restore Save State Drawer UI
+    const saveDrawer = document.getElementById('save-state-drawer');
+    const saveChevron = document.getElementById('save-state-chevron');
+    if (saveDrawer) saveDrawer.classList.toggle('hidden', !appState.saveStateDrawerOpen);
+    if (saveChevron) saveChevron.style.transform = appState.saveStateDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+
+    // 3. Render Tree Hierarchy
     const container = document.getElementById('project-list-container');
-    function buildTreeHTML(parentId = null, depth = 0) {
-        const projectsAtLevel = (appState.projects || []).filter(p => p.parentId === parentId);
-        if (projectsAtLevel.length === 0) return '';
+    function buildProjectNodeHTML(p, depth = 0) {
+        const isActive = p.id === appState.activeProjectId;
+        const isCollapsed = appState.collapsedProjects && appState.collapsedProjects[p.id];
+        const subProjects = (appState.projects || []).filter(sp => sp.parentId === p.id);
+        const hasSubs = subProjects.length > 0;
+        const isRoot = !p.parentId;
+        
+        const rootProj = getRootProject(p);
+        const activeMascot = (rootProj.activeMascotId && typeof mascotDatabase !== 'undefined') ? mascotDatabase.find(m => m.id === rootProj.activeMascotId) : null;
+        const cumulativeTime = getCumulativeTime(p.id);
+        const indentPx = depth * 12;
 
-        return projectsAtLevel.map(p => {
-            const isActive = p.id === appState.activeProjectId;
-            const isCollapsed = appState.collapsedProjects && appState.collapsedProjects[p.id];
-            const subProjects = (appState.projects || []).filter(sp => sp.parentId === p.id);
-            const hasSubs = subProjects.length > 0;
-            
-            const rootProj = getRootProject(p);
-            const activeMascot = (rootProj.activeMascotId && typeof mascotDatabase !== 'undefined') ? mascotDatabase.find(m => m.id === rootProj.activeMascotId) : null;
-            const cumulativeTime = getCumulativeTime(p.id);
-            const indentPx = depth * 14;
+        return `
+        <div class="space-y-1">
+            <div class="group relative rounded-xl p-2 cursor-pointer transition-all flex items-center justify-between ${isActive ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-slate-200/50'}"
+                 style="margin-left: ${indentPx}px"
+                 onclick="selectProject('${p.id}')">
+                
+                <div class="flex items-center gap-1.5 min-w-0 flex-1 pr-1">
+                    ${hasSubs ? `
+                        <button onclick="toggleProjectCollapse('${p.id}', event)" class="p-0.5 hover:bg-slate-200 rounded text-slate-500 shrink-0">
+                            <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
+                        </button>
+                    ` : `<span class="w-3.5 shrink-0"></span>`}
 
-            return `
-            <div class="space-y-1">
-                <div class="group relative rounded-xl p-2.5 cursor-pointer transition-all flex items-center justify-between ${isActive ? 'bg-white shadow-sm ring-1 ring-slate-200' : 'hover:bg-slate-200/50'}"
-                     style="margin-left: ${indentPx}px"
-                     onclick="selectProject('${p.id}')">
-                    
-                    <div class="flex items-center gap-2 min-w-0 flex-1 pr-2">
-                        ${hasSubs ? `
-                            <button onclick="toggleProjectCollapse('${p.id}', event)" class="p-1 hover:bg-slate-200 rounded text-slate-500 shrink-0">
-                                <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-3.5 h-3.5"></i>
-                            </button>
-                        ` : `<span class="w-3.5 shrink-0"></span>`}
-
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-1.5">
-                                <i data-lucide="${hasSubs ? 'folder-tree' : 'folder'}" class="w-3.5 h-3.5 shrink-0 ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i>
-                                <h4 class="font-bold text-xs truncate ${isActive ? 'text-slate-900' : 'text-slate-700'}">${p.title}</h4>
-                            </div>
-                            <div class="text-[9px] text-slate-400 font-mono tracking-tight mt-0.5 ml-5">
-                                ${formatTimeFull(cumulativeTime)}
-                            </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="${hasSubs ? 'folder-tree' : 'folder'}" class="w-3.5 h-3.5 shrink-0 ${isActive ? 'text-brand-500' : 'text-slate-400'}"></i>
+                            <h4 class="font-bold text-xs truncate ${isActive ? 'text-slate-900' : 'text-slate-700'}">${p.title}</h4>
                         </div>
-                    </div>
-
-                    <div class="flex items-center gap-1 shrink-0">
-                        ${depth < 2 ? `
-                        <button onclick="createNewProject('${p.id}'); event.stopPropagation();" class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-brand-50 text-brand-600 rounded transition-opacity" title="${depth === 0 ? 'Add Sub-Project' : 'Add Component Project'}">
-                            <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
-                        </button>
-                        ` : ''}
-                        
-                        <button onclick="deleteProject('${p.id}', event)" class="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-rose-50 text-rose-500 rounded transition-opacity" title="Delete Project">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                        </button>
-
-                        ${activeMascot ? `
-                            <div class="w-6 h-6 ml-1 flex items-center justify-center p-0.5 bg-slate-100 rounded-lg border border-slate-200 shrink-0" title="Companion: ${activeMascot.name}">
-                                ${activeMascot.svg}
-                            </div>
-                        ` : ''}
+                        <div class="text-[9px] text-slate-400 font-mono tracking-tight ml-5">
+                            ${formatTimeFull(cumulativeTime)}
+                        </div>
                     </div>
                 </div>
 
-                ${(!isCollapsed && hasSubs) ? buildTreeHTML(p.id, depth + 1) : ''}
-            </div>`;
-        }).join('');
+                <div class="flex items-center gap-1 shrink-0">
+                    ${isRoot ? `
+                    <button onclick="toggleParkProject('${p.id}', event)" class="p-1 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded transition-colors" title="${p.isParked ? 'Activate into Sprint' : 'Move to Parking Lot'}">
+                        <i data-lucide="${p.isParked ? 'arrow-up-circle' : 'archive'}" class="w-3.5 h-3.5"></i>
+                    </button>
+                    ` : ''}
+
+                    ${depth < 2 ? `
+                    <button onclick="createNewProject('${p.id}'); event.stopPropagation();" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-brand-50 text-brand-600 rounded transition-opacity" title="${depth === 0 ? 'Add Sub-Project' : 'Add Component Project'}">
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                    </button>
+                    ` : ''}
+                    
+                    <button onclick="deleteProject('${p.id}', event)" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-50 text-rose-500 rounded transition-opacity" title="Delete">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+
+                    ${activeMascot && isRoot ? `
+                        <div class="w-5 h-5 ml-0.5 flex items-center justify-center p-0.5 bg-slate-100 rounded border border-slate-200 shrink-0">
+                            ${activeMascot.svg}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+
+            ${(!isCollapsed && hasSubs) ? subProjects.map(sp => buildProjectNodeHTML(sp, depth + 1)).join('') : ''}
+        </div>`;
     }
-    container.innerHTML = buildTreeHTML(null, 0);
+
+    const activeRoots = getActiveRootProjects();
+    const parkedRoots = getParkedRootProjects();
+
+    let html = `
+        <div class="space-y-1">
+            <div class="flex items-center justify-between px-1 pb-1">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Active Sprint</span>
+                <span class="text-[10px] font-mono font-bold ${activeRoots.length >= 4 ? 'text-amber-600' : 'text-slate-400'}">${activeRoots.length}/4 Active</span>
+            </div>
+            ${activeRoots.length === 0 ? `<p class="text-xs text-slate-400 italic px-2 py-1">No active projects. Activate from Parking Lot below.</p>` : ''}
+            ${activeRoots.map(root => buildProjectNodeHTML(root, 0)).join('')}
+        </div>
+    `;
+
+    html += `
+        <div class="pt-2 border-t border-slate-200/60">
+            <button onclick="toggleParkingLotDrawer()" class="w-full flex items-center justify-between px-1 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500 hover:text-slate-800 transition-colors">
+                <span class="flex items-center gap-1">
+                    <i data-lucide="archive" class="w-3 h-3 text-slate-400"></i>
+                    <span>Parking Lot (${parkedRoots.length})</span>
+                </span>
+                <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400 transition-transform ${appState.parkingLotOpen ? 'rotate-180' : ''}"></i>
+            </button>
+            
+            ${appState.parkingLotOpen ? `
+                <div class="space-y-1 mt-1 bg-slate-200/40 p-1.5 rounded-xl">
+                    ${parkedRoots.length === 0 ? `<p class="text-[11px] text-slate-400 italic px-1 py-1">Parking lot is empty.</p>` : ''}
+                    ${parkedRoots.map(root => `
+                        <div class="space-y-1 opacity-80 hover:opacity-100 transition-opacity">
+                            ${buildProjectNodeHTML(root, 0)}
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+
+    container.innerHTML = html;
     safeCreateIcons();
 }
 
@@ -803,7 +976,6 @@ function renderActiveTask(p) {
     updateTimerTexts(p, task || { actualTime: 0, estimatedTime: 0 });
 }
 
-// Fixed Mascot Stage & Companion Gallery
 function renderMascotStage() {
     if (typeof mascotDatabase === 'undefined') return;
     const activeProject = getActiveProject();
@@ -836,7 +1008,6 @@ function renderMascotStage() {
     const unlockBtn = document.getElementById('btn-unlock-all-mascots');
     const relockBtn = document.getElementById('btn-relock-all-mascots');
     
-    // Toggle active state visualization on buttons
     if (unlockBtn) {
         unlockBtn.className = isTestUnlocked
             ? "px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[11px] font-bold shadow-xs flex items-center gap-1"
@@ -887,8 +1058,11 @@ function renderMascotStage() {
     safeCreateIcons();
 }
 
+// Task List: Active Top + Collapsible Completed Drawer
 function renderTaskList(p) {
     const container = document.getElementById('task-list-container');
+    const completedContainer = document.getElementById('completed-tasks-container');
+    const completedWrapper = document.getElementById('completed-tasks-wrapper');
     const addTaskContainer = document.getElementById('add-task-container');
     const parentNotice = document.getElementById('parent-task-blocked-notice');
     const isParent = hasSubProjects(p.id);
@@ -901,37 +1075,76 @@ function renderTaskList(p) {
         if (parentNotice) parentNotice.classList.add('hidden');
     }
 
-    const total = p.tasks.length;
-    const completed = p.tasks.filter(t => t.isCompleted).length;
-    document.getElementById('task-progress-text').textContent = `${completed}/${total} Completed`;
+    const allTasks = p.tasks || [];
+    const activeTasks = allTasks.filter(t => !t.isCompleted);
+    const completedTasks = allTasks.filter(t => t.isCompleted);
 
-    container.innerHTML = p.tasks.map((t, idx) => {
-        const isActive = t.id === p.activeTaskId;
-        const estFmt = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
-        const actFmt = formatTimeCompact(t.actualTime);
+    document.getElementById('task-progress-text').textContent = `${completedTasks.length}/${allTasks.length} Completed`;
 
-        return `
-        <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500' : 'border-slate-200'}">
-            <span class="w-6 text-center text-xs font-bold font-mono text-slate-400">${idx + 1}</span>
-            <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full border flex items-center justify-center ${t.isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}"><i data-lucide="check" class="w-3.5 h-3.5"></i></button>
-            <div class="flex-1 cursor-pointer min-w-0" onclick="selectTask('${t.id}')">
-                <p class="text-xs font-semibold truncate ${t.isCompleted ? 'line-through text-slate-400' : ''}">${t.title}</p>
-                <div class="flex items-center gap-2 mt-0.5">
-                    ${(t.microSteps && t.microSteps.length > 0) ? `<span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">${t.microSteps.filter(s=>s.isCompleted).length}/${t.microSteps.length} steps</span>` : ''}
-                    ${t.notes ? `<span class="text-[9px] text-slate-400 flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3"></i> Notes</span>` : ''}
-                    ${t.deadline ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-mono">${t.deadline}</span>` : ''}
-                </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0 font-mono text-xs">
-                <span class="text-slate-700 font-semibold">${actFmt}</span>
-                <span class="text-slate-300">/</span>
-                <span class="text-slate-400">${estFmt}</span>
-                <button onclick="deleteTask('${t.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Delete Task">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+    // 1. Render Active Tasks
+    if (activeTasks.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center italic bg-white rounded-2xl border border-slate-200/60">No pending tasks. Add an atomic step below to start focus.</p>`;
+    } else {
+        container.innerHTML = activeTasks.map((t, idx) => {
+            const isActive = t.id === p.activeTaskId;
+            const estFmt = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
+            const actFmt = formatTimeCompact(t.actualTime);
+
+            return `
+            <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500 ring-1 ring-brand-500/20' : 'border-slate-200 hover:border-slate-300'} transition-all">
+                <span class="w-6 text-center text-xs font-bold font-mono text-slate-400">${idx + 1}</span>
+                <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full border border-slate-300 hover:border-emerald-500 flex items-center justify-center transition-colors">
+                    <i data-lucide="check" class="w-3.5 h-3.5 opacity-0 hover:opacity-100 text-emerald-500"></i>
                 </button>
-            </div>
-        </div>`;
-    }).join('');
+                <div class="flex-1 cursor-pointer min-w-0" onclick="selectTask('${t.id}')">
+                    <p class="text-xs font-semibold truncate text-slate-800">${t.title}</p>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        ${(t.microSteps && t.microSteps.length > 0) ? `<span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">${t.microSteps.filter(s=>s.isCompleted).length}/${t.microSteps.length} steps</span>` : ''}
+                        ${t.notes ? `<span class="text-[9px] text-slate-400 flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3"></i> Notes</span>` : ''}
+                        ${t.deadline ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-mono">${t.deadline}</span>` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0 font-mono text-xs">
+                    <span class="text-slate-700 font-semibold">${actFmt}</span>
+                    <span class="text-slate-300">/</span>
+                    <span class="text-slate-400">${estFmt}</span>
+                    <button onclick="deleteTask('${t.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Delete Task">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // 2. Render Completed Tasks Archive Drawer
+    if (completedTasks.length > 0) {
+        completedWrapper.classList.remove('hidden');
+        document.getElementById('completed-tasks-count-label').textContent = `Completed Tasks (${completedTasks.length})`;
+        
+        const chevron = document.getElementById('completed-tasks-chevron');
+        if (chevron) chevron.style.transform = appState.completedTasksDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        if (completedContainer) {
+            completedContainer.classList.toggle('hidden', !appState.completedTasksDrawerOpen);
+            completedContainer.innerHTML = completedTasks.map(t => `
+                <div class="flex items-center gap-3 p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-xs">
+                    <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full bg-emerald-500 border border-emerald-500 text-white flex items-center justify-center shrink-0">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    </button>
+                    <div class="flex-1 truncate">
+                        <span class="line-through text-slate-400 font-medium">${t.title}</span>
+                    </div>
+                    <span class="text-slate-400 font-mono text-[11px] shrink-0">${formatTimeCompact(t.actualTime)}</span>
+                    <button onclick="deleteTask('${t.id}', event)" class="text-slate-300 hover:text-rose-500 p-1" title="Delete">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+    } else {
+        completedWrapper.classList.add('hidden');
+    }
+
+    safeCreateIcons();
 }
 
 function renderTimerVisuals() {
@@ -955,7 +1168,13 @@ function toggleTaskStatus(id) {
     const p = getActiveProject(), t = (p.tasks || []).find(x => x.id === id);
     if (t) {
         t.isCompleted = !t.isCompleted;
-        if (t.isCompleted) t.completionDate = new Date().toISOString();
+        if (t.isCompleted) {
+            t.completionDate = new Date().toISOString();
+            playSound('complete');
+            confetti({ particleCount: 50, spread: 50 });
+        } else {
+            t.completionDate = null;
+        }
         saveStateLocally();
         renderApp();
     }
@@ -1057,8 +1276,6 @@ function initSettings() {
     if (document.getElementById('volume-label')) document.getElementById('volume-label').textContent = (appState.audioVolume || 80) + '%';
     if (document.getElementById('audio-family-select')) document.getElementById('audio-family-select').value = appState.audioFamily || 'woodblock';
     if (document.getElementById('bloom-slider')) document.getElementById('bloom-slider').value = appState.bloomOpacity || 60;
-    if (document.getElementById('jitter-audio-base')) document.getElementById('jitter-audio-base').value = appState.jitterAudioBase || 300;
-    if (document.getElementById('jitter-audio-window')) document.getElementById('jitter-audio-window').value = appState.jitterAudioWindow || 30;
     updateBloomOpacity(appState.bloomOpacity || 60);
     if (appState.audioMuted) {
         const btn = document.getElementById('btn-mute-toggle');
