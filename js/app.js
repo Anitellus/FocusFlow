@@ -147,6 +147,8 @@ function createNewProject(parentId = null) {
     syncHeaderInputsToState();
     
     let makeParked = false;
+    let tasksToMigrate = [];
+
     if (!parentId) {
         const activeRoots = getActiveRootProjects();
         if (activeRoots.length >= 4) {
@@ -162,10 +164,18 @@ function createNewProject(parentId = null) {
             alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
             return;
         }
+        
         const parent = (appState.projects || []).find(p => p.id === parentId);
         if (parent && parent.tasks && parent.tasks.length > 0) {
-            alert("Remove existing tasks before creating a sub-project. Tasks can only exist at the lowest leaf level.");
-            return;
+            const migrate = confirm(
+                `"${parent.title}" currently has ${parent.tasks.length} task(s).\n\nTasks can only exist at the lowest leaf level.\n\nWould you like to automatically move all ${parent.tasks.length} task(s) into your new sub-project so nothing is lost?`
+            );
+            if (!migrate) return;
+            
+            // Extract tasks from parent to transfer into the new child leaf
+            tasksToMigrate = [...parent.tasks];
+            parent.tasks = [];
+            parent.activeTaskId = null;
         }
     }
 
@@ -173,7 +183,7 @@ function createNewProject(parentId = null) {
     const parentDepth = parentId ? getProjectDepth(parentId) : -1;
     const projectTitle = parentDepth === 0 ? 'New Sub-Project' : (parentDepth === 1 ? 'New Component Project' : 'New Root Project');
 
-    appState.projects.push({
+    const newProject = {
         id, 
         parentId: parentId, 
         title: projectTitle, 
@@ -182,14 +192,15 @@ function createNewProject(parentId = null) {
         notes: '',
         isParked: makeParked,
         totalTimeSpent: 0, 
-        activeTaskId: null, 
+        activeTaskId: tasksToMigrate.length > 0 ? tasksToMigrate[0].id : null, 
         activeMascotId: null, 
         unlockAllMascotsTest: false,
         createdAt: new Date().toISOString(), 
         completedAt: null, 
-        tasks: []
-    });
+        tasks: tasksToMigrate // Migrated tasks preserve all data, notes, and timers
+    };
 
+    appState.projects.push(newProject);
     appState.activeProjectId = id;
     saveStateLocally();
     renderApp();
