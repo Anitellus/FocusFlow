@@ -559,7 +559,8 @@ function convertScratchpadToTask(itemId) {
     const p = getActiveProject();
     if (!item || !p) return;
     if (hasSubProjects(p.id)) { alert("Select a leaf sub-project first."); return; }
-    p.tasks.push({
+    
+    const newTask = {
         id: 't-' + generateId(),
         title: item.text,
         estimatedTime: 15 * 60,
@@ -570,7 +571,9 @@ function convertScratchpadToTask(itemId) {
         createdAt: new Date().toISOString(),
         microSteps: [],
         lastParkedContext: null
-    });
+    };
+    p.tasks.push(newTask);
+    if (!p.activeTaskId) p.activeTaskId = newTask.id; // Immediate focus linkage
     deleteScratchpadItem(itemId);
     renderApp();
 }
