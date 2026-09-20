@@ -1172,8 +1172,15 @@ function toggleTaskStatus(id) {
             t.completionDate = new Date().toISOString();
             playSound('complete');
             confetti({ particleCount: 50, spread: 50 });
+            
+            // Advance active task to next pending task if current active was completed
+            if (p.activeTaskId === id) {
+                const nextPending = p.tasks.find(x => !x.isCompleted);
+                p.activeTaskId = nextPending ? nextPending.id : null;
+            }
         } else {
             t.completionDate = null;
+            if (!p.activeTaskId) p.activeTaskId = t.id;
         }
         saveStateLocally();
         renderApp();
