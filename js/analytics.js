@@ -112,15 +112,30 @@ function renderAnalytics(days) {
 
     // 9. Dormant Projects Monitor (Object Permanence Guardian)
     const dormantList = document.getElementById('dormant-projects-list');
-    const dormantProjects = allProjects.filter(p => !p.completedAt).map(p => {
-        const times = (p.tasks || []).map(t => new Date(t.completionDate || t.createdAt || 0).getTime());
-        const last = times.length > 0 ? Math.max(...times) : new Date(p.createdAt || 0).getTime();
-        const daysDormant = Math.floor((now.getTime() - last) / 86400000);
-        return { ...p, daysDormant };
-    }).filter(p => p.daysDormant >= 14);
+    
+    // Helper to determine if a project or any of its ancestors are parked
+    function isProjectParked(proj) {
+        let curr = proj;
+        while (curr) {
+            if (curr.isParked) return true;
+            if (!curr.parentId) break;
+            curr = allProjects.find(p => p.id === curr.parentId);
+        }
+        return false;
+    }
+
+    const dormantProjects = allProjects
+        .filter(p => !p.completedAt && !isProjectParked(p)) // <-- Excludes parked projects & their sub-projects
+        .map(p => {
+            const times = (p.tasks || []).map(t => new Date(t.completionDate || t.createdAt || 0).getTime());
+            const last = times.length > 0 ? Math.max(...times) : new Date(p.createdAt || 0).getTime();
+            const daysDormant = Math.floor((now.getTime() - last) / 86400000);
+            return { ...p, daysDormant };
+        })
+        .filter(p => p.daysDormant >= 14);
 
     if (dormantProjects.length === 0) {
-        dormantList.innerHTML = `<p class="text-xs text-slate-400 italic">All projects have had recent momentum. Zero dormant containers.</p>`;
+        dormantList.innerHTML = `<p class="text-xs text-slate-400 italic">All active sprint projects have had recent momentum. Zero dormant containers.</p>`;
     } else {
         dormantList.innerHTML = dormantProjects.map(p => `
             <div class="flex items-center justify-between p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs">
