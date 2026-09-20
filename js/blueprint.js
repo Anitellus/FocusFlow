@@ -288,25 +288,36 @@ Formatting Rules:
     },
 
     createProject(title, parentId = null, deadline = '', goal = '') {
-        const id = 'proj-' + generateId();
-        const project = {
-            id,
-            parentId,
-            title: title || "New Ingested Project",
-            goal: goal || '',
-            deadline: deadline || '',
-            notes: 'Imported via Momentum Blueprint',
-            totalTimeSpent: 0,
-            activeTaskId: null,
-            activeMascotId: null,
-            unlockAllMascotsTest: false,
-            createdAt: new Date().toISOString(),
-            completedAt: null,
-            tasks: []
-        };
-        appState.projects = appState.projects || [];
-        appState.projects.push(project);
-        return project;
+    const id = 'proj-' + generateId();
+    
+    // Check if new root project exceeds 4 active projects
+    let makeParked = false;
+    if (!parentId) {
+        const activeRoots = (appState.projects || []).filter(p => !p.parentId && !p.isParked);
+        if (activeRoots.length >= 4) {
+            makeParked = true;
+        }
+    }
+
+    const project = {
+        id,
+        parentId,
+        title: title || "New Ingested Project",
+        goal: goal || '',
+        deadline: deadline || '',
+        notes: 'Imported via Momentum Blueprint',
+        isParked: makeParked,
+        totalTimeSpent: 0,
+        activeTaskId: null,
+        activeMascotId: null,
+        unlockAllMascotsTest: false,
+        createdAt: new Date().toISOString(),
+        completedAt: null,
+        tasks: []
+    };
+    appState.projects = appState.projects || [];
+    appState.projects.push(project);
+    return project;
     },
 
     extractTitleAndMeta(str) {
