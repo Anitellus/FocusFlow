@@ -110,7 +110,6 @@ function initializeAndMigrateStorage() {
             state.scratchpad = Array.isArray(v10.scratchpad) ? v10.scratchpad : [];
             state.sessionLogs = Array.isArray(v10.sessionLogs) ? v10.sessionLogs : [];
             
-            // Mark root projects beyond 4 as parked by default during migration
             let rootCount = 0;
             state.projects = (v10.projects || []).map(p => {
                 const isRoot = !p.parentId;
@@ -240,7 +239,7 @@ function importDataJSON(event) {
     reader.readAsText(file);
 }
 
-// --- Google Authentication & Cloud Sync ---
+// --- Google Authentication & Cloud Sync Engine ---
 function signInWithGoogle() {
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).catch(err => {
@@ -306,15 +305,17 @@ function manualCloudSave() {
     });
 }
 
-// Throttled background sync (active only when logged in)
+// Background sync (guarded against active user interaction)
 setInterval(() => {
     if (!currentUser) return;
+    const isUserTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+    if (isUserTyping) return; // Postpone sync while user actively types
     syncHeaderInputsToState();
     const cleanData = JSON.parse(JSON.stringify(appState));
     docRef.set(cleanData, { merge: true }).catch(err => console.warn("Background auto-sync notice:", err));
 }, 5 * 60 * 1000);
 
-// Auth state listener: attaches Firestore listener only when signed in
+// Auth state listener: attaches Firestore listener with re-render safety guards
 auth.onAuthStateChanged(user => {
     currentUser = user;
     renderAuthUI(user);
@@ -326,9 +327,16 @@ auth.onAuthStateChanged(user => {
             if (doc.exists) {
                 const cloudData = doc.data();
                 if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
+                    const isUserTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+                    const isClockRunning = typeof isPlaying !== 'undefined' && isPlaying;
+                    
                     appState = Object.assign(appState, cloudData);
                     saveStateLocally();
-                    if (typeof renderApp === 'function') renderApp();
+                    
+                    // Prevent mid-sentence cursor jumps or timer disruption
+                    if (!isUserTyping && !isClockRunning && typeof renderApp === 'function') {
+                        renderApp();
+                    }
                 }
             }
         }, err => {
