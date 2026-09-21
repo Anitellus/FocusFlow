@@ -100,11 +100,8 @@
         <!-- 30-Day Sprint Cadence Runway Banner -->
         <div id="sprint-cycle-container" class="px-3.5 py-2.5 bg-indigo-50/70 border-b border-slate-200/60 font-sans-ui">
             <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950">
-                <span class="flex items-center gap-1.5 cursor-pointer" onclick="openSprintReviewModal()" title="Review 30-Day Sprint">
-                    <i data-lucide="compass" class="w-3.5 h-3.5 text-brand-600"></i>
-                    <span id="sprint-cycle-label">Sprint: Day 1 of 30</span>
-                </span>
-                <span class="text-[10px] text-brand-600 font-mono font-semibold" id="sprint-days-remaining">30d left</span>
+                <span id="sprint-cycle-label">Sprint: Day 1 of 30</span>
+                <span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span>
             </div>
             <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden">
                 <div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div>
@@ -162,6 +159,10 @@
         <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md">
             <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
                 <div class="flex-1 w-full space-y-2">
+                    
+                    <!-- Hierarchy Breadcrumbs -->
+                    <div id="project-breadcrumbs" class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 font-sans-ui truncate"></div>
+
                     <div class="flex items-center gap-2">
                         <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase tracking-wider font-sans-ui flex items-center gap-1 shrink-0">
                             <i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600"></i> GOAL
@@ -361,16 +362,19 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5" id="mascot-gallery-grid"></div>
                 </section>
 
-                <!-- Project Tasks List -->
-                <section class="font-sans-ui">
-                    <div class="flex items-center justify-between mb-3 px-1">
-                        <h3 class="text-base font-bold text-slate-700 flex items-center gap-2">
+                <!-- Project Tasks / Executive Milestone Hub Section -->
+                <section class="font-sans-ui" id="project-tasks-section">
+                    <div id="tasks-header-wrapper" class="flex items-center justify-between mb-3 px-1">
+                        <h3 class="text-base font-bold text-slate-700 flex items-center gap-2" id="tasks-section-title">
                             <i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Active Tasks
                         </h3>
                         <span class="text-xs font-semibold text-slate-500 bg-white px-2.5 py-0.5 rounded-full ring-1 ring-slate-200" id="task-progress-text">0/0 Completed</span>
                     </div>
 
-                    <!-- Active Tasks Only -->
+                    <!-- Executive Milestone Hub (Displayed for Parent Containers) -->
+                    <div id="container-milestone-hub" class="space-y-3 hidden"></div>
+
+                    <!-- Active Tasks Only (Leaf Projects) -->
                     <div class="space-y-2" id="task-list-container"></div>
 
                     <!-- Add Task Box -->
@@ -381,11 +385,6 @@
                             <input type="number" id="new-task-est-input" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none text-center font-mono" placeholder="min" min="1" max="999">
                             <button onclick="handleAddTask()" class="bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0">Add</button>
                         </div>
-                    </div>
-
-                    <div id="parent-task-blocked-notice" class="mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs font-semibold flex items-center gap-2 hidden">
-                        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0 text-amber-600"></i>
-                        <span>This project contains sub-projects. Tasks can only exist at the lowest leaf project levels.</span>
                     </div>
 
                     <!-- Completed Tasks Collapsible Drawer -->
@@ -813,7 +812,7 @@
             <div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-4 leading-relaxed">
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Strict 3-Tier Hierarchy (Main &rarr; Sub &rarr; Component)</h3>
-                    <p>Organize work across three structural depths: <strong>Main Project</strong>, <strong>Sub-Project</strong>, and <strong>Component Project</strong>. Tasks exist strictly at the lowest leaf level of any branch. If a project has children, tasks cannot be added directly to the container.</p>
+                    <p>Organize work across three structural depths: <strong>Main Project</strong>, <strong>Sub-Project</strong>, and <strong>Component Project</strong>. Tasks exist strictly at the lowest leaf level of any branch. Parent projects act as Executive Milestone Hubs showing sub-track progress.</p>
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">2. Time-Blindness Sweep & The Amber Flow Zone</h3>
@@ -821,11 +820,11 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">3. 30-Day Cycles & The Parking Lot</h3>
-                    <p>Cognitive working memory can realistically hold a maximum of 4 active root projects. Ideas beyond the active limit are stored in the Parking Lot, freeing attention while preventing ideas from getting lost. Every 30 days, review your cycle runway without shame.</p>
+                    <p>Cognitive working memory realistically holds a maximum of 4 active root projects. Ideas beyond the active limit are stored in the Parking Lot. Every 30 days, review your cycle runway without shame.</p>
                 </div>
                 <div>
                     <h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">4. Park & Resume Context Anchors</h3>
-                    <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a launchpad banner sits above the timer with one-click resumption to eliminate reactivation paralysis.</p>
+                    <p>Pausing the clock prompts a lightweight anchor: "Where did I stop?" and "What is my immediate next 60s action?". When returning, a launchpad banner sits above the timer with one-click resumption.</p>
                 </div>
             </div>
         </div>
