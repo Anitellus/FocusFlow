@@ -43,24 +43,32 @@ function safeCreateIcons() {
 const STORAGE_KEY_V10 = 'focus_flow_master_v10';
 const STORAGE_KEY_V11 = 'focus_flow_master_v11';
 
+// [SECURITY NOTE]: Initialize via environment variables or replace these with actual keys if deploying directly. 
+// Protect your credentials using strict Firestore Rules and App Check configuration.
 const firebaseConfig = {
-    apiKey: "AIzaSyCzpHlAhANEmgZd3tMsfTnHGlbaK9L9sIM",
-    authDomain: "focus-flow-app-87591.firebaseapp.com",
-    projectId: "focus-flow-app-87591",
-    storageBucket: "focus-flow-app-87591.firebasestorage.app",
-    messagingSenderId: "233299198976",
-    appId: "1:233299198976:web:721adeec2947aa06d384e5"
+    apiKey: "YOUR_FIREBASE_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 
 if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
+    // Only initialize if proper configuration has been set to prevent crashes
+    if (firebaseConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+    } else {
+        console.warn("Firebase config missing. Running entirely locally.");
+    }
 }
-const auth = firebase.auth();
-const db = firebase.firestore();
-const docRef = db.collection('focus_flow').doc('user_workspace');
+const auth = firebase.auth ? firebase.auth() : null;
+const db = firebase.firestore ? firebase.firestore() : null;
+const docRef = db ? db.collection('focus_flow').doc('user_workspace') : null;
 
 let currentUser = null;
 let firestoreUnsubscribe = null;
+let lastSyncedStateString = ""; // Prevents unnecessary/destructive document overwrites
 
 let appState = {
     version: 11,
@@ -95,47 +103,6 @@ function initializeAndMigrateStorage() {
     if (rawV11) {
         try { return JSON.parse(rawV11); } catch(e) {}
     }
-    const rawV10 = localStorage.getItem(STORAGE_KEY_V10);
-    if (rawV10) {
-        try {
-            const v10 = JSON.parse(rawV10);
-            const nowISO = new Date().toISOString();
-            const state = Object.assign(appState, v10);
-            state.version = 11;
-            state.sprintStartDate = v10.sprintStartDate || nowISO;
-            state.sprintCycleDays = v10.sprintCycleDays || 30;
-            state.saveStateDrawerOpen = !!v10.saveStateDrawerOpen;
-            state.parkingLotOpen = !!v10.parkingLotOpen;
-            state.completedTasksDrawerOpen = !!v10.completedTasksDrawerOpen;
-            state.scratchpad = Array.isArray(v10.scratchpad) ? v10.scratchpad : [];
-            state.sessionLogs = Array.isArray(v10.sessionLogs) ? v10.sessionLogs : [];
-            
-            let rootCount = 0;
-            state.projects = (v10.projects || []).map(p => {
-                const isRoot = !p.parentId;
-                let isParked = p.isParked || false;
-                if (isRoot) {
-                    rootCount++;
-                    if (rootCount > 4 && typeof p.isParked === 'undefined') isParked = true;
-                }
-                return {
-                    ...p,
-                    isParked: isParked,
-                    createdAt: p.createdAt || nowISO,
-                    completedAt: p.completedAt || null,
-                    tasks: (p.tasks || []).map(t => ({
-                        ...t,
-                        createdAt: t.createdAt || nowISO,
-                        microSteps: Array.isArray(t.microSteps) ? t.microSteps : [],
-                        lastParkedContext: t.lastParkedContext || null
-                    }))
-                };
-            });
-
-            localStorage.setItem(STORAGE_KEY_V11, JSON.stringify(state));
-            return state;
-        } catch(e) {}
-    }
     return null;
 }
 
@@ -163,21 +130,11 @@ function loadDefaultData() {
         activeMascotId: 'm-shiba',
         createdAt: new Date().toISOString(),
         completedAt: null,
-        tasks: [
-            { 
-                id: 't-1', 
-                title: 'Verify custom matrix SVGs and animations', 
-                estimatedTime: 1800, 
-                actualTime: 0, 
-                isCompleted: false, 
-                deadline: '', 
-                notes: 'Check all complexity steps.', 
-                completionDate: null,
-                createdAt: new Date().toISOString(),
-                microSteps: [],
-                lastParkedContext: null
-            }
-        ]
+        tasks: [{ 
+            id: 't-1', title: 'Verify custom matrix SVGs and animations', estimatedTime: 1800, actualTime: 0, 
+            isCompleted: false, deadline: '', notes: 'Check all complexity steps.', completionDate: null,
+            createdAt: new Date().toISOString(), microSteps: [], lastParkedContext: null
+        }]
     }];
     saveStateLocally();
 }
@@ -197,11 +154,6 @@ function syncHeaderInputsToState() {
     if (gEl && gEl.value !== undefined) p.goal = gEl.value;
     if (dEl && dEl.value !== undefined) p.deadline = dEl.value;
     if (nEl && nEl.value !== undefined) p.notes = nEl.value;
-}
-
-function saveState() {
-    syncHeaderInputsToState();
-    saveStateLocally();
 }
 
 // --- Data Export & Import Handlers ---
@@ -225,7 +177,8 @@ function importDataJSON(event) {
         try {
             const imported = JSON.parse(e.target.result);
             if (imported && Array.isArray(imported.projects)) {
-                appState = Object.assign(appState, imported);
+                // Ensure a deep overwrite of the entire tree so orphaned artifacts from shallow merging are purged
+                appState = JSON.parse(JSON.stringify(imported));
                 saveStateLocally();
                 renderApp();
                 alert("Backup restored successfully into FocusFlow!");
@@ -241,6 +194,7 @@ function importDataJSON(event) {
 
 // --- Google Authentication & Cloud Sync Engine ---
 function signInWithGoogle() {
+    if (!auth) return alert("Firebase not properly configured.");
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).catch(err => {
         console.error("Sign-in error:", err);
@@ -249,6 +203,7 @@ function signInWithGoogle() {
 }
 
 function signOutUser() {
+    if (!auth) return;
     auth.signOut().then(() => {
         if (firestoreUnsubscribe) {
             firestoreUnsubscribe();
@@ -260,7 +215,6 @@ function signOutUser() {
 function renderAuthUI(user) {
     const container = document.getElementById('auth-status-container');
     if (!container) return;
-
     if (user) {
         container.innerHTML = `
             <div class="flex items-center justify-between bg-slate-200/60 rounded-xl px-2.5 py-1.5 text-xs">
@@ -279,7 +233,7 @@ function renderAuthUI(user) {
 }
 
 function manualCloudSave() {
-    if (!currentUser) {
+    if (!currentUser || !docRef) {
         alert("Please sign in with Google before saving to the cloud.");
         return;
     }
@@ -291,6 +245,7 @@ function manualCloudSave() {
 
     const cleanData = JSON.parse(JSON.stringify(appState));
     docRef.set(cleanData, { merge: true }).then(() => {
+        lastSyncedStateString = JSON.stringify(cleanData);
         if (btn) btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Saved to Cloud!`;
         safeCreateIcons();
         setTimeout(() => {
@@ -305,50 +260,59 @@ function manualCloudSave() {
     });
 }
 
-// Background sync (guarded against active user interaction)
+// Background sync (guarded against active user interaction & unnecessary overwrites)
 setInterval(() => {
-    if (!currentUser) return;
+    if (!currentUser || !docRef) return;
     const isUserTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
-    if (isUserTyping) return; // Postpone sync while user actively types
+    if (isUserTyping) return; 
+
     syncHeaderInputsToState();
     const cleanData = JSON.parse(JSON.stringify(appState));
-    docRef.set(cleanData, { merge: true }).catch(err => console.warn("Background auto-sync notice:", err));
+    const currentString = JSON.stringify(cleanData);
+    
+    // Prevent destructive overwrites if local state hasn't meaningfully changed
+    if (currentString === lastSyncedStateString) return;
+
+    docRef.set(cleanData, { merge: true }).then(() => {
+        lastSyncedStateString = currentString;
+    }).catch(err => console.warn("Background auto-sync notice:", err));
 }, 5 * 60 * 1000);
 
-// Auth state listener: attaches Firestore listener with re-render safety guards
-auth.onAuthStateChanged(user => {
-    currentUser = user;
-    renderAuthUI(user);
+if (auth) {
+    auth.onAuthStateChanged(user => {
+        currentUser = user;
+        renderAuthUI(user);
 
-    if (user) {
-        if (firestoreUnsubscribe) firestoreUnsubscribe();
-        firestoreUnsubscribe = docRef.onSnapshot((doc) => {
-            if (doc.metadata && doc.metadata.hasPendingWrites) return;
-            if (doc.exists) {
-                const cloudData = doc.data();
-                if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
-                    const isUserTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
-                    const isClockRunning = typeof isPlaying !== 'undefined' && isPlaying;
-                    
-                    appState = Object.assign(appState, cloudData);
-                    saveStateLocally();
-                    
-                    // Prevent mid-sentence cursor jumps or timer disruption
-                    if (!isUserTyping && !isClockRunning && typeof renderApp === 'function') {
-                        renderApp();
+        if (user) {
+            if (firestoreUnsubscribe) firestoreUnsubscribe();
+            firestoreUnsubscribe = docRef.onSnapshot((doc) => {
+                if (doc.metadata && doc.metadata.hasPendingWrites) return;
+                if (doc.exists) {
+                    const cloudData = doc.data();
+                    if (cloudData && Array.isArray(cloudData.projects) && cloudData.projects.length > 0) {
+                        const isUserTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
+                        const isClockRunning = typeof isPlaying !== 'undefined' && isPlaying;
+                        
+                        appState = JSON.parse(JSON.stringify({ ...appState, ...cloudData }));
+                        lastSyncedStateString = JSON.stringify(appState);
+                        saveStateLocally();
+                        
+                        if (!isUserTyping && !isClockRunning && typeof renderApp === 'function') {
+                            renderApp();
+                        }
                     }
                 }
+            }, err => {
+                console.error("Firestore Listener Error:", err);
+                if (err.code === 'permission-denied') {
+                    alert("Permission denied. Check that the email in your Firestore rules matches: " + user.email);
+                }
+            });
+        } else {
+            if (firestoreUnsubscribe) {
+                firestoreUnsubscribe();
+                firestoreUnsubscribe = null;
             }
-        }, err => {
-            console.error("Firestore Listener Error:", err);
-            if (err.code === 'permission-denied') {
-                alert("Permission denied. Check that the email in your Firestore rules matches: " + user.email);
-            }
-        });
-    } else {
-        if (firestoreUnsubscribe) {
-            firestoreUnsubscribe();
-            firestoreUnsubscribe = null;
         }
-    }
-});
+    });
+}
