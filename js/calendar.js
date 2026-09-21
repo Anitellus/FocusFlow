@@ -23,6 +23,7 @@ function renderTemporalHorizons() {
     const sevenDaysLater = new Date(Date.now() + 7 * 86400000);
     const allItems = [];
 
+    // Helper: Determine if project or any ancestor is parked
     function isProjectParked(proj) {
         let curr = proj;
         while (curr) {
@@ -33,9 +34,9 @@ function renderTemporalHorizons() {
         return false;
     }
 
-    // Collect all tasks and projects with deadlines
-   (appState.projects || []).forEach(p => {
-        if (isProjectParked(p)) return; // Suppress parked deadlines from horizons
+    // Collect deadlines strictly from active sprint projects
+    (appState.projects || []).forEach(p => {
+        if (isProjectParked(p)) return; // Exclude parked projects from horizons
         if (p.deadline) {
             allItems.push({ id: p.id, type: 'project', title: p.title, deadline: p.deadline, projectId: p.id, isCompleted: !!p.completedAt });
         }
@@ -76,7 +77,7 @@ function renderTemporalHorizons() {
             </div>
         `).join('');
 
-    // Render Gentle Recalibration (No Red Shame Alarms)
+    // Render Gentle Recalibration (No Shame Alarms)
     const recalibrateList = document.getElementById('horizon-list-recalibrate');
     recalibrateList.innerHTML = recalibrateItems.length === 0 
         ? `<p class="text-xs text-slate-400 italic py-2">Zero passed dates. Calendar is aligned.</p>`
@@ -107,7 +108,6 @@ function renderMonthlyGrid() {
     const totalDays = new Date(year, month + 1, 0).getDate();
     const todayStr = getLocalFormattedDate(new Date());
 
-    // Map deadline items by date string
     const dateMap = {};
     (appState.projects || []).forEach(p => {
         if (p.deadline) {
@@ -123,12 +123,10 @@ function renderMonthlyGrid() {
     });
 
     let gridHTML = '';
-    // Leading blanks
     for (let i = 0; i < firstDay; i++) {
         gridHTML += `<div class="h-24 bg-slate-50/50 rounded-2xl border border-slate-100 opacity-40"></div>`;
     }
 
-    // Days of month
     for (let day = 1; day <= totalDays; day++) {
         const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const isToday = dStr === todayStr;
@@ -155,18 +153,39 @@ function renderMonthlyGrid() {
     document.getElementById('calendar-days-grid').innerHTML = gridHTML;
 }
 
-// 1-Click Launchpad: Switch directly to Focus workspace on chosen task/project
+// 3. Intelligent Leaf Resolver (Resolves Container Dead-Ends)
+function findFirstLeafProject(projectId) {
+    const children = (appState.projects || []).filter(p => p.parentId === projectId);
+    if (children.length === 0) {
+        return (appState.projects || []).find(p => p.id === projectId);
+    }
+    return findFirstLeafProject(children[0].id);
+}
+
 function jumpToItem(type, id, projectId) {
-    appState.activeProjectId = projectId;
-    if (type === 'task') {
-        const p = getActiveProject();
-        if (p) p.activeTaskId = id;
+    let targetProjId = projectId;
+    
+    // If navigation target is a container, resolve to its first leaf descendant
+    if (type === 'project') {
+        const targetProj = findFirstLeafProject(id);
+        if (targetProj) targetProjId = targetProj.id;
+    }
+    
+    appState.activeProjectId = targetProjId;
+    const p = (appState.projects || []).find(x => x.id === targetProjId);
+    if (p) {
+        if (type === 'task') {
+            p.activeTaskId = id;
+        } else {
+            const nextPending = (p.tasks || []).find(t => !t.isCompleted);
+            p.activeTaskId = nextPending ? nextPending.id : (p.tasks?.[0]?.id || null);
+        }
     }
     saveStateLocally();
     switchView('focus');
 }
 
-// Compassionate 1-Click Rescheduling
+// 4. Compassionate 1-Click Rescheduling
 function rescheduleItem(type, id, projectId, addDays) {
     const targetDate = new Date(Date.now() + addDays * 86400000);
     const newDateStr = getLocalFormattedDate(targetDate);
