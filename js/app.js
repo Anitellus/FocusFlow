@@ -143,6 +143,7 @@ function getParkedRootProjects() {
     return (appState.projects || []).filter(p => !p.parentId && p.isParked);
 }
 
+// Auto-Adoption Project Creator: Prevents Task Loss when branching
 function createNewProject(parentId = null) {
     syncHeaderInputsToState();
     
@@ -172,7 +173,6 @@ function createNewProject(parentId = null) {
             );
             if (!migrate) return;
             
-            // Extract tasks from parent to transfer into the new child leaf
             tasksToMigrate = [...parent.tasks];
             parent.tasks = [];
             parent.activeTaskId = null;
@@ -197,7 +197,7 @@ function createNewProject(parentId = null) {
         unlockAllMascotsTest: false,
         createdAt: new Date().toISOString(), 
         completedAt: null, 
-        tasks: tasksToMigrate // Migrated tasks preserve all data, notes, and timers
+        tasks: tasksToMigrate
     };
 
     appState.projects.push(newProject);
@@ -252,6 +252,15 @@ function deleteProject(projectId, e) {
             (appState.projects || []).filter(p => p.parentId === id).forEach(sp => collectIds(sp.id));
         }
         collectIds(projectId);
+
+        // Stamp project titles onto logs before deleting so analytics maintain historical records
+        (appState.sessionLogs || []).forEach(l => {
+            if (toDelete.has(l.projectId) && !l.projectTitle) {
+                const target = (appState.projects || []).find(x => x.id === l.projectId);
+                if (target) l.projectTitle = target.title;
+            }
+        });
+
         appState.projects = (appState.projects || []).filter(p => !toDelete.has(p.id));
 
         if (appState.projects.length === 0) {
@@ -315,11 +324,16 @@ function forcePause() {
 
 function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
     if (!durationSec || durationSec < 4) return;
+    const taskObj = (appState.projects || []).flatMap(p => p.tasks || []).find(x => x.id === taskId);
+    const projObj = (appState.projects || []).find(x => x.id === projectId);
+
     appState.sessionLogs = appState.sessionLogs || [];
     appState.sessionLogs.push({
         id: 'sess-' + generateId(),
         taskId: taskId,
+        taskTitle: taskObj ? taskObj.title : 'Focus Session',
         projectId: projectId,
+        projectTitle: projObj ? projObj.title : 'General Project',
         startedAt: new Date(Date.now() - durationSec * 1000).toISOString(),
         endedAt: new Date().toISOString(),
         durationSeconds: durationSec,
@@ -583,8 +597,9 @@ function convertScratchpadToTask(itemId) {
         microSteps: [],
         lastParkedContext: null
     };
+
     p.tasks.push(newTask);
-    if (!p.activeTaskId) p.activeTaskId = newTask.id; // Immediate focus linkage
+    if (!p.activeTaskId) p.activeTaskId = newTask.id; // Focus linkage
     deleteScratchpadItem(itemId);
     renderApp();
 }
@@ -816,9 +831,8 @@ function renderApp() {
     safeCreateIcons();
 }
 
-// Dynamic Sidebar Renderer
+// Sidebar Renderer (Sprint Runway & Tree)
 function renderSidebar() {
-    // 1. 30-Day Sprint Runway Cadence & Checkpoint Trigger
     const sprint = getSprintCycleInfo();
     const sprintLabel = document.getElementById('sprint-cycle-label');
     const sprintRemaining = document.getElementById('sprint-days-remaining');
@@ -861,13 +875,11 @@ function renderSidebar() {
         }
     }
 
-    // 2. Save State Drawer Accordion State
     const saveDrawer = document.getElementById('save-state-drawer');
     const saveChevron = document.getElementById('save-state-chevron');
     if (saveDrawer) saveDrawer.classList.toggle('hidden', !appState.saveStateDrawerOpen);
     if (saveChevron) saveChevron.style.transform = appState.saveStateDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
 
-    // 3. Project Hierarchy Tree Builder
     const container = document.getElementById('project-list-container');
     function buildProjectNodeHTML(p, depth = 0) {
         const isActive = p.id === appState.activeProjectId;
@@ -934,7 +946,6 @@ function renderSidebar() {
         </div>`;
     }
 
-    // 4. Render Active vs. Parked Groups
     const activeRoots = getActiveRootProjects();
     const parkedRoots = getParkedRootProjects();
 
@@ -972,7 +983,36 @@ function renderSidebar() {
     safeCreateIcons();
 }
 
+// Lineage Ancestor Finder for Breadcrumbs
+function getProjectAncestors(p) {
+    const ancestors = [];
+    let curr = p;
+    while (curr && curr.parentId) {
+        const parent = (appState.projects || []).find(x => x.id === curr.parentId);
+        if (!parent) break;
+        ancestors.unshift(parent);
+        curr = parent;
+    }
+    return ancestors;
+}
+
 function renderHeader(p) {
+    // 1. Render Breadcrumbs
+    const bc = document.getElementById('project-breadcrumbs');
+    if (bc) {
+        const ancestors = getProjectAncestors(p);
+        if (ancestors.length > 0) {
+            bc.innerHTML = ancestors.map(a => `
+                <button onclick="selectProject('${a.id}')" class="hover:text-brand-600 transition-colors truncate max-w-[140px]">${a.title}</button>
+                <i data-lucide="chevron-right" class="w-3 h-3 text-slate-300 shrink-0"></i>
+            `).join('') + `<span class="text-brand-600 truncate max-w-[180px]">${p.title}</span>`;
+            bc.classList.remove('hidden');
+        } else {
+            bc.innerHTML = '';
+            bc.classList.add('hidden');
+        }
+    }
+
     document.getElementById('project-title-input').value = p.title || '';
     document.getElementById('project-goal-input').value = p.goal || '';
     document.getElementById('project-deadline-input').value = p.deadline || '';
@@ -982,7 +1022,7 @@ function renderHeader(p) {
 
 function renderActiveTask(p) {
     const task = getActiveTask();
-    document.getElementById('active-task-title').textContent = task ? task.title : 'Select a task to begin';
+    document.getElementById('active-task-title').textContent = task ? task.title : (hasSubProjects(p.id) ? 'Select a milestone track below' : 'Select a task to begin');
     
     const taskNotesElem = document.getElementById('active-task-notes');
     const taskDeadlineElem = document.getElementById('active-task-deadline');
@@ -1071,6 +1111,8 @@ function renderMascotStage() {
     grid.innerHTML = mascotDatabase.map(m => {
         const isSelected = m.id === activeMascotId;
         const isUnlocked = isTestUnlocked || m.unlockSec === 0 || (projectTime >= m.unlockSec);
+        
+        // Exclude parked projects so they don't lock companions for active sprint
         const assignedOther = (appState.projects || []).find(p => !p.parentId && !p.isParked && p.id !== rootProj.id && p.activeMascotId === m.id);
 
         let statusText = `${m.shapes}`;
@@ -1103,90 +1145,162 @@ function renderMascotStage() {
     safeCreateIcons();
 }
 
-// Task List: Active Top + Collapsible Completed Drawer
+// Recursive Helper for Hub Metrics
+function getLeafTasksRecursively(projId) {
+    const subProjects = (appState.projects || []).filter(p => p.parentId === projId);
+    if (subProjects.length === 0) {
+        const proj = (appState.projects || []).find(p => p.id === projId);
+        return proj ? (proj.tasks || []) : [];
+    }
+    return subProjects.flatMap(sp => getLeafTasksRecursively(sp.id));
+}
+
+function jumpToFirstLeafTask(projId) {
+    const leaf = findFirstLeafProject(projId);
+    if (leaf) {
+        selectProject(leaf.id);
+        const nextPending = (leaf.tasks || []).find(t => !t.isCompleted);
+        if (nextPending) selectTask(nextPending.id);
+    }
+}
+
+// Executive Milestone Hub & Active Task List
 function renderTaskList(p) {
     const container = document.getElementById('task-list-container');
     const completedContainer = document.getElementById('completed-tasks-container');
     const completedWrapper = document.getElementById('completed-tasks-wrapper');
     const addTaskContainer = document.getElementById('add-task-container');
-    const parentNotice = document.getElementById('parent-task-blocked-notice');
+    const hubContainer = document.getElementById('container-milestone-hub');
+    const headerTitle = document.getElementById('tasks-section-title');
     const isParent = hasSubProjects(p.id);
 
     if (isParent) {
+        // Render Executive Milestone Hub
         if (addTaskContainer) addTaskContainer.classList.add('hidden');
-        if (parentNotice) parentNotice.classList.remove('hidden');
+        if (completedWrapper) completedWrapper.classList.add('hidden');
+        if (container) container.classList.add('hidden');
+        if (hubContainer) hubContainer.classList.remove('hidden');
+        if (headerTitle) headerTitle.innerHTML = `<i data-lucide="layers" class="w-4 h-4 text-brand-500"></i> Milestone Tracks`;
+
+        const children = (appState.projects || []).filter(c => c.parentId === p.id);
+        const totalLeafTasks = getLeafTasksRecursively(p.id);
+        const totalDone = totalLeafTasks.filter(t => t.isCompleted).length;
+        document.getElementById('task-progress-text').textContent = `${totalDone}/${totalLeafTasks.length} Done`;
+
+        hubContainer.innerHTML = `
+            <div class="p-3.5 bg-indigo-50/60 border border-indigo-100 rounded-2xl mb-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                <div>
+                    <span class="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                        <i data-lucide="folder-tree" class="w-4 h-4 text-brand-600"></i> Milestone Overview Hub
+                    </span>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Select a sub-track below to add atomic tasks or focus execution.</p>
+                </div>
+                <span class="text-[10px] font-mono font-bold bg-white px-2.5 py-1 rounded-full text-brand-700 border border-indigo-100 shadow-xs shrink-0">
+                    ${children.length} Active Tracks
+                </span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${children.map(child => {
+                    const leafTasks = getLeafTasksRecursively(child.id);
+                    const completed = leafTasks.filter(t => t.isCompleted).length;
+                    const total = leafTasks.length;
+                    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+                    const timeSpent = getCumulativeTime(child.id);
+                    return `
+                    <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-brand-300 transition-all flex flex-col justify-between space-y-3">
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-bold text-xs text-slate-800 truncate" title="${child.title}">${child.title}</h4>
+                                <span class="text-[10px] font-mono font-bold text-slate-500">${formatTimeCompact(timeSpent)}</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2.5">
+                                <div class="bg-brand-600 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                            </div>
+                            <div class="flex justify-between items-center text-[10px] text-slate-400 font-mono mt-1">
+                                <span>${completed}/${total} tasks</span>
+                                <span>${pct}%</span>
+                            </div>
+                        </div>
+                        <button onclick="jumpToFirstLeafTask('${child.id}')" class="w-full py-1.5 bg-slate-50 hover:bg-brand-50 hover:text-brand-600 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200 shadow-2xs">
+                            <i data-lucide="play" class="w-3 h-3 fill-current"></i> Focus Next Action
+                        </button>
+                    </div>`;
+                }).join('')}
+            </div>
+        `;
     } else {
+        // Leaf Project: Standard Task Stage
+        if (hubContainer) hubContainer.classList.add('hidden');
         if (addTaskContainer) addTaskContainer.classList.remove('hidden');
-        if (parentNotice) parentNotice.classList.add('hidden');
-    }
+        if (container) container.classList.remove('hidden');
+        if (headerTitle) headerTitle.innerHTML = `<i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Active Tasks`;
 
-    const allTasks = p.tasks || [];
-    const activeTasks = allTasks.filter(t => !t.isCompleted);
-    const completedTasks = allTasks.filter(t => t.isCompleted);
+        const allTasks = p.tasks || [];
+        const activeTasks = allTasks.filter(t => !t.isCompleted);
+        const completedTasks = allTasks.filter(t => t.isCompleted);
 
-    document.getElementById('task-progress-text').textContent = `${completedTasks.length}/${allTasks.length} Completed`;
+        document.getElementById('task-progress-text').textContent = `${completedTasks.length}/${allTasks.length} Completed`;
 
-    // 1. Render Active Tasks
-    if (activeTasks.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center italic bg-white rounded-2xl border border-slate-200/60">No pending tasks. Add an atomic step below to start focus.</p>`;
-    } else {
-        container.innerHTML = activeTasks.map((t, idx) => {
-            const isActive = t.id === p.activeTaskId;
-            const estFmt = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
-            const actFmt = formatTimeCompact(t.actualTime);
+        if (activeTasks.length === 0) {
+            container.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center italic bg-white rounded-2xl border border-slate-200/60">No pending tasks. Add an atomic step below to start focus.</p>`;
+        } else {
+            container.innerHTML = activeTasks.map((t, idx) => {
+                const isActive = t.id === p.activeTaskId;
+                const estFmt = t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : '--:--:--';
+                const actFmt = formatTimeCompact(t.actualTime);
 
-            return `
-            <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500 ring-1 ring-brand-500/20' : 'border-slate-200 hover:border-slate-300'} transition-all">
-                <span class="w-6 text-center text-xs font-bold font-mono text-slate-400">${idx + 1}</span>
-                <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full border border-slate-300 hover:border-emerald-500 flex items-center justify-center transition-colors">
-                    <i data-lucide="check" class="w-3.5 h-3.5 opacity-0 hover:opacity-100 text-emerald-500"></i>
-                </button>
-                <div class="flex-1 cursor-pointer min-w-0" onclick="selectTask('${t.id}')">
-                    <p class="text-xs font-semibold truncate text-slate-800">${t.title}</p>
-                    <div class="flex items-center gap-2 mt-0.5">
-                        ${(t.microSteps && t.microSteps.length > 0) ? `<span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">${t.microSteps.filter(s=>s.isCompleted).length}/${t.microSteps.length} steps</span>` : ''}
-                        ${t.notes ? `<span class="text-[9px] text-slate-400 flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3"></i> Notes</span>` : ''}
-                        ${t.deadline ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-mono">${t.deadline}</span>` : ''}
+                return `
+                <div class="flex items-center gap-3 p-3 bg-white rounded-2xl shadow-sm border ${isActive ? 'border-brand-500 ring-1 ring-brand-500/20' : 'border-slate-200 hover:border-slate-300'} transition-all">
+                    <span class="w-6 text-center text-xs font-bold font-mono text-slate-400">${idx + 1}</span>
+                    <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full border border-slate-300 hover:border-emerald-500 flex items-center justify-center transition-colors">
+                        <i data-lucide="check" class="w-3.5 h-3.5 opacity-0 hover:opacity-100 text-emerald-500"></i>
+                    </button>
+                    <div class="flex-1 cursor-pointer min-w-0" onclick="selectTask('${t.id}')">
+                        <p class="text-xs font-semibold truncate text-slate-800">${t.title}</p>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            ${(t.microSteps && t.microSteps.length > 0) ? `<span class="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded font-mono">${t.microSteps.filter(s=>s.isCompleted).length}/${t.microSteps.length} steps</span>` : ''}
+                            ${t.notes ? `<span class="text-[9px] text-slate-400 flex items-center gap-0.5"><i data-lucide="file-text" class="w-3 h-3"></i> Notes</span>` : ''}
+                            ${t.deadline ? `<span class="text-[9px] font-bold text-brand-600 bg-brand-50 px-1.5 py-0.5 rounded font-mono">${t.deadline}</span>` : ''}
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-2 shrink-0 font-mono text-xs">
-                    <span class="text-slate-700 font-semibold">${actFmt}</span>
-                    <span class="text-slate-300">/</span>
-                    <span class="text-slate-400">${estFmt}</span>
-                    <button onclick="deleteTask('${t.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Delete Task">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    // 2. Render Completed Tasks Archive Drawer
-    if (completedTasks.length > 0) {
-        completedWrapper.classList.remove('hidden');
-        document.getElementById('completed-tasks-count-label').textContent = `Completed Tasks (${completedTasks.length})`;
-        
-        const chevron = document.getElementById('completed-tasks-chevron');
-        if (chevron) chevron.style.transform = appState.completedTasksDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
-        if (completedContainer) {
-            completedContainer.classList.toggle('hidden', !appState.completedTasksDrawerOpen);
-            completedContainer.innerHTML = completedTasks.map(t => `
-                <div class="flex items-center gap-3 p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-xs">
-                    <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full bg-emerald-500 border border-emerald-500 text-white flex items-center justify-center shrink-0">
-                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
-                    </button>
-                    <div class="flex-1 truncate">
-                        <span class="line-through text-slate-400 font-medium">${t.title}</span>
+                    <div class="flex items-center gap-2 shrink-0 font-mono text-xs">
+                        <span class="text-slate-700 font-semibold">${actFmt}</span>
+                        <span class="text-slate-300">/</span>
+                        <span class="text-slate-400">${estFmt}</span>
+                        <button onclick="deleteTask('${t.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors ml-1" title="Delete Task">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </div>
-                    <span class="text-slate-400 font-mono text-[11px] shrink-0">${formatTimeCompact(t.actualTime)}</span>
-                    <button onclick="deleteTask('${t.id}', event)" class="text-slate-300 hover:text-rose-500 p-1" title="Delete">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                    </button>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
-    } else {
-        completedWrapper.classList.add('hidden');
+
+        if (completedTasks.length > 0) {
+            completedWrapper.classList.remove('hidden');
+            document.getElementById('completed-tasks-count-label').textContent = `Completed Tasks (${completedTasks.length})`;
+            
+            const chevron = document.getElementById('completed-tasks-chevron');
+            if (chevron) chevron.style.transform = appState.completedTasksDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+            if (completedContainer) {
+                completedContainer.classList.toggle('hidden', !appState.completedTasksDrawerOpen);
+                completedContainer.innerHTML = completedTasks.map(t => `
+                    <div class="flex items-center gap-3 p-2.5 bg-slate-50/80 rounded-xl border border-slate-200/70 text-xs">
+                        <button onclick="toggleTaskStatus('${t.id}')" class="w-5 h-5 rounded-full bg-emerald-500 border border-emerald-500 text-white flex items-center justify-center shrink-0">
+                            <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        </button>
+                        <div class="flex-1 truncate">
+                            <span class="line-through text-slate-400 font-medium">${t.title}</span>
+                        </div>
+                        <span class="text-slate-400 font-mono text-[11px] shrink-0">${formatTimeCompact(t.actualTime)}</span>
+                        <button onclick="deleteTask('${t.id}', event)" class="text-slate-300 hover:text-rose-500 p-1" title="Delete">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+        } else {
+            completedWrapper.classList.add('hidden');
+        }
     }
 
     safeCreateIcons();
@@ -1218,7 +1332,7 @@ function toggleTaskStatus(id) {
             playSound('complete');
             confetti({ particleCount: 50, spread: 50 });
             
-            // Advance active task to next pending task if current active was completed
+            // Auto-advance active task to next pending task
             if (p.activeTaskId === id) {
                 const nextPending = p.tasks.find(x => !x.isCompleted);
                 p.activeTaskId = nextPending ? nextPending.id : null;
