@@ -13,7 +13,7 @@ function renderAnalytics(days) {
     const allProjects = appState.projects || [];
     const allTasks = allProjects.flatMap(p => (p.tasks || []).map(t => ({ ...t, projectId: p.id, projectTitle: p.title })));
 
-    // 1. Total Focused Time & Tasks Done
+    // 1. Total Focused Time & Tasks Done (Preserves Archived Projects)
     let totalTimeSec = 0, completedTasks = 0, estTimeSec = 0;
     let logsHTML = '', dateBuckets = {};
 
@@ -37,13 +37,18 @@ function renderAnalytics(days) {
         }
     });
 
+    // Fallback: If projects were deleted, tally time directly from verified session logs
+    if (totalTimeSec === 0 && logs.length > 0) {
+        totalTimeSec = logs.reduce((acc, l) => acc + (l.durationSeconds || 0), 0);
+    }
+
     document.getElementById('stat-total-time').textContent = formatTimeHuman(totalTimeSec);
     document.getElementById('stat-tasks-done').textContent = completedTasks;
     const accuracy = estTimeSec === 0 ? 0 : Math.round((totalTimeSec / estTimeSec) * 100);
     document.getElementById('stat-accuracy').textContent = Math.min(accuracy, 200) + '%';
     document.getElementById('analytics-log-container').innerHTML = logsHTML || `<div class="p-6 text-xs text-slate-400 text-center">No completed tasks recorded in this time range.</div>`;
 
-    // 2. Forgiving Rolling Momentum Battery (Replaces Streak Shame)
+    // 2. Rolling Momentum Battery
     const DAILY_TARGET = 1500; // 25 min baseline
     const rollingBuckets = new Map();
     for (let i = 0; i < 7; i++) {
@@ -110,10 +115,9 @@ function renderAnalytics(days) {
         return `<div class="h-10 bg-slate-100 rounded-sm flex items-end overflow-hidden"><div class="w-full bg-amber-500 rounded-sm" style="height: ${heightPct}%" title="${m} mins"></div></div>`;
     }).join('');
 
-    // 9. Dormant Projects Monitor (Object Permanence Guardian)
+    // 9. Dormant Projects Monitor (Object Permanence Guardian - Parked Excluded)
     const dormantList = document.getElementById('dormant-projects-list');
     
-    // Helper to determine if a project or any of its ancestors are parked
     function isProjectParked(proj) {
         let curr = proj;
         while (curr) {
@@ -125,7 +129,7 @@ function renderAnalytics(days) {
     }
 
     const dormantProjects = allProjects
-        .filter(p => !p.completedAt && !isProjectParked(p)) // <-- Excludes parked projects & their sub-projects
+        .filter(p => !p.completedAt && !isProjectParked(p))
         .map(p => {
             const times = (p.tasks || []).map(t => new Date(t.completionDate || t.createdAt || 0).getTime());
             const last = times.length > 0 ? Math.max(...times) : new Date(p.createdAt || 0).getTime();
