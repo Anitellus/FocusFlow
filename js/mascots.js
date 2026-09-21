@@ -2833,15 +2833,6 @@
       <use href="#gear-12teeth" x="0" y="0" transform="scale(1.4)" filter="url(#goldGlow)"/>
     </g>
 
-    <!-- Front Left Hovering Cyan Holographic Gear (Close to Camera) -->
-    <g transform="translate(260, 720) rotate(35) scale(1.3)">
-      <use href="#gear-holo" x="0" y="0" filter="url(#intenseGlow)"/>
-      <!-- Rotating Clock Hands on the Holographic Gear -->
-      <line x1="0" y1="0" x2="0" y2="-55" stroke="#ffffff" stroke-width="4" stroke-linecap="round" filter="url(#cyanGlow)"/>
-      <line x1="0" y1="0" x2="35" y2="20" stroke="#ffffff" stroke-width="3" stroke-linecap="round" filter="url(#cyanGlow)"/>
-      <circle cx="0" cy="0" r="6" fill="#ffffff"/>
-    </g>
-
     <!-- Top Right Small Accent Gear -->
     <g transform="translate(780, 220) rotate(50)">
       <use href="#gear-12teeth" x="0" y="0" transform="scale(0.6)"/>
