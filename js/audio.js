@@ -5,6 +5,12 @@ function getAudioContext() {
     return audioCtx; 
 }
 
+// Ensure Audio Context is safely resumed upon first user interaction to bypass autoplay restrictions.
+document.addEventListener('click', () => {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') ctx.resume();
+}, { once: true });
+
 function playSound(type) {
     if (appState.audioMuted) return;
     try {
