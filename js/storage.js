@@ -46,25 +46,20 @@ const STORAGE_KEY_V11 = 'focus_flow_master_v11';
 // [SECURITY NOTE]: Initialize via environment variables or replace these with actual keys if deploying directly. 
 // Protect your credentials using strict Firestore Rules and App Check configuration.
 const firebaseConfig = {
-    apiKey: "YOUR_FIREBASE_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCzpHlAhANEmgZd3tMsfTnHGlbaK9L9sIM",
+    authDomain: "focus-flow-app-87591.firebaseapp.com",
+    projectId: "focus-flow-app-87591",
+    storageBucket: "focus-flow-app-87591.firebasestorage.app",
+    messagingSenderId: "233299198976",
+    appId: "1:233299198976:web:721adeec2947aa06d384e5"
 };
 
 if (!firebase.apps.length) {
-    // Only initialize if proper configuration has been set to prevent crashes
-    if (firebaseConfig.apiKey !== "YOUR_FIREBASE_API_KEY") {
-        firebase.initializeApp(firebaseConfig);
-    } else {
-        console.warn("Firebase config missing. Running entirely locally.");
-    }
+    firebase.initializeApp(firebaseConfig);
 }
-const auth = firebase.auth ? firebase.auth() : null;
-const db = firebase.firestore ? firebase.firestore() : null;
-const docRef = db ? db.collection('focus_flow').doc('user_workspace') : null;
+const auth = firebase.auth();
+const db = firebase.firestore();
+const docRef = db.collection('focus_flow').doc('user_workspace');
 
 let currentUser = null;
 let firestoreUnsubscribe = null;
