@@ -148,9 +148,19 @@
                             <div class="flex items-center gap-2 pt-1"><input type="text" aria-label="Custom Microstep" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step..."><button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button></div>
                         </div>
                         <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
-                            <div class="flex-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label><textarea aria-label="Task Notes" id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea></div>
-                            <div class="shrink-0 w-full md:w-48"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label><input type="date" aria-label="Task Deadline" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400"></div>
+                         <div class="flex-1">
+                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
+                         <textarea aria-label="Task Notes" id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
                         </div>
+    <div class="shrink-0 w-full md:w-32">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Target (Mins)</label>
+        <input type="number" aria-label="Task Target Minutes" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-700 outline-none font-mono focus:border-brand-400" placeholder="0 = Open">
+    </div>
+    <div class="shrink-0 w-full md:w-44">
+        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label>
+        <input type="date" aria-label="Task Deadline" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
+    </div>
+</div>
                     </div>
                 </section>
                 <section class="bg-white rounded-3xl p-5 shadow-sm ring-1 ring-slate-900/5 space-y-3 font-sans-ui">
