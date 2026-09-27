@@ -951,3 +951,191 @@ window.addEventListener('DOMContentLoaded', () => {
 
     renderApp();
 });
+
+// --- 1. Task Estimate Modification Engine ---
+function handleActiveTaskEstimateChange(newVal) {
+    const task = getActiveTask();
+    if (!task) return;
+
+    if (task.isCompleted) {
+        alert("Completed tasks cannot have their target estimate modified.");
+        renderTimerVisuals();
+        return;
+    }
+
+    const cleanMins = newVal === '' ? 0 : parseInt(newVal, 10);
+    if (isNaN(cleanMins) || cleanMins < 0) {
+        alert("Invalid Target Time! Enter 0 or leave blank for Open Ended.");
+        renderTimerVisuals();
+        return;
+    }
+
+    const targetSec = cleanMins * 60;
+    if (targetSec === task.estimatedTime) return;
+
+    // Trigger confirmation popup if time is already logged on the task
+    if (task.actualTime > 0) {
+        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged. Revising will adjust your time-accuracy calibration.`);
+        if (!proceed) {
+            renderTimerVisuals();
+            return;
+        }
+    }
+
+    task.estimatedTime = targetSec;
+    saveStateLocally();
+    renderApp();
+}
+
+function promptEditTaskEstimate(taskId, e) {
+    if (e) e.stopPropagation();
+    const p = getActiveProject();
+    if (!p) return;
+    const task = (p.tasks || []).find(t => t.id === taskId);
+    if (!task) return;
+
+    if (task.isCompleted) {
+        alert("Completed tasks cannot have their target estimate modified.");
+        return;
+    }
+
+    const currentMins = Math.round((task.estimatedTime || 0) / 60);
+    const input = prompt(`Update target time (minutes) for "${task.title}":\n(Enter 0 for Open Ended)`, currentMins);
+    if (input === null) return;
+
+    const cleanMins = input.trim() === '' ? 0 : parseInt(input, 10);
+    if (isNaN(cleanMins) || cleanMins < 0) {
+        alert("Invalid target minutes.");
+        return;
+    }
+
+    if (task.actualTime > 0 && cleanMins * 60 !== task.estimatedTime) {
+        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged.`);
+        if (!proceed) return;
+    }
+
+    task.estimatedTime = cleanMins * 60;
+    saveStateLocally();
+    renderApp();
+}
+
+// --- 2. Project & Subproject Completion Architecture ---
+function toggleCompleteCurrentProject() {
+    const p = getActiveProject();
+    if (!p) return;
+    toggleCompleteProject(p.id);
+}
+
+function toggleCompleteProject(projectId, e) {
+    if (e) e.stopPropagation();
+    const p = (appState.projects || []).find(x => x.id === projectId);
+    if (!p) return;
+
+    if (!p.completedAt) {
+        const uncompletedTasks = (p.tasks || []).filter(t => !t.isCompleted);
+        if (uncompletedTasks.length > 0) {
+            const confirmComplete = confirm(`"${p.title}" still has ${uncompletedTasks.length} uncompleted task(s).\n\nMark project as completed and view Post-Doc summary?`);
+            if (!confirmComplete) return;
+        }
+
+        if (isPlaying && p.id === appState.activeProjectId) forcePause();
+        p.completedAt = new Date().toISOString();
+        saveStateLocally();
+        playSound('complete');
+        confetti({ particleCount: 100, spread: 70 });
+        renderApp();
+        openProjectRetrospective(p.id);
+    } else {
+        p.completedAt = null;
+        saveStateLocally();
+        renderApp();
+    }
+}
+
+// --- 3. Project Post-Doc Retrospective Engine ---
+let activePostDocProjectId = null;
+
+function openProjectRetrospective(projectId) {
+    const p = (appState.projects || []).find(x => x.id === projectId);
+    if (!p) return;
+    activePostDocProjectId = p.id;
+
+    const modal = document.getElementById('project-retrospective-modal');
+    if (!modal) return;
+
+    // Gather tree tasks
+    const allProjTasks = [];
+    function collectTasks(proj) {
+        (proj.tasks || []).forEach(t => allProjTasks.push({ ...t, projectTitle: proj.title }));
+        (appState.projects || []).filter(sp => sp.parentId === proj.id).forEach(collectTasks);
+    }
+    collectTasks(p);
+
+    const totalActual = getCumulativeTime(p.id);
+    const totalEst = allProjTasks.reduce((acc, t) => acc + (t.estimatedTime || 0), 0);
+    const completedCount = allProjTasks.filter(t => t.isCompleted).length;
+    const accuracy = totalEst > 0 ? Math.round((totalActual / totalEst) * 100) : 100;
+
+    const created = p.createdAt ? new Date(p.createdAt) : new Date();
+    const completed = p.completedAt ? new Date(p.completedAt) : new Date();
+    const daysActive = Math.max(1, Math.round((completed.getTime() - created.getTime()) / 86400000));
+
+    document.getElementById('postdoc-modal-title').textContent = `${p.title} Post-Doc`;
+    document.getElementById('postdoc-headline').textContent = `${p.title} Conquered!`;
+    document.getElementById('postdoc-dates-label').textContent = `Completed on ${getLocalFormattedDate(completed)} • ${daysActive} day(s) active runway`;
+
+    document.getElementById('postdoc-total-time').textContent = formatTimeHuman(totalActual);
+    document.getElementById('postdoc-target-time').textContent = totalEst > 0 ? formatTimeHuman(totalEst) : 'Open';
+    document.getElementById('postdoc-accuracy').textContent = `${accuracy}%`;
+    document.getElementById('postdoc-tasks-count').textContent = `${completedCount}/${allProjTasks.length}`;
+
+    const taskLogContainer = document.getElementById('postdoc-tasks-breakdown');
+    if (taskLogContainer) {
+        if (allProjTasks.length === 0) {
+            taskLogContainer.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">No atomic tasks recorded.</div>`;
+        } else {
+            taskLogContainer.innerHTML = allProjTasks.map(t => `
+                <div class="px-3.5 py-2 flex items-center justify-between text-xs">
+                    <span class="flex items-center gap-2 font-medium text-slate-700 truncate pr-2">
+                        <i data-lucide="${t.isCompleted ? 'check-circle' : 'circle'}" class="w-3.5 h-3.5 ${t.isCompleted ? 'text-emerald-500' : 'text-slate-300'}"></i>
+                        <span class="truncate ${t.isCompleted ? 'line-through text-slate-500' : ''}">${t.title}</span>
+                    </span>
+                    <span class="font-mono text-[11px] text-slate-500 shrink-0">
+                        ${formatTimeCompact(t.actualTime)} / ${t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : 'Open'}
+                    </span>
+                </div>
+            `).join('');
+        }
+    }
+
+    const notesTa = document.getElementById('postdoc-reflection-notes');
+    if (notesTa) {
+        notesTa.value = p.retrospectiveNotes || '';
+        notesTa.oninput = (e) => {
+            p.retrospectiveNotes = e.target.value;
+            saveStateLocally();
+        };
+    }
+
+    modal.classList.remove('hidden');
+    safeCreateIcons();
+}
+
+function closeProjectRetrospectiveModal() {
+    const modal = document.getElementById('project-retrospective-modal');
+    if (modal) modal.classList.add('hidden');
+    activePostDocProjectId = null;
+}
+
+function reopenPostDocProject() {
+    if (!activePostDocProjectId) return;
+    const p = (appState.projects || []).find(x => x.id === activePostDocProjectId);
+    if (p) {
+        p.completedAt = null;
+        saveStateLocally();
+        renderApp();
+    }
+    closeProjectRetrospectiveModal();
+}
+
+
