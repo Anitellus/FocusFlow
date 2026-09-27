@@ -1,9 +1,16 @@
-// --- Focus Flow Core Coordinator (js/app.js) ---
+// ============================================================================
+// Focus Flow | Master Application Coordinator (js/app.js)
+// ============================================================================
 
-let isPlaying = false, timerInterval = null, tickCounter = 0, currentView = 'focus';
+let isPlaying = false;
+let timerInterval = null;
+let tickCounter = 0;
+let currentView = 'focus';
 let jitterAudioTimer = null;
-let activeSessionStart = null, activeSessionMode = 'focus';
+let activeSessionStart = null;
+let activeSessionMode = 'focus';
 let visibilityTimeout = null;
+let activePostDocProjectId = null;
 
 // Tab visibility guard against runaway background sessions (pauses after 15m AFK)
 document.addEventListener('visibilitychange', () => {
@@ -20,8 +27,8 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // --- State Queries & Hierarchy Helpers ---
-function getActiveProject() { 
-    return (appState.projects || []).find(p => p.id === appState.activeProjectId) || (appState.projects || [])[0]; 
+function getActiveProject() {
+    return (appState.projects || []).find(p => p.id === appState.activeProjectId) || (appState.projects || [])[0];
 }
 
 function getRootProject(proj) {
@@ -34,21 +41,21 @@ function getRootProject(proj) {
     return curr;
 }
 
-function getActiveTask() { 
-    const p = getActiveProject(); 
-    return p ? (p.tasks || []).find(t => t.id === p.activeTaskId) : null; 
+function getActiveTask() {
+    const p = getActiveProject();
+    return p ? (p.tasks || []).find(t => t.id === p.activeTaskId) : null;
 }
 
-function hasSubProjects(projectId) { 
-    return (appState.projects || []).some(p => p.parentId === projectId); 
+function hasSubProjects(projectId) {
+    return (appState.projects || []).some(p => p.parentId === projectId);
 }
 
 function getProjectDepth(projectId) {
-    let depth = 0; 
+    let depth = 0;
     let curr = (appState.projects || []).find(p => p.id === projectId);
-    while (curr && curr.parentId) { 
-        depth++; 
-        curr = (appState.projects || []).find(p => p.id === curr.parentId); 
+    while (curr && curr.parentId) {
+        depth++;
+        curr = (appState.projects || []).find(p => p.id === curr.parentId);
     }
     return depth;
 }
@@ -57,18 +64,22 @@ function getCumulativeTime(projectId) {
     const p = (appState.projects || []).find(x => x.id === projectId);
     if (!p) return 0;
     let total = p.totalTimeSpent || 0;
-    (appState.projects || []).filter(sp => sp.parentId === projectId).forEach(sp => { 
-        total += getCumulativeTime(sp.id); 
+    (appState.projects || []).filter(sp => sp.parentId === projectId).forEach(sp => {
+        total += getCumulativeTime(sp.id);
     });
     return total;
 }
 
-function getActiveRootProjects() { 
-    return (appState.projects || []).filter(p => !p.parentId && !p.isParked); 
+function getActiveRootProjects() {
+    return (appState.projects || []).filter(p => !p.parentId && !p.isParked && !p.completedAt);
 }
 
-function getParkedRootProjects() { 
-    return (appState.projects || []).filter(p => !p.parentId && p.isParked); 
+function getParkedRootProjects() {
+    return (appState.projects || []).filter(p => !p.parentId && p.isParked && !p.completedAt);
+}
+
+function getCompletedRootProjects() {
+    return (appState.projects || []).filter(p => !p.parentId && p.completedAt);
 }
 
 // --- View Router ---
@@ -103,7 +114,7 @@ function switchView(viewName) {
     safeCreateIcons();
 }
 
-// --- Sprint / Novelty Cycle Engine ---
+// --- Sprint Novelty Engine ---
 function getSprintCycleInfo() {
     const start = appState.sprintStartDate ? new Date(appState.sprintStartDate) : new Date();
     const now = new Date();
@@ -131,8 +142,8 @@ function openSprintReviewModal() {
     const badge = document.getElementById('sprint-modal-status-badge');
     if (badge) {
         badge.textContent = `Day ${info.elapsedDays} / ${info.totalDays} • ${info.remainingDays}d runway left`;
-        badge.className = info.isCompleted 
-            ? "px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold" 
+        badge.className = info.isCompleted
+            ? "px-2 py-0.5 rounded-full text-[10px] bg-amber-100 text-amber-800 font-bold"
             : "px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700 font-bold";
     }
     const modal = document.getElementById('sprint-review-modal');
@@ -140,63 +151,69 @@ function openSprintReviewModal() {
     safeCreateIcons();
 }
 
-function closeSprintReviewModal() { 
-    const modal = document.getElementById('sprint-review-modal'); 
-    if (modal) modal.classList.add('hidden'); 
+function closeSprintReviewModal() {
+    const modal = document.getElementById('sprint-review-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
-function confirmSprintReset() { 
-    appState.sprintStartDate = new Date().toISOString(); 
-    saveStateLocally(); 
-    closeSprintReviewModal(); 
-    renderApp(); 
-    confetti({ particleCount: 60, spread: 55 }); 
+function confirmSprintReset() {
+    appState.sprintStartDate = new Date().toISOString();
+    saveStateLocally();
+    closeSprintReviewModal();
+    renderApp();
+    confetti({ particleCount: 60, spread: 55 });
 }
 
-// --- Drawer & Modal Toggles ---
-function toggleSaveStateDrawer() { 
-    appState.saveStateDrawerOpen = !appState.saveStateDrawerOpen; 
-    const drawer = document.getElementById('save-state-drawer'); 
-    const chevron = document.getElementById('save-state-chevron'); 
-    if (drawer) drawer.classList.toggle('hidden', !appState.saveStateDrawerOpen); 
-    if (chevron) chevron.style.transform = appState.saveStateDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)'; 
-    saveStateLocally(); 
+// --- Drawer & Mobile Navigation Toggles ---
+function toggleSaveStateDrawer() {
+    appState.saveStateDrawerOpen = !appState.saveStateDrawerOpen;
+    const drawer = document.getElementById('save-state-drawer');
+    const chevron = document.getElementById('save-state-chevron');
+    if (drawer) drawer.classList.toggle('hidden', !appState.saveStateDrawerOpen);
+    if (chevron) chevron.style.transform = appState.saveStateDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    saveStateLocally();
 }
 
-function toggleParkingLotDrawer() { 
-    appState.parkingLotOpen = !appState.parkingLotOpen; 
-    saveStateLocally(); 
-    renderSidebar(); 
+function toggleParkingLotDrawer() {
+    appState.parkingLotOpen = !appState.parkingLotOpen;
+    saveStateLocally();
+    renderSidebar();
 }
 
-function toggleCompletedTasksDrawer() { 
-    appState.completedTasksDrawerOpen = !appState.completedTasksDrawerOpen; 
-    const container = document.getElementById('completed-tasks-container'); 
-    const chevron = document.getElementById('completed-tasks-chevron'); 
-    if (container) container.classList.toggle('hidden', !appState.completedTasksDrawerOpen); 
-    if (chevron) chevron.style.transform = appState.completedTasksDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)'; 
-    saveStateLocally(); 
+function toggleCompletedProjectsDrawer() {
+    appState.completedProjectsDrawerOpen = !appState.completedProjectsDrawerOpen;
+    saveStateLocally();
+    renderSidebar();
 }
 
-function toggleMobileSidebar() { 
-    const sidebar = document.getElementById('sidebar-drawer'); 
-    const backdrop = document.getElementById('sidebar-backdrop'); 
-    if (!sidebar || !backdrop) return; 
-    const isClosed = sidebar.classList.contains('-translate-x-full'); 
-    if (isClosed) { 
-        sidebar.classList.remove('-translate-x-full'); 
-        backdrop.classList.remove('hidden'); 
-    } else { 
-        sidebar.classList.add('-translate-x-full'); 
-        backdrop.classList.add('hidden'); 
-    } 
+function toggleCompletedTasksDrawer() {
+    appState.completedTasksDrawerOpen = !appState.completedTasksDrawerOpen;
+    const container = document.getElementById('completed-tasks-container');
+    const chevron = document.getElementById('completed-tasks-chevron');
+    if (container) container.classList.toggle('hidden', !appState.completedTasksDrawerOpen);
+    if (chevron) chevron.style.transform = appState.completedTasksDrawerOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+    saveStateLocally();
 }
 
-function closeMobileSidebar() { 
-    const sidebar = document.getElementById('sidebar-drawer'); 
-    const backdrop = document.getElementById('sidebar-backdrop'); 
-    if (sidebar) sidebar.classList.add('-translate-x-full'); 
-    if (backdrop) backdrop.classList.add('hidden'); 
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar-drawer');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
+    const isClosed = sidebar.classList.contains('-translate-x-full');
+    if (isClosed) {
+        sidebar.classList.remove('-translate-x-full');
+        backdrop.classList.remove('hidden');
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        backdrop.classList.add('hidden');
+    }
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar-drawer');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (backdrop) backdrop.classList.add('hidden');
 }
 
 // --- Project Tree Architecture & Management ---
@@ -213,9 +230,9 @@ function createNewProject(parentId = null) {
         }
     } else {
         const depth = getProjectDepth(parentId);
-        if (depth >= 2) { 
-            alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project)."); 
-            return; 
+        if (depth >= 2) {
+            alert("Maximum 3-tier hierarchy reached (Main Project -> Sub-Project -> Component Project).");
+            return;
         }
         const parent = (appState.projects || []).find(p => p.id === parentId);
         if (parent && parent.tasks && parent.tasks.length > 0) {
@@ -231,17 +248,28 @@ function createNewProject(parentId = null) {
     const projectTitle = parentDepth === 0 ? 'New Sub-Project' : (parentDepth === 1 ? 'New Component Project' : 'New Root Project');
 
     const newProject = {
-        id, parentId: parentId, title: projectTitle, goal: '', deadline: '', notes: '',
-        isParked: makeParked, totalTimeSpent: 0, 
-        activeTaskId: tasksToMigrate.length > 0 ? tasksToMigrate[0].id : null, 
-        activeMascotId: null, unlockAllMascotsTest: false,
-        createdAt: new Date().toISOString(), completedAt: null, tasks: tasksToMigrate
+        id,
+        parentId: parentId,
+        title: projectTitle,
+        goal: '',
+        deadline: '',
+        notes: '',
+        retrospectiveNotes: '',
+        isParked: makeParked,
+        totalTimeSpent: 0,
+        activeTaskId: tasksToMigrate.length > 0 ? tasksToMigrate[0].id : null,
+        activeMascotId: null,
+        unlockAllMascotsTest: false,
+        createdAt: new Date().toISOString(),
+        completedAt: null,
+        tasks: tasksToMigrate
     };
+
     appState.projects = appState.projects || [];
     appState.projects.push(newProject);
     appState.activeProjectId = id;
-    saveStateLocally(); 
-    renderApp(); 
+    saveStateLocally();
+    renderApp();
     closeMobileSidebar();
 }
 
@@ -257,11 +285,11 @@ function toggleParkProject(projectId, e) {
     const p = (appState.projects || []).find(x => x.id === projectId);
     if (!p) return;
     if (p.isParked) {
-        if (getActiveRootProjects().length >= 4) { 
-            alert(`Active sprint is full (4/4 projects).\n\nPlease park one active project before activating "${p.title}".`); 
-            return; 
+        if (getActiveRootProjects().length >= 4) {
+            alert(`Active sprint is full (4/4 projects).\n\nPlease park one active project before activating "${p.title}".`);
+            return;
         }
-        p.isParked = false; 
+        p.isParked = false;
         appState.activeProjectId = p.id;
     } else {
         p.isParked = true;
@@ -270,16 +298,16 @@ function toggleParkProject(projectId, e) {
             appState.activeProjectId = remainingActive.length > 0 ? remainingActive[0].id : (appState.projects[0]?.id || null);
         }
     }
-    saveStateLocally(); 
+    saveStateLocally();
     renderApp();
 }
 
-function toggleProjectCollapse(projectId, e) { 
-    if (e) e.stopPropagation(); 
-    appState.collapsedProjects = appState.collapsedProjects || {}; 
-    appState.collapsedProjects[projectId] = !appState.collapsedProjects[projectId]; 
-    saveStateLocally(); 
-    renderSidebar(); 
+function toggleProjectCollapse(projectId, e) {
+    if (e) e.stopPropagation();
+    appState.collapsedProjects = appState.collapsedProjects || {};
+    appState.collapsedProjects[projectId] = !appState.collapsedProjects[projectId];
+    saveStateLocally();
+    renderSidebar();
 }
 
 function deleteProject(projectId, e) {
@@ -288,9 +316,9 @@ function deleteProject(projectId, e) {
     if (!proj) return;
     if (confirm(`Are you sure you want to delete "${proj.title}" and all its sub-projects and tasks?`)) {
         const toDelete = new Set();
-        function collectIds(id) { 
-            toDelete.add(id); 
-            (appState.projects || []).filter(p => p.parentId === id).forEach(sp => collectIds(sp.id)); 
+        function collectIds(id) {
+            toDelete.add(id);
+            (appState.projects || []).filter(p => p.parentId === id).forEach(sp => collectIds(sp.id));
         }
         collectIds(projectId);
 
@@ -301,23 +329,142 @@ function deleteProject(projectId, e) {
             }
         });
         appState.projects = (appState.projects || []).filter(p => !toDelete.has(p.id));
-        if (appState.projects.length === 0) loadDefaultData();
-        else if (toDelete.has(appState.activeProjectId)) {
+        if (appState.projects.length === 0) {
+            loadDefaultData();
+        } else if (toDelete.has(appState.activeProjectId)) {
             const activeRoots = getActiveRootProjects();
             appState.activeProjectId = activeRoots.length > 0 ? activeRoots[0].id : appState.projects[0].id;
         }
-        saveStateLocally(); 
+        saveStateLocally();
         renderApp();
     }
 }
 
-// --- Sidebar View Component ---
+// --- Project & Subproject Completion Architecture ---
+function toggleCompleteCurrentProject() {
+    const p = getActiveProject();
+    if (!p) return;
+    toggleCompleteProject(p.id);
+}
+
+function toggleCompleteProject(projectId, e) {
+    if (e) e.stopPropagation();
+    const p = (appState.projects || []).find(x => x.id === projectId);
+    if (!p) return;
+
+    if (!p.completedAt) {
+        const uncompletedTasks = (p.tasks || []).filter(t => !t.isCompleted);
+        if (uncompletedTasks.length > 0) {
+            const confirmComplete = confirm(`"${p.title}" still has ${uncompletedTasks.length} uncompleted task(s).\n\nMark project as completed and view Post-Doc summary?`);
+            if (!confirmComplete) return;
+        }
+
+        if (isPlaying && p.id === appState.activeProjectId) forcePause();
+        p.completedAt = new Date().toISOString();
+        saveStateLocally();
+        playSound('complete');
+        confetti({ particleCount: 100, spread: 70 });
+        renderApp();
+        openProjectRetrospective(p.id);
+    } else {
+        p.completedAt = null;
+        saveStateLocally();
+        renderApp();
+    }
+}
+
+// --- Project Post-Doc Retrospective Engine ---
+function openProjectRetrospective(projectId) {
+    const p = (appState.projects || []).find(x => x.id === projectId);
+    if (!p) return;
+    activePostDocProjectId = p.id;
+
+    const modal = document.getElementById('project-retrospective-modal');
+    if (!modal) return;
+
+    // Gather tree tasks
+    const allProjTasks = [];
+    function collectTasks(proj) {
+        (proj.tasks || []).forEach(t => allProjTasks.push({ ...t, projectTitle: proj.title }));
+        (appState.projects || []).filter(sp => sp.parentId === proj.id).forEach(collectTasks);
+    }
+    collectTasks(p);
+
+    const totalActual = getCumulativeTime(p.id);
+    const totalEst = allProjTasks.reduce((acc, t) => acc + (t.estimatedTime || 0), 0);
+    const completedCount = allProjTasks.filter(t => t.isCompleted).length;
+    const accuracy = totalEst > 0 ? Math.round((totalActual / totalEst) * 100) : 100;
+
+    const created = p.createdAt ? new Date(p.createdAt) : new Date();
+    const completed = p.completedAt ? new Date(p.completedAt) : new Date();
+    const daysActive = Math.max(1, Math.round((completed.getTime() - created.getTime()) / 86400000));
+
+    document.getElementById('postdoc-modal-title').textContent = `${p.title} Post-Doc`;
+    document.getElementById('postdoc-headline').textContent = `${p.title} Conquered!`;
+    document.getElementById('postdoc-dates-label').textContent = `Completed on ${getLocalFormattedDate(completed)} • ${daysActive} day(s) active runway`;
+
+    document.getElementById('postdoc-total-time').textContent = formatTimeHuman(totalActual);
+    document.getElementById('postdoc-target-time').textContent = totalEst > 0 ? formatTimeHuman(totalEst) : 'Open';
+    document.getElementById('postdoc-accuracy').textContent = `${accuracy}%`;
+    document.getElementById('postdoc-tasks-count').textContent = `${completedCount}/${allProjTasks.length}`;
+
+    const taskLogContainer = document.getElementById('postdoc-tasks-breakdown');
+    if (taskLogContainer) {
+        if (allProjTasks.length === 0) {
+            taskLogContainer.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">No atomic tasks recorded.</div>`;
+        } else {
+            taskLogContainer.innerHTML = allProjTasks.map(t => `
+                <div class="px-3.5 py-2 flex items-center justify-between text-xs">
+                    <span class="flex items-center gap-2 font-medium text-slate-700 truncate pr-2">
+                        <i data-lucide="${t.isCompleted ? 'check-circle' : 'circle'}" class="w-3.5 h-3.5 ${t.isCompleted ? 'text-emerald-500' : 'text-slate-300'}"></i>
+                        <span class="truncate ${t.isCompleted ? 'line-through text-slate-500' : ''}">${t.title}</span>
+                    </span>
+                    <span class="font-mono text-[11px] text-slate-500 shrink-0">
+                        ${formatTimeCompact(t.actualTime)} / ${t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : 'Open'}
+                    </span>
+                </div>
+            `).join('');
+        }
+    }
+
+    const notesTa = document.getElementById('postdoc-reflection-notes');
+    if (notesTa) {
+        notesTa.value = p.retrospectiveNotes || '';
+        notesTa.oninput = (e) => {
+            p.retrospectiveNotes = e.target.value;
+            saveStateLocally();
+        };
+    }
+
+    modal.classList.remove('hidden');
+    safeCreateIcons();
+}
+
+function closeProjectRetrospectiveModal() {
+    const modal = document.getElementById('project-retrospective-modal');
+    if (modal) modal.classList.add('hidden');
+    activePostDocProjectId = null;
+}
+
+function reopenPostDocProject() {
+    if (!activePostDocProjectId) return;
+    const p = (appState.projects || []).find(x => x.id === activePostDocProjectId);
+    if (p) {
+        p.completedAt = null;
+        saveStateLocally();
+        renderApp();
+    }
+    closeProjectRetrospectiveModal();
+}
+
+// --- Left Sidebar Component ---
 function renderSidebar() {
     const container = document.getElementById('project-list-container');
     if (!container) return;
 
     const activeRoots = getActiveRootProjects();
     const parkedRoots = getParkedRootProjects();
+    const completedRoots = getCompletedRootProjects();
     let html = '';
 
     function renderProjectNode(proj, depth) {
@@ -342,7 +489,7 @@ function renderSidebar() {
                         ` : `<span class="w-3.5"></span>`}
                         <div class="flex flex-col min-w-0 flex-1">
                             <div class="flex items-center gap-1.5">
-                                <span class="truncate text-xs">${proj.title || 'Untitled Project'}</span>
+                                <span class="truncate text-xs ${proj.completedAt ? 'line-through text-slate-400' : ''}">${proj.title || 'Untitled Project'}</span>
                                 <span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-semibold ${depth === 0 ? 'bg-slate-200/80 text-slate-600' : (depth === 1 ? 'bg-indigo-100 text-indigo-700' : 'bg-brand-100 text-brand-700')}">${tierBadge}</span>
                             </div>
                             <span class="text-[10px] text-slate-400 font-mono font-normal">
@@ -351,11 +498,14 @@ function renderSidebar() {
                         </div>
                     </div>
                     <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                        ${depth < 2 ? `
+                        ${depth < 2 && !proj.completedAt ? `
                             <button onclick="event.stopPropagation(); createNewProject('${proj.id}')" title="Add Sub-Track" class="p-1 hover:bg-slate-200 text-slate-500 rounded-lg">
                                 <i data-lucide="plus" class="w-3 h-3"></i>
                             </button>
                         ` : ''}
+                        <button onclick="toggleCompleteProject('${proj.id}', event)" title="${proj.completedAt ? 'Reopen Project' : 'Complete Project'}" class="p-1 hover:bg-emerald-100 text-slate-400 hover:text-emerald-600 rounded-lg">
+                            <i data-lucide="${proj.completedAt ? 'rotate-ccw' : 'check-circle'}" class="w-3 h-3"></i>
+                        </button>
                         <button onclick="toggleParkProject('${proj.id}', event)" title="${proj.isParked ? 'Activate' : 'Park'}" class="p-1 hover:bg-slate-200 text-slate-500 rounded-lg">
                             <i data-lucide="${proj.isParked ? 'play' : 'pause'}" class="w-3 h-3"></i>
                         </button>
@@ -378,11 +528,11 @@ function renderSidebar() {
         return nodeHtml;
     }
 
-    // Active Sprint Containers
+    // 1. Active Sprint Containers
     html += `<div class="space-y-1">`;
     html += `<div class="flex items-center justify-between px-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider"><span>Active Sprint</span><span>${activeRoots.length}/4 Max</span></div>`;
     if (activeRoots.length === 0) {
-        html += `<p class="text-xs text-slate-400 italic py-2 px-1">No active projects. Click "New Project" to start.</p>`;
+        html += `<p class="text-xs text-slate-400 italic py-2 px-1">No active sprint projects.</p>`;
     } else {
         activeRoots.forEach(root => {
             html += renderProjectNode(root, 0);
@@ -390,7 +540,7 @@ function renderSidebar() {
     }
     html += `</div>`;
 
-    // Parking Lot Containers
+    // 2. Parking Lot Containers
     if (parkedRoots.length > 0 || appState.parkingLotOpen) {
         html += `
             <div class="mt-4 pt-3 border-t border-slate-200/80">
@@ -413,8 +563,87 @@ function renderSidebar() {
         html += `</div>`;
     }
 
+    // 3. Completed Projects Bucket (Archived / Greyed Out)
+    if (completedRoots.length > 0 || appState.completedProjectsDrawerOpen) {
+        html += `
+            <div class="mt-4 pt-3 border-t border-slate-200/80">
+                <button onclick="toggleCompletedProjectsDrawer()" class="w-full flex items-center justify-between text-xs font-bold text-slate-500 hover:text-slate-800 py-1 px-1 transition-colors">
+                    <span class="flex items-center gap-1.5"><i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i> Completed Projects (${completedRoots.length})</span>
+                    <i data-lucide="${appState.completedProjectsDrawerOpen ? 'chevron-down' : 'chevron-right'}" class="w-3.5 h-3.5 text-slate-400"></i>
+                </button>
+        `;
+        if (appState.completedProjectsDrawerOpen) {
+            html += `<div class="mt-2 space-y-1 opacity-80">`;
+            if (completedRoots.length === 0) {
+                html += `<p class="text-xs text-slate-400 italic py-1 px-1">No completed projects yet.</p>`;
+            } else {
+                completedRoots.forEach(root => {
+                    html += `
+                        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-200/50 text-xs hover:bg-slate-200/80 transition-colors">
+                            <span onclick="selectProject('${root.id}')" class="line-through text-slate-600 font-semibold truncate pr-2 cursor-pointer flex-1">${root.title}</span>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <button onclick="openProjectRetrospective('${root.id}')" title="Post-Doc Summary" class="p-1 bg-white hover:bg-emerald-50 text-emerald-700 border border-slate-200 rounded-lg shadow-2xs"><i data-lucide="award" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="toggleCompleteProject('${root.id}', event)" title="Reopen" class="p-1 bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg shadow-2xs"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            html += `</div>`;
+        }
+        html += `</div>`;
+    }
+
     container.innerHTML = html;
     safeCreateIcons();
+}
+
+// --- Active Project Header Synchronizer ---
+function renderActiveProjectHeader() {
+    const p = getActiveProject();
+    if (!p) return;
+
+    // Breadcrumbs
+    const crumbs = document.getElementById('project-breadcrumbs');
+    if (crumbs) {
+        let chain = [];
+        let curr = p;
+        while (curr) {
+            chain.unshift(curr);
+            curr = curr.parentId ? (appState.projects || []).find(x => x.id === curr.parentId) : null;
+        }
+        crumbs.innerHTML = chain.map((item, idx) => `
+            <span onclick="selectProject('${item.id}')" class="cursor-pointer hover:text-brand-600 transition-colors ${idx === chain.length - 1 ? 'text-slate-700 font-extrabold' : ''}">${item.title}</span>
+            ${idx < chain.length - 1 ? `<i data-lucide="chevron-right" class="w-3 h-3 text-slate-300"></i>` : ''}
+        `).join('');
+    }
+
+    const tEl = document.getElementById('project-title-input');
+    const gEl = document.getElementById('project-goal-input');
+    const dEl = document.getElementById('project-deadline-input');
+    const nEl = document.getElementById('project-notes-summary-input');
+    const cumEl = document.getElementById('project-cumulative-timer');
+
+    if (tEl && document.activeElement !== tEl) tEl.value = p.title || '';
+    if (gEl && document.activeElement !== gEl) gEl.value = p.goal || '';
+    if (dEl && document.activeElement !== dEl) dEl.value = p.deadline || '';
+    if (nEl && document.activeElement !== nEl) nEl.value = p.notes || '';
+    if (cumEl) cumEl.textContent = formatTimeCompact(getCumulativeTime(p.id));
+
+    // Dynamic Complete / Post-Doc Header Button
+    const completeBtn = document.getElementById('btn-toggle-project-complete');
+    const completeLbl = document.getElementById('label-toggle-project-complete');
+    if (completeBtn && completeLbl) {
+        if (p.completedAt) {
+            completeBtn.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300";
+            completeLbl.textContent = "View Post-Doc";
+            completeBtn.onclick = () => openProjectRetrospective(p.id);
+        } else {
+            completeBtn.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs bg-emerald-600 hover:bg-emerald-500 text-white";
+            completeLbl.textContent = "Complete";
+            completeBtn.onclick = toggleCompleteCurrentProject;
+        }
+    }
 }
 
 // --- Task Manager Component ---
@@ -447,8 +676,8 @@ function renderTasks() {
             const subTracks = (appState.projects || []).filter(sp => sp.parentId === p.id);
             milestoneHub.innerHTML = `
                 <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-4 text-xs space-y-2">
-                    <p class="font-bold text-indigo-900 flex items-center gap-1.5"><i data-lucide="info" class="w-4 h-4 text-brand-600"></i> Parent Project Milestone Overview</p>
-                    <p class="text-slate-600">This container organizes child tracks. Select a leaf sub-project below to manage atomic tasks:</p>
+                    <p class="font-bold text-indigo-900 flex items-center gap-1.5"><i data-lucide="info" class="w-4 h-4 text-brand-600"></i> Parent Milestone Hub</p>
+                    <p class="text-slate-600">Tasks exist at leaf level. Select a sub-project below to direct focus:</p>
                     <div class="flex flex-wrap gap-2 pt-1">
                         ${subTracks.map(st => `
                             <button onclick="selectProject('${st.id}')" class="px-3 py-1.5 bg-white hover:bg-indigo-100 border border-indigo-200 text-indigo-900 rounded-xl font-bold flex items-center gap-1 transition-colors">
@@ -499,7 +728,7 @@ function renderTasks() {
                                 <div class="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
                                     <span>Spent: ${actualText}</span>
                                     <span>•</span>
-                                    <span>Target: ${estText}</span>
+                                    <span onclick="promptEditTaskEstimate('${t.id}', event)" class="hover:text-brand-600 cursor-pointer underline decoration-dotted" title="Click to adjust target">Target: ${estText}</span>
                                     ${t.deadline ? `<span>• Due: ${t.deadline}</span>` : ''}
                                 </div>
                             </div>
@@ -535,6 +764,46 @@ function renderTasks() {
         }
     }
     safeCreateIcons();
+}
+
+function handleAddTask() {
+    const inTitle = document.getElementById('new-task-title-input');
+    const inEst = document.getElementById('new-task-est-input');
+    const title = inTitle.value.trim();
+    const estMins = inEst.value === '' ? 0 : parseInt(inEst.value, 10);
+    const p = getActiveProject();
+
+    if (hasSubProjects(p.id)) {
+        alert("Tasks only exist at the lowest project level.");
+        return;
+    }
+    if (!title) return;
+    if (isNaN(estMins) || estMins < 0) {
+        alert("Invalid Target Time! Leave empty or use 0 for Open Ended.");
+        inEst.focus();
+        return;
+    }
+
+    p.tasks = p.tasks || [];
+    const newTask = {
+        id: 't-' + generateId(),
+        title: title,
+        estimatedTime: estMins * 60,
+        actualTime: 0,
+        isCompleted: false,
+        deadline: '',
+        notes: '',
+        createdAt: new Date().toISOString(),
+        microSteps: [],
+        lastParkedContext: null
+    };
+
+    p.tasks.push(newTask);
+    if (!p.activeTaskId) p.activeTaskId = newTask.id;
+    inTitle.value = '';
+    inEst.value = '';
+    saveStateLocally();
+    renderApp();
 }
 
 function selectTask(taskId) {
@@ -586,37 +855,71 @@ function deleteTask(taskId, e) {
     }
 }
 
-// --- Active Project & Header Synchronizer ---
-function renderActiveProjectHeader() {
-    const p = getActiveProject();
-    if (!p) return;
+// --- Target Estimate Update Handlers ---
+function handleActiveTaskEstimateChange(newVal) {
+    const task = getActiveTask();
+    if (!task) return;
 
-    // Breadcrumbs
-    const crumbs = document.getElementById('project-breadcrumbs');
-    if (crumbs) {
-        let chain = [];
-        let curr = p;
-        while (curr) {
-            chain.unshift(curr);
-            curr = curr.parentId ? (appState.projects || []).find(x => x.id === curr.parentId) : null;
-        }
-        crumbs.innerHTML = chain.map((item, idx) => `
-            <span onclick="selectProject('${item.id}')" class="cursor-pointer hover:text-brand-600 transition-colors ${idx === chain.length - 1 ? 'text-slate-700 font-extrabold' : ''}">${item.title}</span>
-            ${idx < chain.length - 1 ? `<i data-lucide="chevron-right" class="w-3 h-3 text-slate-300"></i>` : ''}
-        `).join('');
+    if (task.isCompleted) {
+        alert("Completed tasks cannot have their target estimate modified.");
+        renderTimerVisuals();
+        return;
     }
 
-    const tEl = document.getElementById('project-title-input');
-    const gEl = document.getElementById('project-goal-input');
-    const dEl = document.getElementById('project-deadline-input');
-    const nEl = document.getElementById('project-notes-summary-input');
-    const cumEl = document.getElementById('project-cumulative-timer');
+    const cleanMins = newVal === '' ? 0 : parseInt(newVal, 10);
+    if (isNaN(cleanMins) || cleanMins < 0) {
+        alert("Invalid Target Time! Enter 0 or leave blank for Open Ended.");
+        renderTimerVisuals();
+        return;
+    }
 
-    if (tEl && document.activeElement !== tEl) tEl.value = p.title || '';
-    if (gEl && document.activeElement !== gEl) gEl.value = p.goal || '';
-    if (dEl && document.activeElement !== dEl) dEl.value = p.deadline || '';
-    if (nEl && document.activeElement !== nEl) nEl.value = p.notes || '';
-    if (cumEl) cumEl.textContent = formatTimeCompact(getCumulativeTime(p.id));
+    const targetSec = cleanMins * 60;
+    if (targetSec === task.estimatedTime) return;
+
+    // Prompt user confirmation if time has already accumulated
+    if (task.actualTime > 0) {
+        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged. Revising will adjust your time-accuracy calibration.`);
+        if (!proceed) {
+            renderTimerVisuals();
+            return;
+        }
+    }
+
+    task.estimatedTime = targetSec;
+    saveStateLocally();
+    renderApp();
+}
+
+function promptEditTaskEstimate(taskId, e) {
+    if (e) e.stopPropagation();
+    const p = getActiveProject();
+    if (!p) return;
+    const task = (p.tasks || []).find(t => t.id === taskId);
+    if (!task) return;
+
+    if (task.isCompleted) {
+        alert("Completed tasks cannot have their target estimate modified.");
+        return;
+    }
+
+    const currentMins = Math.round((task.estimatedTime || 0) / 60);
+    const input = prompt(`Update target time (minutes) for "${task.title}":\n(Enter 0 for Open Ended)`, currentMins);
+    if (input === null) return;
+
+    const cleanMins = input.trim() === '' ? 0 : parseInt(input, 10);
+    if (isNaN(cleanMins) || cleanMins < 0) {
+        alert("Invalid target minutes.");
+        return;
+    }
+
+    if (task.actualTime > 0 && cleanMins * 60 !== task.estimatedTime) {
+        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged.`);
+        if (!proceed) return;
+    }
+
+    task.estimatedTime = cleanMins * 60;
+    saveStateLocally();
+    renderApp();
 }
 
 // --- Active Task Stage & Visuals ---
@@ -629,6 +932,7 @@ function renderTimerVisuals() {
     const zenNotesEl = document.getElementById('zen-task-notes');
     const taskNotesEl = document.getElementById('active-task-notes');
     const taskDeadEl = document.getElementById('active-task-deadline');
+    const estInput = document.getElementById('active-task-est-mins');
 
     if (task) {
         if (titleEl) titleEl.textContent = task.title;
@@ -636,6 +940,13 @@ function renderTimerVisuals() {
         if (zenNotesEl) zenNotesEl.textContent = task.notes || 'No notes attached';
         if (taskNotesEl && document.activeElement !== taskNotesEl) taskNotesEl.value = task.notes || '';
         if (taskDeadEl && document.activeElement !== taskDeadEl) taskDeadEl.value = task.deadline || '';
+
+        if (estInput && document.activeElement !== estInput) {
+            estInput.value = task.estimatedTime > 0 ? Math.round(task.estimatedTime / 60) : '';
+            estInput.disabled = !!task.isCompleted;
+            estInput.classList.toggle('opacity-50', !!task.isCompleted);
+        }
+
         updateTimerTexts(p, task);
     } else {
         if (titleEl) titleEl.textContent = 'Select a task to begin';
@@ -643,6 +954,10 @@ function renderTimerVisuals() {
         if (zenNotesEl) zenNotesEl.textContent = 'No active task';
         if (taskNotesEl && document.activeElement !== taskNotesEl) taskNotesEl.value = '';
         if (taskDeadEl && document.activeElement !== taskDeadEl) taskDeadEl.value = '';
+        if (estInput && document.activeElement !== estInput) {
+            estInput.value = '';
+            estInput.disabled = true;
+        }
         document.getElementById('active-timer-display').textContent = '00:00:00';
         const zenDisp = document.getElementById('zen-timer-display');
         if (zenDisp) zenDisp.textContent = '00:00:00';
@@ -650,7 +965,206 @@ function renderTimerVisuals() {
     }
 }
 
-// --- Resumption Launchpad Banner ---
+// --- Timer Engine & Overtime Calculations ---
+function toggleTimer() {
+    const task = getActiveTask();
+    if (!task || task.isCompleted) return;
+
+    if (isPlaying) {
+        openParkModal();
+        return;
+    }
+
+    isPlaying = true;
+    activeSessionStart = new Date();
+    if (!task.startedAt) task.startedAt = new Date().toISOString();
+    renderTimerVisuals();
+    playSound('start');
+    timerInterval = setInterval(timerTick, 1000);
+    scheduleNextAudioJitter();
+}
+
+function timerTick() {
+    const p = getActiveProject();
+    const t = getActiveTask();
+    if (!t || t.isCompleted) {
+        if (isPlaying) forcePause();
+        return;
+    }
+    t.actualTime += 1;
+    p.totalTimeSpent += 1;
+    tickCounter++;
+    if (tickCounter >= 5) {
+        saveStateLocally();
+        tickCounter = 0;
+    }
+    updateTimerTexts(p, t);
+}
+
+function forcePause() {
+    if (!isPlaying) return;
+    isPlaying = false;
+    clearInterval(timerInterval);
+    if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
+
+    if (activeSessionStart) {
+        const durationSec = Math.round((Date.now() - activeSessionStart.getTime()) / 1000);
+        const cappedDuration = Math.min(durationSec, 14400); // 4-hour max ceiling per slice
+        logSessionTelemetry(getActiveTask()?.id, getActiveProject()?.id, cappedDuration, false);
+        activeSessionStart = null;
+    }
+
+    renderTimerVisuals();
+    saveStateLocally();
+}
+
+function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
+    if (!durationSec || durationSec < 4) return;
+    const taskObj = (appState.projects || []).flatMap(p => p.tasks || []).find(x => x.id === taskId);
+    const projObj = (appState.projects || []).find(x => x.id === projectId);
+    appState.sessionLogs = appState.sessionLogs || [];
+    appState.sessionLogs.push({
+        id: 'sess-' + generateId(),
+        taskId: taskId,
+        taskTitle: taskObj ? taskObj.title : 'Focus Session',
+        projectId: projectId,
+        projectTitle: projObj ? projObj.title : 'General Project',
+        startedAt: new Date(Date.now() - durationSec * 1000).toISOString(),
+        endedAt: new Date().toISOString(),
+        durationSeconds: durationSec,
+        mode: activeSessionMode || 'focus',
+        completedTask: completed
+    });
+    saveStateLocally();
+}
+
+function completeActiveTask() {
+    const t = getActiveTask();
+    const p = getActiveProject();
+    if (!t || t.isCompleted) return;
+    if (isPlaying) forcePause();
+    t.isCompleted = true;
+    t.completionDate = new Date().toISOString();
+    playSound('complete');
+    confetti({ particleCount: 80, spread: 60 });
+    logSessionTelemetry(t.id, p.id, t.actualTime, true);
+    saveStateLocally();
+    setTimeout(() => {
+        p.activeTaskId = (p.tasks.find(x => !x.isCompleted) || {}).id || null;
+        saveStateLocally();
+        renderApp();
+    }, 1000);
+    renderApp();
+}
+
+function updateTimerTexts(p, task) {
+    document.getElementById('active-timer-display').textContent = formatTimeCompact(task.actualTime);
+    document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
+    document.getElementById('active-timer-estimate').textContent = task.estimatedTime > 0 ? `Target: ${Math.round(task.estimatedTime / 60)}m` : 'Open ended';
+
+    const zenDisplay = document.getElementById('zen-timer-display');
+    if (zenDisplay) zenDisplay.textContent = formatTimeCompact(task.actualTime);
+
+    const c = 930;
+    const target = task.estimatedTime > 0 ? task.estimatedTime : 1800; // Open-ended defaults ring calibration to 30m
+    const arc = document.getElementById('radial-progress-arc');
+    const halo = document.getElementById('radial-overtime-halo');
+    const stateText = document.getElementById('timer-state-text');
+    const timerBtn = document.getElementById('main-timer-btn');
+    const zenBtn = document.getElementById('zen-timer-btn');
+
+    if (arc) {
+        const progress = Math.min(task.actualTime / target, 1.0);
+        arc.style.strokeDashoffset = (c * (1 - progress)).toString();
+        if (task.actualTime <= target || task.estimatedTime === 0) {
+            arc.style.stroke = isPlaying ? '#10b981' : '#f43f5e';
+            if (halo) halo.classList.add('opacity-0');
+            if (stateText) stateText.textContent = isPlaying ? 'Active' : 'Paused';
+            if (timerBtn) {
+                timerBtn.classList.remove('timer-amber-container');
+                timerBtn.classList.toggle('timer-green-container', isPlaying);
+                timerBtn.classList.toggle('timer-red-container', !isPlaying);
+            }
+            if (zenBtn) {
+                zenBtn.classList.remove('timer-amber-container');
+                zenBtn.classList.toggle('timer-green-container', isPlaying);
+                zenBtn.classList.toggle('timer-red-container', !isPlaying);
+            }
+        } else {
+            const overtime = task.actualTime - target;
+            arc.style.stroke = '#f59e0b';
+            if (halo) {
+                const haloC = 980;
+                const otProgress = Math.min(overtime / target, 1.0);
+                halo.style.strokeDashoffset = (haloC * (1 - otProgress)).toString();
+                halo.classList.remove('opacity-0');
+                halo.classList.add('overtime-pulse');
+            }
+            if (stateText) stateText.textContent = `Flow Zone (+${formatTimeCompact(overtime)})`;
+            if (timerBtn) {
+                timerBtn.classList.remove('timer-green-container', 'timer-red-container');
+                timerBtn.classList.add('timer-amber-container');
+            }
+            if (zenBtn) {
+                zenBtn.classList.remove('timer-green-container', 'timer-red-container');
+                zenBtn.classList.add('timer-amber-container');
+            }
+        }
+    }
+}
+
+// --- Park & Momentum Anchoring Modal ---
+function openParkModal() {
+    const modal = document.getElementById('park-resume-modal');
+    if (!modal) {
+        forcePause();
+        return;
+    }
+    document.getElementById('park-stopped-input').value = '';
+    document.getElementById('park-next60s-input').value = '';
+    modal.classList.remove('hidden');
+    document.getElementById('park-stopped-input').focus();
+}
+
+function dismissParkModal() {
+    document.getElementById('park-resume-modal').classList.add('hidden');
+    forcePause();
+}
+
+function confirmParkAndPause() {
+    const task = getActiveTask();
+    if (task) {
+        task.lastParkedContext = {
+            whereStopped: document.getElementById('park-stopped-input').value.trim() || 'Mid-flow work',
+            next60sAction: document.getElementById('park-next60s-input').value.trim() || 'Resume central focus',
+            parkedAt: new Date().toISOString()
+        };
+        task.pausedAt = new Date().toISOString();
+    }
+    document.getElementById('park-resume-modal').classList.add('hidden');
+    forcePause();
+    renderApp();
+}
+
+function executeLaunchpadResume() {
+    const task = getActiveTask();
+    if (task) {
+        task.lastParkedContext = null;
+        saveStateLocally();
+    }
+    renderApp();
+    if (!isPlaying) toggleTimer();
+}
+
+function dismissLaunchpad() {
+    const task = getActiveTask();
+    if (task) {
+        task.lastParkedContext = null;
+        saveStateLocally();
+    }
+    renderApp();
+}
+
 function renderResumptionBanner() {
     const mount = document.getElementById('resumption-banner-mount');
     if (!mount) return;
@@ -678,7 +1192,164 @@ function renderResumptionBanner() {
     safeCreateIcons();
 }
 
-// --- Companion & Mascot System ---
+// --- Micro-Step Decomposer Engine ---
+function renderMicroSteps(task) {
+    const list = document.getElementById('active-task-microsteps-list');
+    const summary = document.getElementById('microstep-summary');
+    if (!list || !summary) return;
+    if (!task) {
+        list.innerHTML = `<p class="text-[11px] text-slate-400 italic">Select a task to decompose.</p>`;
+        summary.textContent = '0/0 done';
+        return;
+    }
+    task.microSteps = task.microSteps || [];
+    const completed = task.microSteps.filter(s => s.isCompleted).length;
+    summary.textContent = `${completed}/${task.microSteps.length} done`;
+    list.innerHTML = task.microSteps.map(s => `
+        <div class="flex items-center justify-between bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 text-xs">
+            <label class="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                <input type="checkbox" ${s.isCompleted ? 'checked' : ''} onchange="toggleMicroStep('${s.id}')" class="rounded text-brand-600 focus:ring-0">
+                <span class="${s.isCompleted ? 'line-through text-slate-400' : 'text-slate-700 font-medium'} truncate">${s.title}</span>
+            </label>
+            <button onclick="deleteMicroStep('${s.id}')" class="text-slate-300 hover:text-rose-500 p-1">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+    `).join('');
+    safeCreateIcons();
+}
+
+function addPresetMicroStep(title, mins) {
+    const task = getActiveTask();
+    if (!task) return;
+    task.microSteps = task.microSteps || [];
+    task.microSteps.push({ id: 'ms-' + generateId(), title: `${title} (${mins}m)`, isCompleted: false });
+    saveStateLocally();
+    renderMicroSteps(task);
+}
+
+function addCustomMicroStep() {
+    const input = document.getElementById('custom-microstep-input');
+    const val = input.value.trim();
+    const task = getActiveTask();
+    if (!val || !task) return;
+    task.microSteps = task.microSteps || [];
+    task.microSteps.push({ id: 'ms-' + generateId(), title: val, isCompleted: false });
+    input.value = '';
+    saveStateLocally();
+    renderMicroSteps(task);
+}
+
+function toggleMicroStep(stepId) {
+    const task = getActiveTask();
+    if (!task) return;
+    const s = (task.microSteps || []).find(x => x.id === stepId);
+    if (s) {
+        s.isCompleted = !s.isCompleted;
+        if (s.isCompleted) {
+            playSound('complete');
+            confetti({ particleCount: 40, spread: 45 });
+        }
+        saveStateLocally();
+        renderMicroSteps(task);
+    }
+}
+
+function deleteMicroStep(stepId) {
+    const task = getActiveTask();
+    if (!task) return;
+    task.microSteps = (task.microSteps || []).filter(x => x.id !== stepId);
+    saveStateLocally();
+    renderMicroSteps(task);
+}
+
+// --- Mental RAM Dump (Scratchpad) ---
+function toggleScratchpadModal() {
+    const modal = document.getElementById('scratchpad-modal');
+    modal.classList.toggle('hidden');
+    if (!modal.classList.contains('hidden')) {
+        renderScratchpadList();
+        document.getElementById('scratchpad-input').focus();
+    }
+}
+
+function submitScratchpadItem() {
+    const input = document.getElementById('scratchpad-input');
+    const text = input.value.trim();
+    if (!text) return;
+    appState.scratchpad = appState.scratchpad || [];
+    appState.scratchpad.unshift({
+        id: 'sp-' + generateId(),
+        text: text,
+        createdAt: new Date().toISOString(),
+        relatedTaskId: getActiveTask()?.id || null
+    });
+    input.value = '';
+    saveStateLocally();
+    renderScratchpadList();
+}
+
+function renderScratchpadList() {
+    const container = document.getElementById('scratchpad-items-list');
+    if (!container) return;
+    const items = appState.scratchpad || [];
+    if (items.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 py-3 text-center italic">No thoughts captured yet.</p>`;
+        return;
+    }
+    container.innerHTML = items.map(item => `
+        <div class="flex items-center justify-between py-2 text-xs">
+            <span class="text-slate-700 flex-1 truncate pr-2">${item.text}</span>
+            <div class="flex items-center gap-1 shrink-0">
+                <button onclick="convertScratchpadToTask('${item.id}')" class="px-2 py-0.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded text-[10px] font-bold">To Task</button>
+                <button onclick="deleteScratchpadItem('${item.id}')" class="text-slate-400 hover:text-rose-500 p-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+            </div>
+        </div>
+    `).join('');
+    safeCreateIcons();
+}
+
+function convertScratchpadToTask(itemId) {
+    const item = (appState.scratchpad || []).find(x => x.id === itemId);
+    const p = getActiveProject();
+    if (!item || !p) return;
+    if (hasSubProjects(p.id)) {
+        alert("Select a leaf sub-project first.");
+        return;
+    }
+    const newTask = {
+        id: 't-' + generateId(),
+        title: item.text,
+        estimatedTime: 15 * 60,
+        actualTime: 0,
+        isCompleted: false,
+        deadline: '',
+        notes: 'Created from scratchpad',
+        createdAt: new Date().toISOString(),
+        microSteps: [],
+        lastParkedContext: null
+    };
+    p.tasks = p.tasks || [];
+    p.tasks.push(newTask);
+    if (!p.activeTaskId) p.activeTaskId = newTask.id;
+    deleteScratchpadItem(itemId);
+    renderApp();
+}
+
+function deleteScratchpadItem(itemId) {
+    appState.scratchpad = (appState.scratchpad || []).filter(x => x.id !== itemId);
+    saveStateLocally();
+    renderScratchpadList();
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.altKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        toggleScratchpadModal();
+    }
+});
+
+// --- Focus Companions & Mascot Rig Engine ---
 const BUILT_IN_MASCOTS = [
     { id: 'm-shiba', name: 'Shiba Inu', emoji: '🐕', color: '#f59e0b' },
     { id: 'm-cat', name: 'Focus Cat', emoji: '🐱', color: '#6366f1' },
@@ -787,7 +1458,7 @@ function triggerEmote(emote) {
     pop.classList.add('anim-emote');
 }
 
-// --- Zen Mode Controller ---
+// --- Zen View Controller ---
 function openZenView() {
     syncHeaderInputsToState();
     const overlay = document.getElementById('zen-overlay');
@@ -845,7 +1516,7 @@ function toggleBloomPopover() {
 }
 
 function updateBloomOpacity(val) {
-    appState.bloomOpacity = parseInt(val);
+    appState.bloomOpacity = parseInt(val, 10);
     document.documentElement.style.setProperty('--bloom-opacity', (val / 100).toString());
     const lbl = document.getElementById('bloom-val-label');
     if (lbl) lbl.textContent = val + '%';
@@ -901,7 +1572,6 @@ function renderApp() {
 
 // --- Initialization & Event Bindings ---
 window.addEventListener('DOMContentLoaded', () => {
-    // Sync state settings into controls
     updateBloomOpacity(appState.bloomOpacity || 60);
     const volSlider = document.getElementById('volume-slider');
     if (volSlider) volSlider.value = appState.audioVolume || 80;
@@ -926,7 +1596,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (taskNotes) {
         taskNotes.addEventListener('input', (e) => {
             const t = getActiveTask();
-            if (t) { t.notes = e.target.value; saveStateLocally(); }
+            if (t) {
+                t.notes = e.target.value;
+                saveStateLocally();
+            }
         });
     }
 
@@ -934,7 +1607,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if (taskDeadline) {
         taskDeadline.addEventListener('change', (e) => {
             const t = getActiveTask();
-            if (t) { t.deadline = e.target.value; saveStateLocally(); }
+            if (t) {
+                t.deadline = e.target.value;
+                saveStateLocally();
+            }
         });
     }
 
@@ -951,191 +1627,3 @@ window.addEventListener('DOMContentLoaded', () => {
 
     renderApp();
 });
-
-// --- 1. Task Estimate Modification Engine ---
-function handleActiveTaskEstimateChange(newVal) {
-    const task = getActiveTask();
-    if (!task) return;
-
-    if (task.isCompleted) {
-        alert("Completed tasks cannot have their target estimate modified.");
-        renderTimerVisuals();
-        return;
-    }
-
-    const cleanMins = newVal === '' ? 0 : parseInt(newVal, 10);
-    if (isNaN(cleanMins) || cleanMins < 0) {
-        alert("Invalid Target Time! Enter 0 or leave blank for Open Ended.");
-        renderTimerVisuals();
-        return;
-    }
-
-    const targetSec = cleanMins * 60;
-    if (targetSec === task.estimatedTime) return;
-
-    // Trigger confirmation popup if time is already logged on the task
-    if (task.actualTime > 0) {
-        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged. Revising will adjust your time-accuracy calibration.`);
-        if (!proceed) {
-            renderTimerVisuals();
-            return;
-        }
-    }
-
-    task.estimatedTime = targetSec;
-    saveStateLocally();
-    renderApp();
-}
-
-function promptEditTaskEstimate(taskId, e) {
-    if (e) e.stopPropagation();
-    const p = getActiveProject();
-    if (!p) return;
-    const task = (p.tasks || []).find(t => t.id === taskId);
-    if (!task) return;
-
-    if (task.isCompleted) {
-        alert("Completed tasks cannot have their target estimate modified.");
-        return;
-    }
-
-    const currentMins = Math.round((task.estimatedTime || 0) / 60);
-    const input = prompt(`Update target time (minutes) for "${task.title}":\n(Enter 0 for Open Ended)`, currentMins);
-    if (input === null) return;
-
-    const cleanMins = input.trim() === '' ? 0 : parseInt(input, 10);
-    if (isNaN(cleanMins) || cleanMins < 0) {
-        alert("Invalid target minutes.");
-        return;
-    }
-
-    if (task.actualTime > 0 && cleanMins * 60 !== task.estimatedTime) {
-        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged.`);
-        if (!proceed) return;
-    }
-
-    task.estimatedTime = cleanMins * 60;
-    saveStateLocally();
-    renderApp();
-}
-
-// --- 2. Project & Subproject Completion Architecture ---
-function toggleCompleteCurrentProject() {
-    const p = getActiveProject();
-    if (!p) return;
-    toggleCompleteProject(p.id);
-}
-
-function toggleCompleteProject(projectId, e) {
-    if (e) e.stopPropagation();
-    const p = (appState.projects || []).find(x => x.id === projectId);
-    if (!p) return;
-
-    if (!p.completedAt) {
-        const uncompletedTasks = (p.tasks || []).filter(t => !t.isCompleted);
-        if (uncompletedTasks.length > 0) {
-            const confirmComplete = confirm(`"${p.title}" still has ${uncompletedTasks.length} uncompleted task(s).\n\nMark project as completed and view Post-Doc summary?`);
-            if (!confirmComplete) return;
-        }
-
-        if (isPlaying && p.id === appState.activeProjectId) forcePause();
-        p.completedAt = new Date().toISOString();
-        saveStateLocally();
-        playSound('complete');
-        confetti({ particleCount: 100, spread: 70 });
-        renderApp();
-        openProjectRetrospective(p.id);
-    } else {
-        p.completedAt = null;
-        saveStateLocally();
-        renderApp();
-    }
-}
-
-// --- 3. Project Post-Doc Retrospective Engine ---
-let activePostDocProjectId = null;
-
-function openProjectRetrospective(projectId) {
-    const p = (appState.projects || []).find(x => x.id === projectId);
-    if (!p) return;
-    activePostDocProjectId = p.id;
-
-    const modal = document.getElementById('project-retrospective-modal');
-    if (!modal) return;
-
-    // Gather tree tasks
-    const allProjTasks = [];
-    function collectTasks(proj) {
-        (proj.tasks || []).forEach(t => allProjTasks.push({ ...t, projectTitle: proj.title }));
-        (appState.projects || []).filter(sp => sp.parentId === proj.id).forEach(collectTasks);
-    }
-    collectTasks(p);
-
-    const totalActual = getCumulativeTime(p.id);
-    const totalEst = allProjTasks.reduce((acc, t) => acc + (t.estimatedTime || 0), 0);
-    const completedCount = allProjTasks.filter(t => t.isCompleted).length;
-    const accuracy = totalEst > 0 ? Math.round((totalActual / totalEst) * 100) : 100;
-
-    const created = p.createdAt ? new Date(p.createdAt) : new Date();
-    const completed = p.completedAt ? new Date(p.completedAt) : new Date();
-    const daysActive = Math.max(1, Math.round((completed.getTime() - created.getTime()) / 86400000));
-
-    document.getElementById('postdoc-modal-title').textContent = `${p.title} Post-Doc`;
-    document.getElementById('postdoc-headline').textContent = `${p.title} Conquered!`;
-    document.getElementById('postdoc-dates-label').textContent = `Completed on ${getLocalFormattedDate(completed)} • ${daysActive} day(s) active runway`;
-
-    document.getElementById('postdoc-total-time').textContent = formatTimeHuman(totalActual);
-    document.getElementById('postdoc-target-time').textContent = totalEst > 0 ? formatTimeHuman(totalEst) : 'Open';
-    document.getElementById('postdoc-accuracy').textContent = `${accuracy}%`;
-    document.getElementById('postdoc-tasks-count').textContent = `${completedCount}/${allProjTasks.length}`;
-
-    const taskLogContainer = document.getElementById('postdoc-tasks-breakdown');
-    if (taskLogContainer) {
-        if (allProjTasks.length === 0) {
-            taskLogContainer.innerHTML = `<div class="p-3 text-xs text-slate-400 italic text-center">No atomic tasks recorded.</div>`;
-        } else {
-            taskLogContainer.innerHTML = allProjTasks.map(t => `
-                <div class="px-3.5 py-2 flex items-center justify-between text-xs">
-                    <span class="flex items-center gap-2 font-medium text-slate-700 truncate pr-2">
-                        <i data-lucide="${t.isCompleted ? 'check-circle' : 'circle'}" class="w-3.5 h-3.5 ${t.isCompleted ? 'text-emerald-500' : 'text-slate-300'}"></i>
-                        <span class="truncate ${t.isCompleted ? 'line-through text-slate-500' : ''}">${t.title}</span>
-                    </span>
-                    <span class="font-mono text-[11px] text-slate-500 shrink-0">
-                        ${formatTimeCompact(t.actualTime)} / ${t.estimatedTime > 0 ? formatTimeCompact(t.estimatedTime) : 'Open'}
-                    </span>
-                </div>
-            `).join('');
-        }
-    }
-
-    const notesTa = document.getElementById('postdoc-reflection-notes');
-    if (notesTa) {
-        notesTa.value = p.retrospectiveNotes || '';
-        notesTa.oninput = (e) => {
-            p.retrospectiveNotes = e.target.value;
-            saveStateLocally();
-        };
-    }
-
-    modal.classList.remove('hidden');
-    safeCreateIcons();
-}
-
-function closeProjectRetrospectiveModal() {
-    const modal = document.getElementById('project-retrospective-modal');
-    if (modal) modal.classList.add('hidden');
-    activePostDocProjectId = null;
-}
-
-function reopenPostDocProject() {
-    if (!activePostDocProjectId) return;
-    const p = (appState.projects || []).find(x => x.id === activePostDocProjectId);
-    if (p) {
-        p.completedAt = null;
-        saveStateLocally();
-        renderApp();
-    }
-    closeProjectRetrospectiveModal();
-}
-
-
