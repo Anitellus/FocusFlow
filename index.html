@@ -42,7 +42,7 @@
             <button onclick="switchView('calendar')" id="nav-calendar" aria-label="Calendar View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Calendar</button>
             <button onclick="switchView('analytics')" id="nav-analytics" aria-label="Analytics View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Analytics</button>
         </div>
-        <div id="sprint-cycle-container" class="px-3.5 py-2.5 bg-indigo-50/70 border-b border-slate-200/60 font-sans-ui">
+        <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2.5 bg-indigo-50/70 hover:bg-indigo-100/70 border-b border-slate-200/60 font-sans-ui cursor-pointer transition-colors">
             <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950"><span id="sprint-cycle-label">Sprint: Day 1 of 30</span><span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span></div>
             <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden"><div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div></div>
         </div>
@@ -85,13 +85,27 @@
                         <button onclick="toggleProjectNotesModal()" aria-label="Expand Notes" class="px-3 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shrink-0"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Expand Notes</button>
                     </div>
                 </div>
-                <div class="flex items-center gap-4 bg-white px-4 py-2.5 rounded-2xl shadow-soft ring-1 ring-slate-900/5 shrink-0 self-end lg:self-auto">
-                    <div class="flex flex-col text-right"><span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">TIME SPENT</span><span class="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-tight" id="project-cumulative-timer">00:00:00</span></div>
+                
+                <!-- Project Controls: Time Spent, Deadline, and Project Completion Trigger -->
+                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-soft ring-1 ring-slate-900/5 shrink-0 self-end lg:self-auto">
+                    <div class="flex flex-col text-right">
+                        <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">TIME SPENT</span>
+                        <span class="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-tight" id="project-cumulative-timer">00:00:00</span>
+                    </div>
                     <div class="h-7 w-px bg-slate-200"></div>
-                    <div class="flex flex-col text-right"><span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">DEADLINE</span><input type="date" aria-label="Project Deadline" id="project-deadline-input" class="text-xs sm:text-sm font-bold text-slate-700 bg-transparent border-none p-0 outline-none cursor-pointer"></div>
+                    <div class="flex flex-col text-right">
+                        <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">DEADLINE</span>
+                        <input type="date" aria-label="Project Deadline" id="project-deadline-input" class="text-xs sm:text-sm font-bold text-slate-700 bg-transparent border-none p-0 outline-none cursor-pointer">
+                    </div>
+                    <div class="h-7 w-px bg-slate-200"></div>
+                    <button onclick="toggleCompleteCurrentProject()" id="btn-toggle-project-complete" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs bg-emerald-600 hover:bg-emerald-500 text-white">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                        <span id="label-toggle-project-complete">Complete</span>
+                    </button>
                 </div>
             </div>
         </header>
+
         <div class="flex-1 overflow-y-auto px-4 sm:px-8 pb-24 z-10 scroll-smooth">
             <div class="max-w-4xl mx-auto space-y-6 mt-4">
                 <div id="resumption-banner-mount"></div>
@@ -147,20 +161,22 @@
                             <div class="space-y-1.5" id="active-task-microsteps-list"></div>
                             <div class="flex items-center gap-2 pt-1"><input type="text" aria-label="Custom Microstep" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step..."><button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button></div>
                         </div>
+
+                        <!-- Editable Notes, Target Minutes, and Deadline -->
                         <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
-                         <div class="flex-1">
-                         <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
-                         <textarea aria-label="Task Notes" id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
+                            <div class="flex-1">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
+                                <textarea aria-label="Task Notes" id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
+                            </div>
+                            <div class="shrink-0 w-full md:w-32">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Target (Mins)</label>
+                                <input type="number" aria-label="Task Target Minutes" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-700 outline-none font-mono focus:border-brand-400" placeholder="0 = Open">
+                            </div>
+                            <div class="shrink-0 w-full md:w-44">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label>
+                                <input type="date" aria-label="Task Deadline" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
+                            </div>
                         </div>
-    <div class="shrink-0 w-full md:w-32">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Target (Mins)</label>
-        <input type="number" aria-label="Task Target Minutes" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-700 outline-none font-mono focus:border-brand-400" placeholder="0 = Open">
-    </div>
-    <div class="shrink-0 w-full md:w-44">
-        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label>
-        <input type="date" aria-label="Task Deadline" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
-    </div>
-</div>
                     </div>
                 </section>
                 <section class="bg-white rounded-3xl p-5 shadow-sm ring-1 ring-slate-900/5 space-y-3 font-sans-ui">
@@ -260,7 +276,7 @@
         </div>
     </div>
 
-    <!-- Modals remain identically structured (just with aria-labels appended to close buttons inside) -->
+    <!-- Modals -->
     <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3><p class="text-[11px] text-slate-400">Dopamine checkpoint and shame-free sprint calibration.</p></div></div><button onclick="closeSprintReviewModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-slate-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div><p class="text-[11px] text-slate-500">Every 30 days is a natural reset boundary. ADHD brains thrive on novelty.</p></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sprint Actions</label><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Analytics</button></div></div></div></div></div>
     <div id="blueprint-modal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3><p class="text-[11px] text-slate-400">Transform conversational plans into active FocusFlow workspaces.</p></div></div><button onclick="BlueprintEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 flex-1 overflow-y-auto"><div class="flex flex-wrap gap-2"><button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Architect Prompt</button><button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button></div><div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Destination</label><select aria-label="Blueprint Mount Destination" id="blueprint-target-select" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"></select></div><div><div class="flex justify-between items-center mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paste Markdown Blueprint</label><span class="text-[10px] text-slate-400 font-mono">Accepts: (25m), (1h 15m), (5m 30s), (90s)</span></div><textarea aria-label="Blueprint Paste Box" id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]"></textarea></div></div><div class="flex justify-between items-center pt-3 border-t border-slate-100"><button onclick="BlueprintEngine.closeModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Cancel</button><button onclick="BlueprintEngine.executeImport()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Ingest Blueprint</button></div></div></div>
     <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3></div></div><button onclick="toggleScratchpadModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="flex gap-2"><input type="text" aria-label="Scratchpad Input" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type thought and press Enter..."><button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button></div><div class="max-h-56 overflow-y-auto divide-y divide-slate-100 space-y-1" id="scratchpad-items-list"></div></div></div>
@@ -268,6 +284,72 @@
     <div id="instructions-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h2 class="text-lg font-bold text-brand-700 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i> Focus Flow Complete Program Guide</h2><button onclick="toggleInstructionsModal()" aria-label="Close" class="p-2 text-slate-400 hover:bg-slate-200 rounded-xl"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-4 leading-relaxed"><div><h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Strict 3-Tier Hierarchy (Main &rarr; Sub &rarr; Component)</h3><p>Organize work across three structural depths: <strong>Main Project</strong>, <strong>Sub-Project</strong>, and <strong>Component Project</strong>.</p></div></div></div></div>
     <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes & Resources</h3><button onclick="toggleProjectNotesModal()" aria-label="Close" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6"><textarea aria-label="Full project notes" id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea></div><div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end"><button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500">Save Changes</button></div></div></div>
     <div id="backdrop-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><h3 class="font-bold text-sm text-slate-800">Stage Backdrop Designer</h3><button onclick="toggleBackdropModal()" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="grid grid-cols-3 gap-3"><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Primary</label><input type="color" aria-label="Primary Color" id="picker-primary" value="#090d16" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Secondary</label><input type="color" aria-label="Secondary Color" id="picker-secondary" value="#1e1b4b" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Tertiary</label><input type="color" aria-label="Tertiary Color" id="picker-tertiary" value="#4338ca" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Gradient Architecture</label><select aria-label="Background Gradient Style" id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-700 outline-none"><option value="radial-center">Radial Center Glow</option><option value="spotlight">Corner Spotlight Glow</option><option value="linear-diag">Diagonal Split (45°)</option><option value="linear-vert">Vertical Gradient</option><option value="mesh">3-Color Mesh Atmosphere</option><option value="solid">Solid Primary Color</option></select></div></div></div>
+
+    <!-- Project Retrospective / Post-Doc Modal -->
+    <div id="project-retrospective-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900" id="postdoc-modal-title">Project Post-Doc</h3>
+                        <p class="text-[11px] text-slate-400" id="postdoc-modal-subtitle">Momentum Retrospective & Calibration Summary</p>
+                    </div>
+                </div>
+                <button onclick="closeProjectRetrospectiveModal()" aria-label="Close Retrospective" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 flex-1 overflow-y-auto pr-1">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white space-y-1 shadow-sm">
+                    <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-100">Milestone Conquered</span>
+                    <h4 class="text-lg font-black tracking-tight" id="postdoc-headline">Project Completed!</h4>
+                    <p class="text-xs text-emerald-50 opacity-90" id="postdoc-dates-label">Completed • active runway</p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Time Invested</span>
+                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-total-time">0h 0m</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Planned</span>
+                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-target-time">0h 0m</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Accuracy</span>
+                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-accuracy">0%</span>
+                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
+                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tasks Solved</span>
+                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-tasks-count">0/0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Task Execution Log</label>
+                    <div class="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div>
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Post-Doc Debrief & Future Calibrations</label>
+                    <textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 outline-none focus:bg-white focus:border-emerald-400 transition-all" placeholder="What went smoothly? Where was time underestimated?"></textarea>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                <button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen Project
+                </button>
+                <button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/mascots.js"></script>
     <script src="js/storage.js"></script>
