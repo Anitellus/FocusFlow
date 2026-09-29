@@ -2478,13 +2478,13 @@
 
 </svg>` 
             },
-            { 
-                id: 'm-chrono', 
-                name: 'Chrono Guardian', 
-                tier: 4, 
-                unlockSec: 432000, 
-                shapes: '150 Shapes', 
-                svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="100%" height="100%">
+{ 
+  id: 'm-chrono', 
+  name: 'Chrono Guardian', 
+  tier: 4, 
+  unlockSec: 432000, 
+  shapes: '185 Shapes', 
+  svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" width="100%" height="100%">
   <defs>
     <!-- Metallic Armor Gradients -->
     <linearGradient id="obsidianArmor" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -2555,11 +2555,9 @@
       </feMerge>
     </filter>
 
-    <!-- REUSABLE ASSETS: CLOCKWORK GEAR TEMPLATES -->
-    <!-- Heavy Brass Gear (12 Teeth) -->
+    <!-- Heavy Brass Gear Template -->
     <g id="gear-12teeth">
       <circle cx="0" cy="0" r="90" fill="url(#brassGold)"/>
-      <!-- Teeth -->
       <path d="M-12,-110 L12,-110 L15,-90 L-15,-90 Z" fill="url(#brassGold)"/>
       <path d="M-12,-110 L12,-110 L15,-90 L-15,-90 Z" fill="url(#brassGold)" transform="rotate(30)"/>
       <path d="M-12,-110 L12,-110 L15,-90 L-15,-90 Z" fill="url(#brassGold)" transform="rotate(60)"/>
@@ -2572,37 +2570,13 @@
       <path d="M-12,-110 L12,-110 L15,-90 L-15,-90 Z" fill="url(#brassGold)" transform="rotate(270)"/>
       <path d="M-12,-110 L12,-110 L15,-90 L-15,-90 Z" fill="url(#brassGold)" transform="rotate(300)"/>
       <path d="M-12,-110 L12,-110 L15,-90 L-15,-90 Z" fill="url(#brassGold)" transform="rotate(330)"/>
-      <!-- Inner Cutouts & Spokes -->
       <circle cx="0" cy="0" r="72" fill="#0d111a"/>
       <circle cx="0" cy="0" r="65" fill="none" stroke="url(#brassGold)" stroke-width="4"/>
-      <!-- Spokes -->
       <rect x="-6" y="-65" width="12" height="130" fill="url(#brassGold)"/>
       <rect x="-6" y="-65" width="12" height="130" fill="url(#brassGold)" transform="rotate(60)"/>
       <rect x="-6" y="-65" width="12" height="130" fill="url(#brassGold)" transform="rotate(120)"/>
       <circle cx="0" cy="0" r="28" fill="url(#brassGold)"/>
       <circle cx="0" cy="0" r="14" fill="#05070a"/>
-    </g>
-
-    <!-- Holographic Cyan Energy Gear -->
-    <g id="gear-holo">
-      <circle cx="0" cy="0" r="100" fill="none" stroke="#00f0ff" stroke-width="2" stroke-dasharray="8,4" opacity="0.8"/>
-      <circle cx="0" cy="0" r="88" fill="none" stroke="url(#chronoCyan)" stroke-width="3"/>
-      <!-- Outer teeth -->
-      <g stroke="#00f0ff" stroke-width="2" fill="none">
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" />
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(45)"/>
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(90)"/>
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(135)"/>
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(180)"/>
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(225)"/>
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(270)"/>
-        <path d="M-8,-100 L8,-100 L10,-88 L-10,-88 Z" transform="rotate(315)"/>
-      </g>
-      <!-- Geometric Time Runic Ring -->
-      <circle cx="0" cy="0" r="60" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.6"/>
-      <polygon points="0,-60 51.9,30 -51.9,30" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.5"/>
-      <polygon points="0,60 51.9,-30 -51.9,-30" fill="none" stroke="#00f0ff" stroke-width="1.5" opacity="0.5"/>
-      <circle cx="0" cy="0" r="20" fill="none" stroke="#ffffff" stroke-width="2"/>
     </g>
 
     <!-- Floating Hourglass Particle -->
@@ -2612,22 +2586,13 @@
     </g>
   </defs>
 
-  <!-- 1. BACKGROUND FLOATING GEARS (Deep Perspective Layer) -->
+  <!-- 1. BACKGROUND GEARS (Ambient Perspective) -->
   <g id="back-gears">
-    <!-- Top Left Deep Gear -->
-    <use href="#gear-12teeth" x="220" y="250" transform="scale(0.8) rotate(15)" opacity="0.5" />
-    <use href="#gear-holo" x="220" y="250" transform="scale(1.1) rotate(45)" filter="url(#cyanGlow)" opacity="0.6"/>
-
-    <!-- Top Right Medium Gear -->
-    <use href="#gear-12teeth" x="960" y="280" transform="scale(1.2) rotate(40)" opacity="0.6"/>
-    
-    <!-- Bottom Left Large Gear -->
-    <use href="#gear-12teeth" x="180" y="850" transform="scale(1.5) rotate(80)" opacity="0.4"/>
+    <use href="#gear-12teeth" x="960" y="280" transform="scale(1.2) rotate(40)" opacity="0.45"/>
   </g>
 
   <!-- 2. MECH GUARDIAN - BACK WINGS / CHRONO THRUSTERS -->
   <g id="mech-back-wings" transform="translate(600, 520)">
-    <!-- Floating Mechanical Halo Wings (Left & Right) -->
     <!-- Left Wing -->
     <path d="M-80,-100 C-220,-220 -380,-200 -480,-100 C-380,-50 -260,-60 -80,-30 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
     <path d="M-120,-115 C-240,-200 -360,-180 -440,-100" fill="none" stroke="#00f0ff" stroke-width="3" filter="url(#cyanGlow)"/>
@@ -2636,7 +2601,7 @@
     <path d="M80,-100 C220,-220 380,-200 480,-100 C380,-50 260,-60 80,-30 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
     <path d="M120,-115 C240,-200 360,-180 440,-100" fill="none" stroke="#00f0ff" stroke-width="3" filter="url(#cyanGlow)"/>
 
-    <!-- Wing Pendulum Blades / Time Needles -->
+    <!-- Wing Pendulum Blades -->
     <path d="M-480,-100 L-540,-50 L-420,-40 Z" fill="url(#brassGold)"/>
     <path d="M480,-100 L540,-50 L420,-40 Z" fill="url(#brassGold)"/>
   </g>
@@ -2644,57 +2609,172 @@
   <!-- 3. MECH GUARDIAN - MAIN BODY ASSEMBLY -->
   <g id="mech-guardian">
     
-    <!-- LEGS & LOWER BODY -->
+    <!-- DETAILED ARTICULATED LEGS & FEET -->
     <g id="legs" transform="translate(600, 750)">
-      <!-- Left Leg -->
-      <path d="M-140,80 L-180,220 L-120,320 L-60,320 L-80,200 L-60,80 Z" fill="url(#obsidianArmor)" stroke="#1a2233" stroke-width="2"/>
-      <path d="M-180,220 L-120,320 L-200,340 L-240,320 Z" fill="url(#polishedSteel)"/>
-      <path d="M-140,90 L-170,210" fill="none" stroke="url(#brassGold)" stroke-width="4"/>
+      
+      <!-- HIP JOINTS & HYDRAULIC CONNECTORS -->
+      <g id="hip-actuators">
+        <circle cx="-110" cy="50" r="26" fill="#0d111a" stroke="url(#brassGold)" stroke-width="3"/>
+        <circle cx="110" cy="50" r="26" fill="#0d111a" stroke="url(#brassGold)" stroke-width="3"/>
+        <!-- Core Hip Pistons -->
+        <rect x="-120" y="60" width="14" height="60" fill="url(#polishedSteel)" rx="4"/>
+        <rect x="106" y="60" width="14" height="60" fill="url(#polishedSteel)" rx="4"/>
+      </g>
 
-      <!-- Right Leg -->
-      <path d="M140,80 L180,220 L120,320 L60,320 L80,200 L60,80 Z" fill="url(#obsidianArmor)" stroke="#1a2233" stroke-width="2"/>
-      <path d="M180,220 L120,320 L200,340 L240,320 Z" fill="url(#polishedSteel)"/>
-      <path d="M140,90 L170,210" fill="none" stroke="url(#brassGold)" stroke-width="4"/>
+      <!-- LEFT LEG ASSEMBLY -->
+      <g id="leg-left">
+        <!-- Upper Thigh Armature (Cuisses) -->
+        <path d="M-60,70 L-150,70 L-185,180 L-130,210 L-75,180 Z" fill="url(#obsidianArmor)" stroke="#1a2233" stroke-width="2"/>
+        <path d="M-140,80 L-170,175 L-130,195 L-90,175 L-80,80 Z" fill="url(#polishedSteel)" opacity="0.3"/>
+        <path d="M-150,75 L-175,170" stroke="url(#brassGold)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="-120" y1="85" x2="-140" y2="175" stroke="#00f0ff" stroke-width="2" filter="url(#cyanGlow)"/>
 
-      <!-- Knee Armor Plates with Clockwork Rotors -->
-      <circle cx="-130" cy="180" r="32" fill="url(#brassGold)"/>
-      <circle cx="-130" cy="180" r="22" fill="#0b0d14"/>
-      <circle cx="-130" cy="180" r="10" fill="#00f0ff" filter="url(#cyanGlow)"/>
+        <!-- Knee Joint (Poleyn) -->
+        <g id="knee-left">
+          <polygon points="-130,170 -165,200 -165,230 -130,250 -95,230 -95,200" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
+          <circle cx="-130" cy="215" r="22" fill="#0a0d14" stroke="url(#brassGold)" stroke-width="2"/>
+          <circle cx="-130" cy="215" r="11" fill="url(#chronoCyan)" filter="url(#cyanGlow)"/>
+        </g>
 
-      <circle cx="130" cy="180" r="32" fill="url(#brassGold)"/>
-      <circle cx="130" cy="180" r="22" fill="#0b0d14"/>
-      <circle cx="130" cy="180" r="10" fill="#00f0ff" filter="url(#cyanGlow)"/>
+        <!-- Lower Shin & Calf Armor (Greaves) -->
+        <g id="shin-left">
+          <!-- Heavy Armored Outer Calf -->
+          <path d="M-165,235 L-195,270 L-175,345 L-150,355 L-145,245 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+          <rect x="-185" y="275" width="8" height="55" fill="url(#polishedSteel)"/>
+          
+          <!-- Inner Greave & Main Plate -->
+          <path d="M-130,245 L-95,240 L-100,345 L-140,360 Z" fill="url(#obsidianArmor)" stroke="#1a2233" stroke-width="2"/>
+          <!-- Central Raised Shin Ridge -->
+          <polygon points="-130,240 -115,310 -130,355 -145,310" fill="url(#polishedSteel)" stroke="url(#brassGold)" stroke-width="2"/>
+          <!-- Glowing Chrono Vents -->
+          <line x1="-120" y1="260" x2="-112" y2="330" stroke="#00f0ff" stroke-width="2.5" filter="url(#cyanGlow)"/>
+          <line x1="-140" y1="260" x2="-148" y2="330" stroke="#00f0ff" stroke-width="2.5" filter="url(#cyanGlow)"/>
+        </g>
 
-      <!-- Tassets / Faulds (Hanging Hip Armor) -->
-      <path d="M-120,10 L-160,110 L-80,140 L-40,10 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
-      <path d="M120,10 L160,110 L80,140 L40,10 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
-      <path d="M-40,10 L-50,150 L0,170 L50,150 L40,10 Z" fill="url(#polishedSteel)" stroke="url(#brassGold)" stroke-width="2"/>
+        <!-- Ankle Joint Assembly -->
+        <g id="ankle-left">
+          <circle cx="-130" cy="365" r="18" fill="#0c1017" stroke="url(#brassGold)" stroke-width="3"/>
+          <circle cx="-130" cy="365" r="8" fill="url(#polishedSteel)"/>
+          <path d="M-155,355 L-105,355 L-100,375 L-160,375 Z" fill="url(#brassGold)"/>
+        </g>
+
+        <!-- Heavy Articulated Sabaton (Foot Armor) -->
+        <g id="foot-left">
+          <!-- Rear Spur / Heel Stabilizer -->
+          <path d="M-150,370 L-185,385 L-180,410 L-145,410 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+          <rect x="-182" y="392" width="12" height="14" fill="url(#polishedSteel)"/>
+          
+          <!-- Midfoot Instep Shell -->
+          <path d="M-150,370 L-110,370 L-95,400 L-160,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2.5"/>
+          <polygon points="-135,372 -115,372 -110,398 -140,398" fill="url(#polishedSteel)"/>
+
+          <!-- Segmented Solleret Toes -->
+          <!-- Outer Toe -->
+          <path d="M-165,405 L-180,422 L-155,422 L-145,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="1.5"/>
+          <!-- Middle Main Claw Toe -->
+          <path d="M-145,405 L-150,426 L-120,426 L-120,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+          <polygon points="-142,408 -128,408 -128,422 -145,422" fill="url(#polishedSteel)"/>
+          <!-- Inner Toe -->
+          <path d="M-120,405 L-115,424 L-90,424 L-95,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="1.5"/>
+
+          <!-- Ground Grip Tread Sole -->
+          <path d="M-185,418 L-88,418 L-85,426 L-185,426 Z" fill="#04060a" stroke="url(#brassGold)" stroke-width="1.5"/>
+          <line x1="-175" y1="422" x2="-95" y2="422" stroke="#00f0ff" stroke-width="2" filter="url(#cyanGlow)"/>
+        </g>
+      </g>
+
+      <!-- RIGHT LEG ASSEMBLY (Mirrored) -->
+      <g id="leg-right">
+        <!-- Upper Thigh Armature (Cuisses) -->
+        <path d="M60,70 L150,70 L185,180 L130,210 L75,180 Z" fill="url(#obsidianArmor)" stroke="#1a2233" stroke-width="2"/>
+        <path d="M140,80 L170,175 L130,195 L90,175 L80,80 Z" fill="url(#polishedSteel)" opacity="0.3"/>
+        <path d="M150,75 L175,170" stroke="url(#brassGold)" stroke-width="4" stroke-linecap="round"/>
+        <line x1="120" y1="85" x2="140" y2="175" stroke="#00f0ff" stroke-width="2" filter="url(#cyanGlow)"/>
+
+        <!-- Knee Joint (Poleyn) -->
+        <g id="knee-right">
+          <polygon points="130,170 165,200 165,230 130,250 95,230 95,200" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
+          <circle cx="130" cy="215" r="22" fill="#0a0d14" stroke="url(#brassGold)" stroke-width="2"/>
+          <circle cx="130" cy="215" r="11" fill="url(#chronoCyan)" filter="url(#cyanGlow)"/>
+        </g>
+
+        <!-- Lower Shin & Calf Armor (Greaves) -->
+        <g id="shin-right">
+          <!-- Heavy Armored Outer Calf -->
+          <path d="M165,235 L195,270 L175,345 L150,355 L145,245 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+          <rect x="177" y="275" width="8" height="55" fill="url(#polishedSteel)"/>
+          
+          <!-- Inner Greave & Main Plate -->
+          <path d="M130,245 L95,240 L100,345 L140,360 Z" fill="url(#obsidianArmor)" stroke="#1a2233" stroke-width="2"/>
+          <!-- Central Raised Shin Ridge -->
+          <polygon points="130,240 115,310 130,355 145,310" fill="url(#polishedSteel)" stroke="url(#brassGold)" stroke-width="2"/>
+          <!-- Glowing Chrono Vents -->
+          <line x1="120" y1="260" x2="112" y2="330" stroke="#00f0ff" stroke-width="2.5" filter="url(#cyanGlow)"/>
+          <line x1="140" y1="260" x2="148" y2="330" stroke="#00f0ff" stroke-width="2.5" filter="url(#cyanGlow)"/>
+        </g>
+
+        <!-- Ankle Joint Assembly -->
+        <g id="ankle-right">
+          <circle cx="130" cy="365" r="18" fill="#0c1017" stroke="url(#brassGold)" stroke-width="3"/>
+          <circle cx="130" cy="365" r="8" fill="url(#polishedSteel)"/>
+          <path d="M155,355 L105,355 L100,375 L160,375 Z" fill="url(#brassGold)"/>
+        </g>
+
+        <!-- Heavy Articulated Sabaton (Foot Armor) -->
+        <g id="foot-right">
+          <!-- Rear Spur / Heel Stabilizer -->
+          <path d="M150,370 L185,385 L180,410 L145,410 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+          <rect x="170" y="392" width="12" height="14" fill="url(#polishedSteel)"/>
+          
+          <!-- Midfoot Instep Shell -->
+          <path d="M150,370 L110,370 L95,400 L160,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2.5"/>
+          <polygon points="135,372 115,372 110,398 140,398" fill="url(#polishedSteel)"/>
+
+          <!-- Segmented Solleret Toes -->
+          <!-- Inner Toe -->
+          <path d="M120,405 L115,424 L90,424 L95,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="1.5"/>
+          <!-- Middle Main Claw Toe -->
+          <path d="M145,405 L150,426 L120,426 L120,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+          <polygon points="142,408 128,408 128,422 145,422" fill="url(#polishedSteel)"/>
+          <!-- Outer Toe -->
+          <path d="M165,405 L180,422 L155,422 L145,405 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="1.5"/>
+
+          <!-- Ground Grip Tread Sole -->
+          <path d="M88,418 L185,418 L185,426 L85,426 Z" fill="#04060a" stroke="url(#brassGold)" stroke-width="1.5"/>
+          <line x1="95" y1="422" x2="175" y2="422" stroke="#00f0ff" stroke-width="2" filter="url(#cyanGlow)"/>
+        </g>
+      </g>
+
+      <!-- TASSETS & FAULDS (Waist/Hip Plating) -->
+      <g id="faulds">
+        <path d="M-120,10 L-160,110 L-80,140 L-40,10 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2.5"/>
+        <path d="M120,10 L160,110 L80,140 L40,10 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2.5"/>
+        <!-- Central Chevron Crotch Plate -->
+        <path d="M-45,10 L-55,145 L0,175 L55,145 L45,10 Z" fill="url(#polishedSteel)" stroke="url(#brassGold)" stroke-width="2.5"/>
+        <polygon points="-30,30 30,30 0,140" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
+        <circle cx="0" cy="65" r="9" fill="url(#coreEnergy)" filter="url(#cyanGlow)"/>
+      </g>
     </g>
 
     <!-- TORSO & TEMPORAL CORE REACTOR -->
     <g id="torso" transform="translate(600, 500)">
-      <!-- Abdominal Segment / Mechanism -->
+      <!-- Abdominal Segment -->
       <path d="M-90,120 L90,120 L110,240 L-110,240 Z" fill="url(#obsidianArmor)"/>
-      <!-- Spine Pistons -->
       <rect x="-70" y="130" width="20" height="90" fill="url(#polishedSteel)"/>
       <rect x="-10" y="130" width="20" height="90" fill="url(#polishedSteel)"/>
       <rect x="50" y="130" width="20" height="90" fill="url(#polishedSteel)"/>
       
       <!-- Main Chest Plate -->
       <path d="M-160,-60 L160,-60 L200,60 L120,140 L-120,140 L-200,60 Z" fill="url(#obsidianArmor)" stroke="#2a354d" stroke-width="3"/>
-      
-      <!-- Golden Chest Filigree / Frame -->
       <path d="M-160,-60 L0,-30 L160,-60 L180,40 L110,120 L0,50 L-110,120 L-180,40 Z" fill="none" stroke="url(#brassGold)" stroke-width="5"/>
 
-      <!-- CENTRAL TEMPORAL CORE (Hourglass Gyroscope) -->
+      <!-- Central Temporal Core -->
       <circle cx="0" cy="30" r="65" fill="#040812" stroke="url(#brassGold)" stroke-width="6"/>
       <circle cx="0" cy="30" r="55" fill="url(#coreEnergy)" filter="url(#intenseGlow)"/>
 
-      <!-- Inner Spinning Gyro Rings -->
       <ellipse cx="0" cy="30" rx="50" ry="18" fill="none" stroke="#ffffff" stroke-width="2" transform="rotate(30, 0, 30)"/>
       <ellipse cx="0" cy="30" rx="50" ry="18" fill="none" stroke="url(#brassGold)" stroke-width="3" transform="rotate(-45, 0, 30)"/>
 
-      <!-- Futuristic Energy Hourglass inside Core -->
       <polygon points="-18,-12 18,-12 0,26" fill="#ffffff" opacity="0.9" filter="url(#cyanGlow)"/>
       <polygon points="-18,72 18,72 0,34" fill="#ffffff" opacity="0.9" filter="url(#cyanGlow)"/>
     </g>
@@ -2705,16 +2785,13 @@
       <g>
         <path d="M-150,-10 C-220,-80 -320,-40 -310,60 C-250,120 -180,100 -140,20 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
         <path d="M-180,-30 C-240,-70 -290,-30 -280,40" fill="none" stroke="#00f0ff" stroke-width="3" filter="url(#cyanGlow)"/>
-        <!-- Embedded Gear in Shoulder -->
         <circle cx="-230" cy="15" r="25" fill="url(#brassGold)"/>
         <circle cx="-230" cy="15" r="15" fill="#0a0d14"/>
       </g>
-
       <!-- Right Shoulder -->
       <g>
         <path d="M150,-10 C220,-80 320,-40 310,60 C250,120 180,100 140,20 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
         <path d="M180,-30 C240,-70 290,-30 280,40" fill="none" stroke="#00f0ff" stroke-width="3" filter="url(#cyanGlow)"/>
-        <!-- Embedded Gear in Shoulder -->
         <circle cx="230" cy="15" r="25" fill="url(#brassGold)"/>
         <circle cx="230" cy="15" r="15" fill="#0a0d14"/>
       </g>
@@ -2722,87 +2799,56 @@
 
     <!-- HEAD & TEMPORAL HELM -->
     <g id="head" transform="translate(600, 360)">
-      <!-- Neck Mechanical Plating -->
       <path d="M-40,20 L40,20 L50,60 L-50,60 Z" fill="url(#polishedSteel)"/>
       <line x1="-30" y1="30" x2="30" y2="30" stroke="#00f0ff" stroke-width="2" filter="url(#cyanGlow)"/>
 
-      <!-- Helm Main Form -->
       <path d="M-50,-10 L0,-70 L50,-10 L60,40 L0,70 L-60,40 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
-      
-      <!-- Side Crests / Clock Hand Antennas -->
       <path d="M-50,-10 L-110,-80 L-60,-40 Z" fill="url(#brassGold)"/>
       <path d="M50,-10 L110,-80 L60,-40 Z" fill="url(#brassGold)"/>
-
-      <!-- Crown / Sundial Spikes -->
       <path d="M-30,-50 L-40,-100 L-15,-60 L0,-110 L15,-60 L40,-100 L30,-50 Z" fill="url(#brassGold)"/>
 
-      <!-- Glowing Chrono Visor (Eye Slot) -->
       <polygon points="-42,0 0,-15 42,0 35,18 0,10 -35,18" fill="#ffffff" filter="url(#intenseGlow)"/>
       <polygon points="-42,0 0,-15 42,0 35,18 0,10 -35,18" fill="#00f0ff" opacity="0.8"/>
-      <!-- Single Central Cybernetic Lens Eye -->
       <circle cx="0" cy="2" r="7" fill="#ffffff" filter="url(#cyanGlow)"/>
 
-      <!-- Face Plate Markings -->
       <path d="M0,10 L0,55" stroke="url(#brassGold)" stroke-width="3"/>
       <line x1="-25" y1="35" x2="25" y2="35" stroke="url(#brassGold)" stroke-width="2"/>
     </g>
 
     <!-- ARMS & WEAPONS -->
-    <!-- Guardian's Right Arm (Viewer's Left) with FACELESS CLOCK SHIELD -->
+    <!-- Left Arm with Armored Chrono Gauntlet (Shield Clock Removed) -->
     <g id="left-arm" transform="translate(360, 460)">
       <!-- Bicep -->
       <path d="M10,0 L-40,80 L0,120 L40,40 Z" fill="url(#obsidianArmor)"/>
-      <!-- Forearm Gauntlet -->
-      <path d="M-20,100 L-80,200 L-20,230 L20,130 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
-      <circle cx="-45" cy="165" r="16" fill="url(#brassGold)"/>
+      
+      <!-- Forearm Vambrace -->
+      <path d="M-20,100 L-75,190 L-30,225 L20,130 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2.5"/>
+      <polygon points="-30,110 -65,185 -40,210 10,135" fill="url(#polishedSteel)" opacity="0.3"/>
+      <line x1="-25" y1="120" x2="-55" y2="190" stroke="#00f0ff" stroke-width="2.5" filter="url(#cyanGlow)"/>
+      
+      <!-- Heavy Elbow Cop -->
+      <circle cx="10" cy="115" r="16" fill="url(#brassGold)"/>
+      <circle cx="10" cy="115" r="9" fill="#090c12"/>
 
-      <!-- FACELESS CLOCK SHIELD -->
-      <g id="clock-shield" transform="translate(-75, 220) rotate(-15)">
-        <!-- Outer Clockwork Teeth Ring -->
-        <circle cx="0" cy="0" r="115" fill="none" stroke="url(#brassGold)" stroke-width="9" stroke-dasharray="12,18.1"/>
-        
-        <!-- Main Shield Outer Rim -->
-        <circle cx="0" cy="0" r="108" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="6" filter="url(#goldGlow)"/>
-        <circle cx="0" cy="0" r="96" fill="url(#polishedSteel)" stroke="url(#brassGold)" stroke-width="2"/>
-        <circle cx="0" cy="0" r="86" fill="url(#obsidianArmor)" stroke="url(#chronoCyan)" stroke-width="2" opacity="0.85"/>
-
-        <!-- 12 Hour Tick Markers (Faceless) -->
-        <g stroke="url(#brassGold)" stroke-width="3.5" stroke-linecap="round" fill="none">
-          <line x1="0" y1="-93" x2="0" y2="-80"/>
-          <line x1="46.5" y1="-80.5" x2="40" y2="-69.2"/>
-          <line x1="80.5" y1="-46.5" x2="69.2" y2="-40"/>
-          <line x1="93" y1="0" x2="80" y2="0"/>
-          <line x1="80.5" y1="46.5" x2="69.2" y2="40"/>
-          <line x1="46.5" y1="80.5" x2="40" y2="69.2"/>
-          <line x1="0" y1="93" x2="0" y2="80"/>
-          <line x1="-46.5" y1="80.5" x2="-40" y2="69.2"/>
-          <line x1="-80.5" y1="46.5" x2="-69.2" y2="40"/>
-          <line x1="-93" y1="0" x2="-80" y2="0"/>
-          <line x1="-80.5" y1="-46.5" x2="-69.2" y2="-40"/>
-          <line x1="-46.5" y1="-80.5" x2="-40" y2="-69.2"/>
-        </g>
-
-        <!-- Inner Shield Plate & Concentric Chrono Rings -->
-        <circle cx="0" cy="0" r="68" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
-        <circle cx="0" cy="0" r="48" fill="none" stroke="#00f0ff" stroke-width="2" stroke-dasharray="6,6" filter="url(#cyanGlow)"/>
-
-        <!-- Central Shield Core Boss -->
-        <circle cx="0" cy="0" r="32" fill="url(#brassGold)"/>
-        <circle cx="0" cy="0" r="22" fill="url(#coreEnergy)" filter="url(#intenseGlow)"/>
-        <circle cx="0" cy="0" r="9" fill="#ffffff"/>
+      <!-- Clenched Armored Fist / Power Gauntlet -->
+      <g id="left-hand" transform="translate(-60, 220)">
+        <polygon points="-15,0 15,-15 35,15 10,35 -15,20" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="3"/>
+        <rect x="0" y="-5" width="25" height="10" rx="3" fill="url(#polishedSteel)"/>
+        <rect x="-5" y="8" width="25" height="10" rx="3" fill="url(#polishedSteel)"/>
+        <circle cx="8" cy="10" r="18" fill="none" stroke="url(#brassGold)" stroke-width="2"/>
+        <circle cx="10" cy="12" r="5" fill="#00f0ff" filter="url(#cyanGlow)"/>
       </g>
     </g>
 
-    <!-- Guardian's Left Arm (Viewer's Right - Holding Chrono Blade Staff Pointing Away) -->
+    <!-- Right Arm Holding Chrono Blade Staff -->
     <g id="right-arm" transform="translate(840, 460)">
       <!-- Bicep -->
       <path d="M-10,0 L40,80 L0,120 L-40,40 Z" fill="url(#obsidianArmor)"/>
       <!-- Forearm Gauntlet -->
       <path d="M0,110 L40,220 L80,200 L20,100 Z" fill="url(#obsidianArmor)" stroke="url(#brassGold)" stroke-width="2"/>
       
-      <!-- CHRONO BLADE STAFF (Rotated Away From Head + Gear Removed) -->
+      <!-- Chrono Blade Staff -->
       <g id="staff" transform="translate(50, 160) rotate(35)">
-        <!-- Staff Shaft -->
         <rect x="-12" y="-550" width="24" height="1000" fill="url(#polishedSteel)" rx="5"/>
         <rect x="-6" y="-550" width="12" height="1000" fill="url(#brassGold)"/>
 
@@ -2810,14 +2856,12 @@
         <circle cx="0" cy="-450" r="65" fill="#050810" stroke="url(#brassGold)" stroke-width="5"/>
         <circle cx="0" cy="-450" r="45" fill="url(#coreEnergy)" filter="url(#cyanGlow)"/>
 
-        <!-- Large Curved Temporal Scythe Blades -->
         <path d="M30,-480 C120,-580 180,-520 220,-380 C140,-420 60,-420 0,-420 Z" fill="url(#brassGold)" filter="url(#goldGlow)"/>
         <path d="M40,-470 C110,-550 160,-500 195,-390 C130,-415 70,-415 10,-415 Z" fill="#ffffff" filter="url(#cyanGlow)"/>
 
         <path d="M-30,-480 C-120,-580 -180,-520 -220,-380 C-140,-420 -60,-420 0,-420 Z" fill="url(#brassGold)" filter="url(#goldGlow)"/>
         <path d="M-40,-470 C-110,-550 -160,-500 -195,-390 C-130,-415 -70,-415 -10,-415 Z" fill="#ffffff" filter="url(#cyanGlow)"/>
 
-        <!-- Bottom Spear Tip -->
         <polygon points="-15,400 15,400 0,480" fill="url(#brassGold)"/>
       </g>
 
@@ -2826,49 +2870,21 @@
     </g>
   </g>
 
-  <!-- 4. FOREGROUND FLOATING CLOCKWORK GEARS (Dynamic Overlap & Perspective) -->
-  <g id="foreground-gears">
-    <!-- Mid-Right Floating Brass Gear (Angled/Skewed Effect) -->
-    <g transform="translate(980, 680) rotate(-25) scale(1, 0.75)">
-      <use href="#gear-12teeth" x="0" y="0" transform="scale(1.4)" filter="url(#goldGlow)"/>
-    </g>
-
-    <!-- Top Right Small Accent Gear -->
-    <g transform="translate(780, 220) rotate(50)">
-      <use href="#gear-12teeth" x="0" y="0" transform="scale(0.6)"/>
-    </g>
-
-    <!-- Center-Left Medium Floating Brass Gear -->
-    <g transform="translate(420, 280) rotate(-10) scale(0.85)">
-      <use href="#gear-12teeth" x="0" y="0"/>
-      <use href="#gear-holo" x="0" y="0" transform="scale(0.9)" filter="url(#cyanGlow)"/>
-    </g>
-  </g>
-
-  <!-- 5. TEMPORAL ENERGY ARCS & TIME DISTORTION EFFECTS -->
+  <!-- 4. TEMPORAL ACCENT EFFECTS -->
   <g id="temporal-effects">
-    <!-- Energy Lightning Arcs between Gears & Mech -->
-    <path d="M 280,620 Q 340,550 420,580 T 540,530" fill="none" stroke="#00f0ff" stroke-width="3" opacity="0.8" filter="url(#cyanGlow)"/>
-    <path d="M 900,580 Q 820,640 760,590 T 660,650" fill="none" stroke="#00f0ff" stroke-width="2.5" opacity="0.7" filter="url(#cyanGlow)"/>
-    <path d="M 600,300 Q 680,220 780,220" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.9" filter="url(#cyanGlow)"/>
+    <path d="M 600,300 Q 680,220 780,220" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.8" filter="url(#cyanGlow)"/>
 
-    <!-- Floating Glowing Roman Numerals (Dispersing in Time) -->
-    <g fill="#00f0ff" font-family="'Times New Roman', serif" font-size="28" font-weight="bold" filter="url(#cyanGlow)" opacity="0.8">
-      <text x="290" y="600" transform="rotate(-15, 290, 600)">XII</text>
-      <text x="850" y="750" transform="rotate(20, 850, 750)">III</text>
+    <!-- Subtle Floating Roman Numerals -->
+    <g fill="#00f0ff" font-family="'Times New Roman', serif" font-size="26" font-weight="bold" filter="url(#cyanGlow)" opacity="0.6">
       <text x="360" y="240" transform="rotate(-10, 360, 240)">VI</text>
       <text x="820" y="180" transform="rotate(15, 820, 180)">IX</text>
     </g>
 
-    <!-- Floating Time Particles (Golden & Cyan Hourglass Sand) -->
-    <use href="#timeDust" x="580" y="480" transform="scale(2.5)"/>
-    <use href="#timeDust" x="620" y="520" transform="scale(1.8)"/>
-    <use href="#timeDust" x="280" y="680" transform="scale(2)"/>
-    <use href="#timeDust" x="320" y="740"/>
-    <use href="#timeDust" x="920" y="620" transform="scale(2.2)"/>
-    <use href="#timeDust" x="860" y="660"/>
-    <use href="#timeDust" x="600" y="260" transform="scale(1.5)"/>
+    <!-- Ambient Core Time Sparks -->
+    <use href="#timeDust" x="580" y="480" transform="scale(2)"/>
+    <use href="#timeDust" x="620" y="520" transform="scale(1.5)"/>
+    <use href="#timeDust" x="600" y="260" transform="scale(1.4)"/>
   </g>
 </svg>` 
-            }
+}
         ];
