@@ -19,9 +19,11 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col md:flex-row selection:bg-brand-100 selection:text-brand-900">
+    <!-- Mobile Header with Theme Toggle -->
     <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-30 shrink-0">
         <div class="flex items-center gap-2 font-bold text-brand-600 text-lg"><i data-lucide="layers" class="w-6 h-6"></i><span>Focus Flow</span></div>
         <div class="flex items-center gap-2">
+            <button onclick="toggleThemePopover(event)" aria-label="Change Theme" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Change Theme"><i data-lucide="palette" class="w-4 h-4"></i></button>
             <button onclick="BlueprintEngine.openModal()" aria-label="Momentum Blueprint" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Momentum Blueprint"><i data-lucide="file-up" class="w-4 h-4"></i></button>
             <button onclick="toggleScratchpadModal()" aria-label="Scratchpad" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Scratchpad"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
             <button onclick="toggleMobileSidebar()" aria-label="Open Menu" class="p-2 bg-slate-100 text-slate-700 rounded-xl" title="Open Menu"><i data-lucide="menu" class="w-5 h-5"></i></button>
@@ -31,11 +33,17 @@
     <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 hidden md:hidden"></div>
 
     <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 w-80 bg-slate-100/95 border-r border-slate-200 flex flex-col backdrop-blur-xl shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+        <!-- Sidebar Header with Theme Toggle -->
         <div class="p-5 border-b border-slate-200/60 flex items-center justify-between">
             <button onclick="toggleInstructionsModal()" aria-label="Instructions" class="flex items-center gap-2.5 text-brand-600 font-bold text-xl tracking-tight text-left focus:outline-none group">
                 <i data-lucide="layers" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span>Focus Flow</span><i data-lucide="help-circle" class="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors"></i>
             </button>
-            <button onclick="closeMobileSidebar()" aria-label="Close Sidebar" class="md:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="flex items-center gap-1">
+                <button onclick="toggleThemePopover(event)" aria-label="Change Theme" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-slate-200/60 rounded-xl transition-colors" title="Change Visual Theme">
+                    <i data-lucide="palette" class="w-4 h-4"></i>
+                </button>
+                <button onclick="closeMobileSidebar()" aria-label="Close Sidebar" class="md:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
         </div>
         <div class="px-3 py-2.5 flex gap-1.5 border-b border-slate-200/60 font-sans-ui">
             <button onclick="switchView('focus')" id="nav-focus" aria-label="Focus View" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5"></i> Focus</button>
@@ -130,6 +138,10 @@
                                     <div class="space-y-1"><div class="flex justify-between text-[10px] font-bold text-slate-500"><span>Volume</span><span id="volume-label">80%</span></div><input type="range" aria-label="Volume Slider" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer"></div>
                                     <div class="space-y-1"><label class="text-[10px] font-bold text-slate-500 block">Sound Style</label><select aria-label="Audio Style" id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold text-slate-700 outline-none"><option value="woodblock">Woodblock (Acoustic)</option><option value="pip">8-Bit Pip (Chiptune)</option><option value="zen">Zen Chord (Pure Sine)</option></select></div>
                                 </div>
+                                <!-- Visual Theme Selection Button in Stage Toolbar -->
+                                <button onclick="toggleThemePopover(event)" aria-label="Theme Selection" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Visual Theme">
+                                    <i data-lucide="palette" class="w-4 h-4"></i>
+                                </button>
                             </div>
                         </div>
                         <div id="main-mascot-mount-wrapper" class="w-full flex justify-center items-center mb-4 hidden">
@@ -276,6 +288,20 @@
         </div>
     </div>
 
+    <!-- Visual Theme Selector Popover (Floating Palette Modal) -->
+    <div id="theme-popover" class="fixed top-16 left-4 sm:left-20 md:left-80 z-50 w-72 bg-white p-4 rounded-3xl shadow-2xl border border-slate-200 hidden font-sans-ui space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+                <i data-lucide="palette" class="w-4 h-4 text-brand-600"></i>
+                <span class="text-xs font-bold text-slate-800">Visual Theme</span>
+            </div>
+            <button onclick="closeThemePopover()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        </div>
+        <div class="space-y-1.5" id="theme-options-container"></div>
+    </div>
+
     <!-- Modals -->
     <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100">
@@ -294,10 +320,10 @@
                 </div><button onclick="BlueprintEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div>
             <div class="space-y-3 flex-1 overflow-y-auto">
                 <div class="flex flex-wrap gap-2">
-    <button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button>
-    <button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button>
-    <button onclick="BlueprintEngine.exportCurrentWorkspaceToMarkdown()" id="btn-export-blueprint" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-emerald-200"><i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> Export Workspace to Markdown</button>
-</div>
+                    <button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button>
+                    <button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button>
+                    <button onclick="BlueprintEngine.exportCurrentWorkspaceToMarkdown()" id="btn-export-blueprint" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-emerald-200"><i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> Export Workspace to Markdown</button>
+                </div>
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Destination</label><select aria-label="Blueprint Mount Destination" id="blueprint-target-select" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"></select></div><div><div class="flex justify-between items-center mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paste Markdown Blueprint</label><span class="text-[10px] text-slate-400 font-mono">Accepts: (25m), (1h 15m), (5m 30s), (90s)</span></div><textarea aria-label="Blueprint Paste Box" id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]"></textarea></div></div><div class="flex justify-between items-center pt-3 border-t border-slate-100"><button onclick="BlueprintEngine.closeModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Cancel</button><button onclick="BlueprintEngine.executeImport()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Ingest Blueprint</button></div></div></div>
     <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3></div></div><button onclick="toggleScratchpadModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="flex gap-2"><input type="text" aria-label="Scratchpad Input" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type thought and press Enter..."><button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button></div><div class="max-h-56 overflow-y-auto divide-y divide-slate-100 space-y-1" id="scratchpad-items-list"></div></div></div>
     <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100"><div class="flex items-center gap-3 border-b border-slate-100 pb-3"><div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-slate-800">Anchor Your Momentum</h3></div></div><div class="space-y-3"><div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Where did you stop?</label><input type="text" aria-label="Where stopped input" id="park-stopped-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Finished reviewing part A"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Immediate next 60s launchpad action?</label><input type="text" aria-label="Next action input" id="park-next60s-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Open test suite"></div></div><div class="flex justify-between items-center pt-2"><button onclick="dismissParkModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Just Pause</button><button onclick="confirmParkAndPause()" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md">Anchor & Pause</button></div></div></div>
