@@ -1349,30 +1349,38 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-// --- Focus Companions & Mascot Rig Engine ---
-const BUILT_IN_MASCOTS = [
-    { id: 'm-shiba', name: 'Shiba Inu', emoji: '🐕', color: '#f59e0b' },
-    { id: 'm-cat', name: 'Focus Cat', emoji: '🐱', color: '#6366f1' },
-    { id: 'm-capy', name: 'Capybara', emoji: '🦫', color: '#10b981' },
-    { id: 'm-owl', name: 'Zen Owl', emoji: '🦉', color: '#8b5cf6' },
-    { id: 'm-bot', name: 'Flow Bot', emoji: '🤖', color: '#06b6d4' }
-];
+// --- Companion & Mascot System (Reads from mascotDatabase in js/mascots.js) ---
+function getAvailableMascots() {
+    if (typeof mascotDatabase !== 'undefined' && Array.isArray(mascotDatabase) && mascotDatabase.length > 0) {
+        return mascotDatabase;
+    }
+    if (typeof window !== 'undefined' && window.mascotDatabase && Array.isArray(window.mascotDatabase)) {
+        return window.mascotDatabase;
+    }
+    return [
+        { id: 'm-bunny', name: 'Bunny', emoji: '🐰', svg: '<span class="text-3xl">🐰</span>' }
+    ];
+}
 
 function renderMascotGallery() {
     const grid = document.getElementById('mascot-gallery-grid');
     if (!grid) return;
     const p = getActiveProject();
     const activeMascotId = p ? p.activeMascotId : null;
+    const mascots = getAvailableMascots();
 
-    grid.innerHTML = BUILT_IN_MASCOTS.map(m => {
+    grid.innerHTML = mascots.map(m => {
         const isSelected = activeMascotId === m.id;
         return `
-            <button onclick="selectCompanion('${m.id}')" class="p-3 rounded-2xl border transition-all flex flex-col items-center gap-1.5 ${isSelected ? 'bg-indigo-50 border-brand-500 ring-2 ring-brand-400 shadow-sm' : 'bg-slate-50 border-slate-200 hover:bg-white'}">
-                <span class="text-2xl">${m.emoji}</span>
-                <span class="text-[10px] font-bold text-slate-700">${m.name}</span>
+            <button onclick="selectCompanion('${m.id}')" class="p-2.5 rounded-2xl border transition-all flex flex-col items-center justify-center gap-1 text-center ${isSelected ? 'bg-indigo-50 border-brand-500 ring-2 ring-brand-400 shadow-sm' : 'bg-slate-50 border-slate-200 hover:bg-white'}">
+                <div class="w-12 h-12 flex items-center justify-center pointer-events-none mascot-card-svg-wrapper">
+                    ${m.svg || `<span class="text-2xl">${m.emoji || '🐾'}</span>`}
+                </div>
+                <span class="text-[10px] font-bold text-slate-700 truncate w-full px-1">${m.name}</span>
             </button>
         `;
     }).join('');
+    safeCreateIcons();
 }
 
 function selectCompanion(id) {
@@ -1401,7 +1409,8 @@ function relockAllMascots() {
 
 function renderActiveMascot() {
     const p = getActiveProject();
-    const mascot = BUILT_IN_MASCOTS.find(m => m.id === (p ? p.activeMascotId : null));
+    const mascots = getAvailableMascots();
+    const mascot = mascots.find(m => m.id === (p ? p.activeMascotId : null));
     const mainWrapper = document.getElementById('main-mascot-mount-wrapper');
     const mainMount = document.getElementById('main-mascot-mount');
     const zenRoam = document.getElementById('mascot-roam-wrapper');
@@ -1409,9 +1418,13 @@ function renderActiveMascot() {
 
     if (mascot) {
         if (mainWrapper) mainWrapper.classList.remove('hidden');
-        if (mainMount) mainMount.innerHTML = `<span class="text-3xl">${mascot.emoji}</span>`;
+        if (mainMount) {
+            mainMount.innerHTML = mascot.svg || `<span class="text-3xl">${mascot.emoji || '🐾'}</span>`;
+        }
         if (zenRoam) zenRoam.classList.remove('hidden');
-        if (zenMount) zenMount.innerHTML = `<span class="text-5xl">${mascot.emoji}</span>`;
+        if (zenMount) {
+            zenMount.innerHTML = mascot.svg || `<span class="text-5xl">${mascot.emoji || '🐾'}</span>`;
+        }
     } else {
         if (mainWrapper) mainWrapper.classList.add('hidden');
         if (zenRoam) zenRoam.classList.add('hidden');
