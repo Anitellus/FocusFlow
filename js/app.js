@@ -1569,6 +1569,74 @@ function saveFullProjectNotes() {
     toggleProjectNotesModal();
 }
 
+// --- Global Theme Controller ---
+const AVAILABLE_THEMES = [
+    { id: 'light', name: 'Light', desc: 'Default Slate & Indigo', dot: '#ffffff', border: '#cbd5e1' },
+    { id: 'dark', name: 'Dark', desc: 'Midnight Obsidian', dot: '#090d16', border: '#6366f1' },
+    { id: 'earth', name: 'Earth Tones', desc: 'Forest Moss & Sage', dot: '#101511', border: '#34d399' },
+    { id: 'fire', name: 'Fire Tones', desc: 'Ember & Terracotta', dot: '#140d0a', border: '#f97316' }
+];
+
+function setAppTheme(themeId) {
+    if (!AVAILABLE_THEMES.some(t => t.id === themeId)) themeId = 'light';
+    appState.theme = themeId;
+    document.documentElement.setAttribute('data-theme', themeId);
+    saveStateLocally();
+    renderThemeUI();
+    closeThemePopover();
+}
+
+function toggleThemePopover(e) {
+    if (e) e.stopPropagation();
+    const popover = document.getElementById('theme-popover');
+    if (!popover) return;
+    const isHidden = popover.classList.contains('hidden');
+    if (isHidden) {
+        renderThemeUI();
+        popover.classList.remove('hidden');
+    } else {
+        popover.classList.add('hidden');
+    }
+}
+
+function closeThemePopover() {
+    const popover = document.getElementById('theme-popover');
+    if (popover) popover.classList.add('hidden');
+}
+
+function renderThemeUI() {
+    const container = document.getElementById('theme-options-container');
+    if (!container) return;
+    const currentTheme = appState.theme || 'light';
+
+    container.innerHTML = AVAILABLE_THEMES.map(t => {
+        const isActive = t.id === currentTheme;
+        return `
+            <button onclick="setAppTheme('${t.id}')" class="w-full p-2.5 rounded-xl border flex items-center justify-between text-left transition-all ${isActive ? 'ring-2 ring-brand-500 border-transparent bg-brand-50/40 font-bold' : 'border-slate-200 hover:bg-slate-100/60'}">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-5 rounded-full border shadow-xs shrink-0" style="background-color: ${t.dot}; border-color: ${t.border};"></span>
+                    <div>
+                        <div class="text-xs font-bold leading-tight">${t.name}</div>
+                        <div class="text-[10px] text-slate-400 font-normal">${t.desc}</div>
+                    </div>
+                </div>
+                ${isActive ? '<i data-lucide="check" class="w-4 h-4 text-brand-600 shrink-0"></i>' : ''}
+            </button>
+        `;
+    }).join('');
+    safeCreateIcons();
+}
+
+// Close theme popover if clicking outside
+document.addEventListener('click', (e) => {
+    const popover = document.getElementById('theme-popover');
+    const trigger = e.target.closest('[onclick*="toggleThemePopover"]');
+    if (popover && !popover.classList.contains('hidden') && !popover.contains(e.target) && !trigger) {
+        closeThemePopover();
+    }
+});
+
+
 // --- Master Application Render Loop ---
 function renderApp() {
     renderSidebar();
@@ -1585,6 +1653,9 @@ function renderApp() {
 
 // --- Initialization & Event Bindings ---
 window.addEventListener('DOMContentLoaded', () => {
+    // Apply saved visual theme immediately on startup
+    const savedTheme = appState.theme || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
     updateBloomOpacity(appState.bloomOpacity || 60);
     const volSlider = document.getElementById('volume-slider');
     if (volSlider) volSlider.value = appState.audioVolume || 80;
