@@ -67,6 +67,7 @@ let lastSyncedStateString = ""; // Prevents unnecessary/destructive document ove
 
 let appState = {
     version: 11,
+    theme: 'light', // 'light' | 'dark' | 'earth' | 'fire'
     activeProjectId: null,
     sprintStartDate: new Date().toISOString(),
     sprintCycleDays: 30,
