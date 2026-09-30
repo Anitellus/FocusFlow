@@ -137,7 +137,7 @@ input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-o
 input[type="number"] { -moz-appearance: textfield; }
 
 /* ==========================================================================
-   Focus Flow Multi-Theme Engine (Dark, Earth, Fire)
+   Focus Flow Multi-Theme Engine (Dark, Earth Tones, Fire Tones)
    ========================================================================== */
 
 /* ----------------- 1. Dark Mode (Midnight Obsidian) ----------------- */
@@ -194,22 +194,17 @@ input[type="number"] { -moz-appearance: textfield; }
     --theme-accent-text: #fdba74;
 }
 
-/* --- Dynamic Theme Rules Application (Excludes Zen Overlay) --- */
-[data-theme="dark"],
-[data-theme="earth"],
-[data-theme="fire"] {
+/* --- Base Surface Overrides (Excluding Zen Overlay) --- */
+[data-theme="dark"], [data-theme="earth"], [data-theme="fire"] {
     background-color: var(--theme-bg-page);
     color: var(--theme-text-primary);
 }
 
-[data-theme="dark"] body,
-[data-theme="earth"] body,
-[data-theme="fire"] body {
+[data-theme="dark"] body, [data-theme="earth"] body, [data-theme="fire"] body {
     background-color: var(--theme-bg-page) !important;
     color: var(--theme-text-primary) !important;
 }
 
-/* Page containers & views */
 [data-theme="dark"] #view-focus-container,
 [data-theme="dark"] #view-calendar-container,
 [data-theme="dark"] #view-analytics-container,
@@ -222,7 +217,6 @@ input[type="number"] { -moz-appearance: textfield; }
     background-color: var(--theme-bg-page) !important;
 }
 
-/* Sidebar & Headers */
 [data-theme="dark"] #sidebar-drawer,
 [data-theme="earth"] #sidebar-drawer,
 [data-theme="fire"] #sidebar-drawer {
@@ -237,7 +231,6 @@ input[type="number"] { -moz-appearance: textfield; }
     border-color: var(--theme-border) !important;
 }
 
-/* Cards & Surface Elements (Excluding Zen Mode) */
 [data-theme="dark"] :not(#zen-overlay) .bg-white,
 [data-theme="earth"] :not(#zen-overlay) .bg-white,
 [data-theme="fire"] :not(#zen-overlay) .bg-white {
@@ -257,7 +250,6 @@ input[type="number"] { -moz-appearance: textfield; }
     background-color: var(--theme-bg-card) !important;
 }
 
-/* Subtle backgrounds */
 [data-theme="dark"] :not(#zen-overlay) .bg-slate-50,
 [data-theme="dark"] :not(#zen-overlay) .bg-slate-100,
 [data-theme="dark"] :not(#zen-overlay) .bg-slate-50\/80,
@@ -288,22 +280,12 @@ input[type="number"] { -moz-appearance: textfield; }
     border-color: var(--theme-border) !important;
 }
 
-/* Accent Containers (Micro-steps, sprint banner) */
-[data-theme="dark"] .bg-indigo-50,
-[data-theme="dark"] .bg-indigo-50\/70,
+/* Micro-step decomposer container */
 [data-theme="dark"] .bg-indigo-50\/50,
-[data-theme="dark"] .bg-brand-50,
-[data-theme="earth"] .bg-indigo-50,
-[data-theme="earth"] .bg-indigo-50\/70,
 [data-theme="earth"] .bg-indigo-50\/50,
-[data-theme="earth"] .bg-brand-50,
-[data-theme="fire"] .bg-indigo-50,
-[data-theme="fire"] .bg-indigo-50\/70,
-[data-theme="fire"] .bg-indigo-50\/50,
-[data-theme="fire"] .bg-brand-50 {
+[data-theme="fire"] .bg-indigo-50\/50 {
     background-color: var(--theme-accent-bg) !important;
     border-color: var(--theme-accent-border) !important;
-    color: var(--theme-accent-text) !important;
 }
 
 /* Borders and dividers */
@@ -362,29 +344,308 @@ input[type="number"] { -moz-appearance: textfield; }
     color: var(--theme-text-muted) !important;
 }
 
-/* Timer Dial adaptations in Dark Modes */
-[data-theme="dark"] .timer-red-container,
-[data-theme="earth"] .timer-red-container,
-[data-theme="fire"] .timer-red-container {
-    background-color: #2a1117 !important;
-    border-color: #f43f5e !important;
-    color: #fda4af !important;
+/* ==========================================================================
+   TARGET CONTRAST CORRECTIONS
+   ========================================================================== */
+
+/* --- 1. Left Bar: Tier 1, Tier 2, Tier 3 Project Badges --- */
+[data-theme="dark"] .font-mono:is(.bg-slate-200\/80, .bg-slate-200) {
+    background-color: #243042 !important;
+    color: #cbd5e1 !important;
+    border: 1px solid #334155 !important;
+}
+[data-theme="dark"] .font-mono.bg-indigo-100 {
+    background-color: #2a265f !important;
+    color: #c7d2fe !important;
+    border: 1px solid #4338ca !important;
+}
+[data-theme="dark"] .font-mono.bg-brand-100 {
+    background-color: #3730a3 !important;
+    color: #e0e7ff !important;
+    border: 1px solid #6366f1 !important;
 }
 
-[data-theme="dark"] .timer-green-container,
-[data-theme="earth"] .timer-green-container,
-[data-theme="fire"] .timer-green-container {
-    background-color: #06281e !important;
-    border-color: #10b981 !important;
+[data-theme="earth"] .font-mono:is(.bg-slate-200\/80, .bg-slate-200) {
+    background-color: #232e25 !important;
+    color: #d1ded3 !important;
+    border: 1px solid #364839 !important;
+}
+[data-theme="earth"] .font-mono.bg-indigo-100 {
+    background-color: #1b3824 !important;
+    color: #a7f3d0 !important;
+    border: 1px solid #285436 !important;
+}
+[data-theme="earth"] .font-mono.bg-brand-100 {
+    background-color: #14472d !important;
     color: #6ee7b7 !important;
+    border: 1px solid #1f6b43 !important;
 }
 
-[data-theme="dark"] .timer-amber-container,
-[data-theme="earth"] .timer-amber-container,
-[data-theme="fire"] .timer-amber-container {
-    background-color: #2b1803 !important;
-    border-color: #f59e0b !important;
+[data-theme="fire"] .font-mono:is(.bg-slate-200\/80, .bg-slate-200) {
+    background-color: #2d1c16 !important;
+    color: #fbd5c3 !important;
+    border: 1px solid #4a2f25 !important;
+}
+[data-theme="fire"] .font-mono.bg-indigo-100 {
+    background-color: #4a1c10 !important;
+    color: #fed7aa !important;
+    border: 1px solid #7c2d12 !important;
+}
+[data-theme="fire"] .font-mono.bg-brand-100 {
+    background-color: #6c230e !important;
+    color: #ffedd5 !important;
+    border: 1px solid #9a3412 !important;
+}
+
+/* --- 2. Left Bar: Auth Status / Signed-In Button --- */
+[data-theme="dark"] #auth-status-container > div,
+[data-theme="earth"] #auth-status-container > div,
+[data-theme="fire"] #auth-status-container > div {
+    background-color: var(--theme-bg-input) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+[data-theme="dark"] #auth-status-container span,
+[data-theme="earth"] #auth-status-container span,
+[data-theme="fire"] #auth-status-container span {
+    color: var(--theme-text-primary) !important;
+}
+
+[data-theme="dark"] #auth-status-container button.text-rose-600,
+[data-theme="earth"] #auth-status-container button.text-rose-600,
+[data-theme="fire"] #auth-status-container button.text-rose-600 {
+    color: #fb7185 !important;
+}
+
+[data-theme="dark"] #auth-status-container button:not(.text-rose-600),
+[data-theme="earth"] #auth-status-container button:not(.text-rose-600),
+[data-theme="fire"] #auth-status-container button:not(.text-rose-600) {
+    background-color: var(--theme-bg-input) !important;
+    border-color: var(--theme-border) !important;
+    color: var(--theme-text-primary) !important;
+}
+
+/* --- 3. Focus Page: Expand Notes Button --- */
+[data-theme="dark"] button[onclick*="toggleProjectNotesModal"],
+[data-theme="earth"] button[onclick*="toggleProjectNotesModal"],
+[data-theme="fire"] button[onclick*="toggleProjectNotesModal"] {
+    background-color: var(--theme-bg-input) !important;
+    color: var(--theme-text-primary) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+[data-theme="dark"] button[onclick*="toggleProjectNotesModal"]:hover,
+[data-theme="earth"] button[onclick*="toggleProjectNotesModal"]:hover,
+[data-theme="fire"] button[onclick*="toggleProjectNotesModal"]:hover {
+    background-color: var(--theme-border) !important;
+}
+
+/* --- 4. Focus Page: Relock & Companion Utility Buttons --- */
+[data-theme="dark"] #btn-relock-all-mascots,
+[data-theme="earth"] #btn-relock-all-mascots,
+[data-theme="fire"] #btn-relock-all-mascots,
+[data-theme="dark"] button[onclick*="removeCompanion"],
+[data-theme="earth"] button[onclick*="removeCompanion"],
+[data-theme="fire"] button[onclick*="removeCompanion"] {
+    background-color: var(--theme-bg-input) !important;
+    color: var(--theme-text-primary) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+[data-theme="dark"] #btn-relock-all-mascots:hover,
+[data-theme="earth"] #btn-relock-all-mascots:hover,
+[data-theme="fire"] #btn-relock-all-mascots:hover,
+[data-theme="dark"] button[onclick*="removeCompanion"]:hover,
+[data-theme="earth"] button[onclick*="removeCompanion"]:hover,
+[data-theme="fire"] button[onclick*="removeCompanion"]:hover {
+    background-color: var(--theme-border) !important;
+}
+
+/* --- 5. Calendar Page: Gentle Recalibration Box --- */
+[data-theme="dark"] .bg-amber-50\/50 {
+    background-color: #211606 !important;
+    border-color: #5c3b09 !important;
+}
+[data-theme="earth"] .bg-amber-50\/50 {
+    background-color: #1c1809 !important;
+    border-color: #4a3e14 !important;
+}
+[data-theme="fire"] .bg-amber-50\/50 {
+    background-color: #291207 !important;
+    border-color: #69280d !important;
+}
+
+[data-theme="dark"] .bg-amber-50\/50 .text-amber-900,
+[data-theme="earth"] .bg-amber-50\/50 .text-amber-900,
+[data-theme="fire"] .bg-amber-50\/50 .text-amber-900 {
     color: #fde68a !important;
+}
+
+[data-theme="dark"] #horizon-count-recalibrate,
+[data-theme="earth"] #horizon-count-recalibrate,
+[data-theme="fire"] #horizon-count-recalibrate {
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] #horizon-list-recalibrate > div,
+[data-theme="earth"] #horizon-list-recalibrate > div,
+[data-theme="fire"] #horizon-list-recalibrate > div {
+    background-color: var(--theme-bg-card-subtle) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+[data-theme="dark"] #horizon-list-recalibrate .bg-amber-100,
+[data-theme="earth"] #horizon-list-recalibrate .bg-amber-100,
+[data-theme="fire"] #horizon-list-recalibrate .bg-amber-100 {
+    background-color: #452408 !important;
+    color: #fde68a !important;
+    border: 1px solid #78350f !important;
+}
+
+[data-theme="dark"] #horizon-list-recalibrate button,
+[data-theme="earth"] #horizon-list-recalibrate button,
+[data-theme="fire"] #horizon-list-recalibrate button {
+    background-color: var(--theme-bg-input) !important;
+    color: var(--theme-text-secondary) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+[data-theme="dark"] #horizon-list-recalibrate button:hover,
+[data-theme="earth"] #horizon-list-recalibrate button:hover,
+[data-theme="fire"] #horizon-list-recalibrate button:hover {
+    background-color: var(--theme-border) !important;
+    color: var(--theme-text-primary) !important;
+}
+
+/* --- 6. Calendar Page: Date Cells & Task Items Visibility --- */
+[data-theme="dark"] #calendar-days-grid > div,
+[data-theme="earth"] #calendar-days-grid > div,
+[data-theme="fire"] #calendar-days-grid > div {
+    background-color: var(--theme-bg-card) !important;
+    border: 1px solid var(--theme-border) !important;
+}
+
+/* Selected / Today Calendar Cell */
+[data-theme="dark"] #calendar-days-grid > div.border-brand-500 {
+    border-color: #6366f1 !important;
+    background-color: #14172c !important;
+}
+[data-theme="earth"] #calendar-days-grid > div.border-brand-500 {
+    border-color: #10b981 !important;
+    background-color: #142419 !important;
+}
+[data-theme="fire"] #calendar-days-grid > div.border-brand-500 {
+    border-color: #f97316 !important;
+    background-color: #2b170f !important;
+}
+
+[data-theme="dark"] #calendar-days-grid span.text-slate-500,
+[data-theme="earth"] #calendar-days-grid span.text-slate-500,
+[data-theme="fire"] #calendar-days-grid span.text-slate-500 {
+    color: var(--theme-text-muted) !important;
+}
+
+[data-theme="dark"] #calendar-days-grid span.bg-brand-100,
+[data-theme="earth"] #calendar-days-grid span.bg-brand-100,
+[data-theme="fire"] #calendar-days-grid span.bg-brand-100 {
+    background-color: var(--theme-accent-bg) !important;
+    color: var(--theme-accent-text) !important;
+    border: 1px solid var(--theme-accent-border) !important;
+}
+
+/* Project Badge inside Calendar Cells */
+[data-theme="dark"] #calendar-days-grid .bg-indigo-100 {
+    background-color: #271d4a !important;
+    color: #c7d2fe !important;
+    border: 1px solid #4338ca !important;
+}
+[data-theme="earth"] #calendar-days-grid .bg-indigo-100 {
+    background-color: #153320 !important;
+    color: #a7f3d0 !important;
+    border: 1px solid #235c3b !important;
+}
+[data-theme="fire"] #calendar-days-grid .bg-indigo-100 {
+    background-color: #3b160c !important;
+    color: #fed7aa !important;
+    border: 1px solid #7c2d12 !important;
+}
+
+/* Task Badge inside Calendar Cells */
+[data-theme="dark"] #calendar-days-grid .bg-brand-500 {
+    background-color: #4f46e5 !important;
+    color: #ffffff !important;
+}
+[data-theme="earth"] #calendar-days-grid .bg-brand-500 {
+    background-color: #059669 !important;
+    color: #ffffff !important;
+}
+[data-theme="fire"] #calendar-days-grid .bg-brand-500 {
+    background-color: #ea580c !important;
+    color: #ffffff !important;
+}
+
+/* Completed Tasks inside Calendar Cells */
+[data-theme="dark"] #calendar-days-grid .bg-slate-100,
+[data-theme="earth"] #calendar-days-grid .bg-slate-100,
+[data-theme="fire"] #calendar-days-grid .bg-slate-100 {
+    background-color: var(--theme-bg-input) !important;
+    color: var(--theme-text-muted) !important;
+    border: 1px solid var(--theme-border-subtle) !important;
+}
+
+/* Empty Padding Days in Month */
+[data-theme="dark"] #calendar-days-grid > div.opacity-40,
+[data-theme="earth"] #calendar-days-grid > div.opacity-40,
+[data-theme="fire"] #calendar-days-grid > div.opacity-40 {
+    background-color: var(--theme-bg-page) !important;
+    border-color: var(--theme-border-subtle) !important;
+}
+
+/* --- 7. Analytics Page: Rolling Momentum Battery Box --- */
+[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 {
+    background-color: #06281e !important;
+    border-color: #0d5940 !important;
+}
+[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 {
+    background-color: #112618 !important;
+    border-color: #1d4e2d !important;
+}
+[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 {
+    background-color: #24180d !important;
+    border-color: #5c3510 !important;
+}
+
+[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .bg-emerald-100,
+[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .bg-emerald-100,
+[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .bg-emerald-100 {
+    background-color: rgba(16, 185, 129, 0.2) !important;
+    color: #6ee7b7 !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
+}
+
+[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-950,
+[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-950,
+[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-950 {
+    color: #f0fdf4 !important;
+}
+
+[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-700,
+[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-700,
+[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-700 {
+    color: #a7f3d0 !important;
+}
+
+[data-theme="dark"] #stat-battery-pct,
+[data-theme="earth"] #stat-battery-pct,
+[data-theme="fire"] #stat-battery-pct {
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .bg-white,
+[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .bg-white,
+[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .bg-white {
+    background-color: var(--theme-bg-input) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
 }
 
 /* Modals */
