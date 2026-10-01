@@ -86,14 +86,17 @@ function getCompletedRootProjects() {
 function switchView(viewName) {
     currentView = viewName;
     const focusContainer = document.getElementById('view-focus-container');
+    const mapContainer = document.getElementById('view-map-container');
     const calContainer = document.getElementById('view-calendar-container');
     const analyticsContainer = document.getElementById('view-analytics-container');
 
     const navFocus = document.getElementById('nav-focus');
+    const navMap = document.getElementById('nav-map');
     const navCal = document.getElementById('nav-calendar');
     const navAnalytics = document.getElementById('nav-analytics');
 
     if (focusContainer) focusContainer.classList.toggle('hidden', viewName !== 'focus');
+    if (mapContainer) mapContainer.classList.toggle('hidden', viewName !== 'map');
     if (calContainer) calContainer.classList.toggle('hidden', viewName !== 'calendar');
     if (analyticsContainer) analyticsContainer.classList.toggle('hidden', viewName !== 'analytics');
 
@@ -101,10 +104,13 @@ function switchView(viewName) {
     const inactiveNavClass = "flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1";
 
     if (navFocus) navFocus.className = viewName === 'focus' ? activeNavClass : inactiveNavClass;
+    if (navMap) navMap.className = viewName === 'map' ? activeNavClass : inactiveNavClass;
     if (navCal) navCal.className = viewName === 'calendar' ? activeNavClass : inactiveNavClass;
     if (navAnalytics) navAnalytics.className = viewName === 'analytics' ? activeNavClass : inactiveNavClass;
 
-    if (viewName === 'calendar' && typeof renderCalendarView === 'function') {
+    if (viewName === 'map') {
+        renderMapView();
+    } else if (viewName === 'calendar' && typeof renderCalendarView === 'function') {
         renderCalendarView();
     } else if (viewName === 'analytics' && typeof renderAnalytics === 'function') {
         renderAnalytics(30);
@@ -112,6 +118,234 @@ function switchView(viewName) {
         renderApp();
     }
     safeCreateIcons();
+}
+
+// --- Project Terrain Map Engine (Panoramic Macro Visualization) ---
+let currentMappedRootId = null;
+
+function renderMapView(selectedRootId = null) {
+    const selector = document.getElementById('map-project-selector');
+    const canvas = document.getElementById('map-canvas-container');
+    if (!canvas) return;
+
+    // Get all root projects
+    const allRoots = (appState.projects || []).filter(p => !p.parentId);
+    if (allRoots.length === 0) {
+        canvas.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">No projects exist yet. Create a project to view its terrain map.</div>`;
+        return;
+    }
+
+    // Determine current root to inspect
+    if (selectedRootId) {
+        currentMappedRootId = selectedRootId;
+    } else if (!currentMappedRootId || !allRoots.some(r => r.id === currentMappedRootId)) {
+        const activeProj = getActiveProject();
+        const rootOfActive = activeProj ? getRootProject(activeProj) : allRoots[0];
+        currentMappedRootId = rootOfActive ? rootOfActive.id : allRoots[0].id;
+    }
+
+    const currentRoot = allRoots.find(r => r.id === currentMappedRootId) || allRoots[0];
+
+    // Populate Selector Dropdown
+    if (selector) {
+        selector.innerHTML = allRoots.map(r => `
+            <option value="${r.id}" ${r.id === currentRoot.id ? 'selected' : ''}>
+                ${r.title} ${r.isParked ? '(Parked)' : ''} ${r.completedAt ? '✓' : ''}
+            </option>
+        `).join('');
+    }
+
+    // Header Details
+    document.getElementById('map-project-title').textContent = currentRoot.title;
+    document.getElementById('map-project-goal').textContent = currentRoot.goal || 'No North Star goal attached.';
+    const totalRootSec = getCumulativeTime(currentRoot.id);
+    document.getElementById('map-project-total-time').textContent = formatTimeHuman(totalRootSec);
+
+    // Effort Allocation Calculation
+    const subTracks = (appState.projects || []).filter(p => p.parentId === currentRoot.id);
+    const effortBar = document.getElementById('map-effort-bar');
+    const effortLegend = document.getElementById('map-effort-legend');
+
+    const palette = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6', '#14b8a6'];
+
+    if (subTracks.length === 0 || totalRootSec === 0) {
+        effortBar.innerHTML = `<div class="w-full h-full bg-slate-200 flex items-center justify-center text-[9px] text-slate-400 font-mono font-semibold">No track telemetry logged yet</div>`;
+        effortLegend.innerHTML = `<span class="text-slate-400 italic">Work across sub-tracks to see momentum distribution.</span>`;
+    } else {
+        let barHtml = '';
+        let legendHtml = '';
+        subTracks.forEach((sub, idx) => {
+            const subSec = getCumulativeTime(sub.id);
+            const pct = Math.round((subSec / totalRootSec) * 100);
+            const color = palette[idx % palette.length];
+            if (pct > 0) {
+                barHtml += `<div style="width: ${pct}%; background-color: ${color};" title="${sub.title}: ${pct}% (${formatTimeHuman(subSec)})"></div>`;
+            }
+            legendHtml += `
+                <div class="flex items-center gap-1.5 font-medium">
+                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${color};"></span>
+                    <span class="text-slate-700">${sub.title}</span>
+                    <span class="text-slate-400 font-mono font-semibold">(${pct}%)</span>
+                </div>
+            `;
+        });
+        effortBar.innerHTML = barHtml || `<div class="w-full h-full bg-slate-200"></div>`;
+        effortLegend.innerHTML = legendHtml;
+    }
+
+    // Render Terrain Board
+    // Case A: Root has direct tasks (Leaf Project)
+    if (subTracks.length === 0) {
+        canvas.innerHTML = `
+            <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <h3 class="font-extrabold text-sm text-slate-900">Direct Action Tasks</h3>
+                        <p class="text-xs text-slate-400">This project executes at root tier without sub-projects.</p>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                        ${(currentRoot.tasks || []).filter(t => t.isCompleted).length}/${(currentRoot.tasks || []).length} done
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${renderMapTaskList(currentRoot.tasks || [], currentRoot.id)}
+                </div>
+            </div>
+        `;
+        safeCreateIcons();
+        return;
+    }
+
+    // Case B: Full Hierarchy (Sub-Projects & Component Tracks)
+    let boardHtml = '';
+    subTracks.forEach((sub, idx) => {
+        const components = (appState.projects || []).filter(p => p.parentId === sub.id);
+        const subSec = getCumulativeTime(sub.id);
+        const subColor = palette[idx % palette.length];
+
+        boardHtml += `
+            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${subColor};"></span>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-black text-base text-slate-900 truncate">${sub.title}</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700">Tier 2 Track</span>
+                            </div>
+                            ${sub.notes ? `<p class="text-xs text-slate-500 mt-0.5 whitespace-pre-line leading-relaxed">${sub.notes}</p>` : ''}
+                        </div>
+                    </div>
+                    <span class="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full self-start sm:self-auto shrink-0">
+                        ${formatTimeHuman(subSec)} invested
+                    </span>
+                </div>
+        `;
+
+        if (components.length === 0) {
+            // Sub-project directly holds tasks
+            boardHtml += `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    ${renderMapTaskList(sub.tasks || [], sub.id)}
+                </div>
+            `;
+        } else {
+            // Components inside Sub-project
+            boardHtml += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
+            components.forEach(comp => {
+                const compTasks = comp.tasks || [];
+                const doneCount = compTasks.filter(t => t.isCompleted).length;
+                boardHtml += `
+                    <div class="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-extrabold text-xs text-slate-800 truncate">${comp.title}</span>
+                                    <span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-brand-100 text-brand-700">Tier 3</span>
+                                </div>
+                                ${comp.notes ? `<p class="text-[11px] text-slate-400 truncate mt-0.5">${comp.notes}</p>` : ''}
+                            </div>
+                            <span class="text-[10px] font-mono font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
+                                ${doneCount}/${compTasks.length} done
+                            </span>
+                        </div>
+                        <div class="space-y-2">
+                            ${renderMapTaskList(compTasks, comp.id)}
+                        </div>
+                    </div>
+                `;
+            });
+            boardHtml += `</div>`;
+        }
+
+        boardHtml += `</div>`;
+    });
+
+    canvas.innerHTML = boardHtml;
+    safeCreateIcons();
+}
+
+function renderMapTaskList(tasks, projectId) {
+    if (!tasks || tasks.length === 0) {
+        return `<p class="text-xs text-slate-400 italic py-2">No tasks created yet.</p>`;
+    }
+
+    return tasks.map(t => {
+        const microCount = (t.microSteps || []).length;
+        const microDone = (t.microSteps || []).filter(ms => ms.isCompleted).length;
+
+        return `
+            <div class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2 shadow-2xs hover:border-brand-400 transition-all flex flex-col justify-between">
+                <div class="space-y-1.5">
+                    <div class="flex items-start justify-between gap-2">
+                        <span class="text-xs font-bold leading-snug ${t.isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">
+                            ${t.title}
+                        </span>
+                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${t.isCompleted ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
+                            ${t.isCompleted ? 'Done' : 'Open'}
+                        </span>
+                    </div>
+
+                    ${t.notes ? `
+                        <p class="text-[11px] text-slate-500 leading-relaxed whitespace-pre-line line-clamp-3 bg-slate-50 p-2 rounded-xl border border-slate-100 font-normal">
+                            ${t.notes}
+                        </p>
+                    ` : ''}
+
+                    ${microCount > 0 ? `
+                        <div class="space-y-1 pt-1">
+                            <span class="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Atomic Micro-Steps (${microDone}/${microCount})</span>
+                            <div class="space-y-1">
+                                ${t.microSteps.map(ms => `
+                                    <div class="flex items-center gap-1.5 text-[10px] text-slate-600 truncate">
+                                        <i data-lucide="${ms.isCompleted ? 'check-circle' : 'circle'}" class="w-3 h-3 ${ms.isCompleted ? 'text-emerald-500' : 'text-slate-300'} shrink-0"></i>
+                                        <span class="truncate ${ms.isCompleted ? 'line-through text-slate-400' : ''}">${ms.title}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-[10px] font-mono text-slate-400 font-semibold">
+                        ${t.actualTime > 0 ? `${formatTimeCompact(t.actualTime)} spent` : 'Ready to start'}
+                    </span>
+                    <button onclick="focusTaskFromMap('${projectId}', '${t.id}')" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1">
+                        <i data-lucide="target" class="w-3 h-3"></i> Focus
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function focusTaskFromMap(projectId, taskId) {
+    appState.activeProjectId = projectId;
+    const p = (appState.projects || []).find(x => x.id === projectId);
+    if (p) p.activeTaskId = taskId;
+    saveStateLocally();
+    switchView('focus');
 }
 
 // --- Sprint Novelty Engine ---
