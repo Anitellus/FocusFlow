@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col md:flex-row selection:bg-brand-100 selection:text-brand-900">
-    <!-- Mobile Header with Theme Toggle -->
+    <!-- Mobile Header -->
     <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-30 shrink-0">
         <div class="flex items-center gap-2 font-bold text-brand-600 text-lg"><i data-lucide="layers" class="w-6 h-6"></i><span>Focus Flow</span></div>
         <div class="flex items-center gap-2">
@@ -33,7 +33,6 @@
     <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 hidden md:hidden"></div>
 
     <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 w-80 bg-slate-100/95 border-r border-slate-200 flex flex-col backdrop-blur-xl shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-        <!-- Sidebar Header with Theme Toggle -->
         <div class="p-5 border-b border-slate-200/60 flex items-center justify-between">
             <button onclick="toggleInstructionsModal()" aria-label="Instructions" class="flex items-center gap-2.5 text-brand-600 font-bold text-xl tracking-tight text-left focus:outline-none group">
                 <i data-lucide="layers" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span>Focus Flow</span><i data-lucide="help-circle" class="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors"></i>
@@ -45,13 +44,16 @@
                 <button onclick="closeMobileSidebar()" aria-label="Close Sidebar" class="md:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
         </div>
+        
+        <!-- 5-View Primary Navigation -->
         <div class="px-2.5 py-2.5 flex gap-1 border-b border-slate-200/60 font-sans-ui">
             <button onclick="switchView('focus')" id="nav-focus" aria-label="Focus View" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5"></i> Focus</button>
-            <button onclick="TreeScopeEngine.open()" id="nav-map" aria-label="TreeScope Map" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="compass" class="w-3.5 h-3.5"></i> Map</button>
-            <button onclick="ProgressionEngine.openModal()" id="nav-progress" aria-label="Progression Tracker" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progress</button>
+            <button onclick="switchView('map')" id="nav-map" aria-label="Project Map" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="compass" class="w-3.5 h-3.5"></i> Map</button>
+            <button onclick="switchView('progress')" id="nav-progress" aria-label="Progression Tracker" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progress</button>
             <button onclick="switchView('calendar')" id="nav-calendar" aria-label="Calendar View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Cal</button>
             <button onclick="switchView('analytics')" id="nav-analytics" aria-label="Analytics View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Stats</button>
         </div>
+
         <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2.5 bg-indigo-50/70 hover:bg-indigo-100/70 border-b border-slate-200/60 font-sans-ui cursor-pointer transition-colors">
             <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950"><span id="sprint-cycle-label">Sprint: Day 1 of 30</span><span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span></div>
             <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden"><div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div></div>
@@ -80,6 +82,7 @@
         </div>
     </aside>
 
+    <!-- 1. Focus View -->
     <main id="view-focus-container" class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
         <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md">
             <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
@@ -96,7 +99,6 @@
                     </div>
                 </div>
                 
-                <!-- Project Controls: Time Spent, Deadline, and Project Completion Trigger -->
                 <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-soft ring-1 ring-slate-900/5 shrink-0 self-end lg:self-auto">
                     <div class="flex flex-col text-right">
                         <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">TIME SPENT</span>
@@ -140,7 +142,6 @@
                                     <div class="space-y-1"><div class="flex justify-between text-[10px] font-bold text-slate-500"><span>Volume</span><span id="volume-label">80%</span></div><input type="range" aria-label="Volume Slider" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer"></div>
                                     <div class="space-y-1"><label class="text-[10px] font-bold text-slate-500 block">Sound Style</label><select aria-label="Audio Style" id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold text-slate-700 outline-none"><option value="woodblock">Woodblock (Acoustic)</option><option value="pip">8-Bit Pip (Chiptune)</option><option value="zen">Zen Chord (Pure Sine)</option></select></div>
                                 </div>
-                                <!-- Visual Theme Selection Button in Stage Toolbar -->
                                 <button onclick="toggleThemePopover(event)" aria-label="Theme Selection" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Visual Theme">
                                     <i data-lucide="palette" class="w-4 h-4"></i>
                                 </button>
@@ -176,7 +177,6 @@
                             <div class="flex items-center gap-2 pt-1"><input type="text" aria-label="Custom Microstep" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step..."><button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button></div>
                         </div>
 
-                        <!-- Editable Notes, Target Minutes, and Deadline -->
                         <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
                             <div class="flex-1">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
@@ -216,57 +216,107 @@
             </div>
         </div>
     </main>
+
+    <!-- 2. Project Map View (1-Row Clean Header & Autostack Stage) -->
+    <main id="view-map-container" class="flex-1 flex flex-col h-full overflow-hidden bg-[#090d16] text-[#f8fafc] hidden font-sans-ui">
+        <!-- 1-Row Header -->
+        <header id="map-header-bar" class="bg-[#121826] border-b border-[#24324f] px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0 text-[#f8fafc] h-14">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <span class="text-sm sm:text-base font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="compass" class="w-4 h-4 sm:w-5 sm:h-5 text-[#38bdf8]"></i> Project Map
+                </span>
+                <select id="map-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#090d16] text-[#f8fafc] border border-[#24324f] px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none focus:border-[#38bdf8] max-w-[150px] sm:max-w-[210px] truncate"></select>
+                
+                <!-- Goal Button with Mouseover Hover Card -->
+                <div class="relative group shrink-0">
+                    <button id="map-goal-btn" class="px-2.5 py-1 bg-[#1e293b] hover:bg-[#334155] text-[#38bdf8] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                        <i data-lucide="target" class="w-3.5 h-3.5 text-[#38bdf8]"></i>
+                        <span class="hidden sm:inline">Goal</span>
+                    </button>
+                    <div id="map-goal-tooltip" class="absolute left-0 top-full mt-2 z-50 w-72 sm:w-80 p-3 bg-[#0f172a] border border-[#38bdf8]/40 rounded-xl shadow-2xl text-xs text-slate-200 hidden group-hover:block transition-all pointer-events-none">
+                        <div class="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] font-mono mb-1 flex items-center gap-1">
+                            <i data-lucide="target" class="w-3 h-3"></i> North Star Goal
+                        </div>
+                        <p id="map-goal-tooltip-text" class="text-xs text-slate-200 font-medium leading-relaxed">No North Star Goal defined.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <!-- Fit Screen with Active Indicator -->
+                <button id="map-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#182236] text-[#38bdf8] border border-[#38bdf8] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer" title="Toggle Fit to Screen">
+                    <span id="map-fit-dot" class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                    <span class="hidden md:inline">Fit Screen</span>
+                </button>
+
+                <!-- Auto-Stack Button -->
+                <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Auto-Stack Columns (2 Rows)">
+                    <span>⊞</span> <span class="hidden md:inline">Auto-Stack</span>
+                </button>
+
+                <!-- Separate All Button -->
+                <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Separate All Columns">
+                    <span>⎌</span> <span class="hidden md:inline">Separate All</span>
+                </button>
+
+                <!-- Global Depth Dropdown -->
+                <select id="map-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#090d16] text-[#38bdf8] border border-[#24324f] px-2 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none max-w-[110px] sm:max-w-none">
+                    <option value="1" selected>L1: Sub-Projects Only</option>
+                    <option value="2">L2: + Component Tracks</option>
+                    <option value="3">L3: + Tasks</option>
+                    <option value="4">L4: + Micro-tasks (Full)</option>
+                    <option value="all">Expand All</option>
+                    <option value="collapse">Collapse All (L1)</option>
+                </select>
+
+                <!-- Fullscreen / Exit Map Toggle -->
+                <button id="map-fullscreen-btn" onclick="TreeScopeEngine.toggleFullscreen()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                    <i data-lucide="maximize-2" class="w-3.5 h-3.5" id="map-fullscreen-icon"></i>
+                    <span id="map-fullscreen-label">Fullscreen</span>
+                </button>
+            </div>
+        </header>
+
+        <div id="map-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></div>
     </main>
 
-    <!-- Project Terrain Map (Big Picture Panorama) -->
-    <main id="view-map-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
+    <!-- 3. Progress Tab Page (First-Class Page, No Popup Modal) -->
+    <main id="view-progress-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
         <header class="px-4 sm:px-8 py-4 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
             <div>
                 <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <i data-lucide="compass" class="w-5 h-5 text-brand-600"></i> Project Terrain Map
+                    <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Project Progression & Output Variables
                 </h1>
-                <p class="text-xs text-slate-500 mt-0.5">Shame-free macro architecture, structural scope, and effort balance.</p>
+                <p class="text-xs text-slate-500 mt-0.5">Track Elo/MMR numbers, subscriber counts, or visual drawing journal archives.</p>
             </div>
             <div class="flex items-center gap-2 self-start sm:self-auto">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Inspecting:</label>
-                <select id="map-project-selector" onchange="renderMapView(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project:</label>
+                <select id="prog-project-select" onchange="ProgressionEngine.switchProject(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
             </div>
         </header>
 
         <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
-            <div class="max-w-7xl mx-auto space-y-6">
-                <!-- North Star & Effort Allocation Banner -->
-                <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200/80 space-y-4">
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div class="space-y-1">
-                            <span class="text-[10px] font-bold text-brand-600 uppercase tracking-widest font-mono">NORTH STAR OBJECTIVE</span>
-                            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900" id="map-project-title">Select a Project</h2>
-                            <p class="text-xs text-slate-600 font-medium" id="map-project-goal">No goal defined.</p>
-                        </div>
-                        <div class="text-left md:text-right shrink-0">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">TOTAL INVESTED FOCUS</span>
-                            <span class="text-xl font-bold font-mono text-slate-800" id="map-project-total-time">0h 0m</span>
-                        </div>
-                    </div>
-
-                    <!-- Effort Allocation Breakdown Bar -->
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between text-xs font-bold text-slate-700">
-                            <span class="flex items-center gap-1.5"><i data-lucide="pie-chart" class="w-3.5 h-3.5 text-brand-500"></i> Track Effort Distribution</span>
-                            <span class="text-[10px] font-mono text-slate-400 font-normal">Where work is concentrating</span>
-                        </div>
-                        <div id="map-effort-bar" class="w-full h-3 rounded-full bg-slate-100 flex overflow-hidden border border-slate-200/80"></div>
-                        <div id="map-effort-legend" class="flex flex-wrap gap-3 pt-1 text-[11px]"></div>
-                    </div>
+            <div class="max-w-5xl mx-auto space-y-5">
+                <!-- Mode Switcher Tabs -->
+                <div class="flex gap-2 p-1 bg-slate-200/70 rounded-2xl">
+                    <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">
+                        📊 Quantitative Metrics (Elo, MMR, Counts)
+                    </button>
+                    <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">
+                        🎨 Visual Journal (Drawings & Photos)
+                    </button>
+                    <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">
+                        ✓ Simple Milestone (Binary)
+                    </button>
                 </div>
 
-                <!-- Hierarchical Board Columns Canvas -->
-                <div id="map-canvas-container" class="space-y-6"></div>
+                <!-- Page Content Area -->
+                <div id="prog-page-content" class="space-y-4"></div>
             </div>
         </div>
     </main>
 
-    <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
+    <!-- 4. Calendar View -->
     <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
         <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3">
             <div><h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Calendar & Temporal Horizons</h1><p class="text-xs text-slate-500 mt-0.5">Compassionate scheduling and shame-free date calibration.</p></div>
@@ -289,6 +339,7 @@
         </div>
     </main>
 
+    <!-- 5. Analytics View -->
     <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
         <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm"><h1 class="text-xl sm:text-2xl font-bold text-slate-800">Analytics & Retrospective</h1><p class="text-xs text-slate-500 mt-0.5">Compassionate biofeedback, time perception audits, and sustainable momentum calibration.</p></header>
         <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
@@ -317,6 +368,7 @@
         </div>
     </main>
 
+    <!-- Modals & Overlays -->
     <div id="zen-overlay" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col font-sans-ui overflow-hidden transition-all duration-500 items-center justify-center">
         <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
             <div id="mascot-roam-wrapper" class="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer mascot-roam hidden">
@@ -340,36 +392,24 @@
         </div>
     </div>
 
-    <!-- Visual Theme Selector Popover (Floating Palette Modal) -->
+    <!-- Theme Selector Modal -->
     <div id="theme-popover" class="fixed top-16 left-4 sm:left-20 md:left-80 z-50 w-72 bg-white p-4 rounded-3xl shadow-2xl border border-slate-200 hidden font-sans-ui space-y-3">
         <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div class="flex items-center gap-2">
-                <i data-lucide="palette" class="w-4 h-4 text-brand-600"></i>
-                <span class="text-xs font-bold text-slate-800">Visual Theme</span>
-            </div>
-            <button onclick="closeThemePopover()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
-                <i data-lucide="x" class="w-3.5 h-3.5"></i>
-            </button>
+            <div class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4 text-brand-600"></i><span class="text-xs font-bold text-slate-800">Visual Theme</span></div>
+            <button onclick="closeThemePopover()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
         </div>
         <div class="space-y-1.5" id="theme-options-container"></div>
     </div>
 
-    <!-- Modals -->
     <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div>
-                    <div><h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3><p class="text-[11px] text-slate-400">Dopamine checkpoint and shame-free sprint calibration.</p></div></div><button onclick="closeSprintReviewModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-slate-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div><p class="text-[11px] text-slate-500">Every 30 days is a natural reset boundary. ADHD brains thrive on novelty.</p></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sprint Actions</label><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Analytics</button></div></div></div></div></div>
+                <div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3><p class="text-[11px] text-slate-400">Dopamine checkpoint and shame-free sprint calibration.</p></div></div><button onclick="closeSprintReviewModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-slate-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div><p class="text-[11px] text-slate-500">Every 30 days is a natural reset boundary. ADHD brains thrive on novelty.</p></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sprint Actions</label><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Analytics</button></div></div></div></div></div>
     
     <div id="blueprint-modal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div>
-                    <div><h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3>
-                        <p class="text-[11px] text-slate-400">Transform conversational plans into active FocusFlow workspaces.</p></div>
-                </div><button onclick="BlueprintEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div>
+                <div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3><p class="text-[11px] text-slate-400">Transform conversational plans into active FocusFlow workspaces.</p></div></div><button onclick="BlueprintEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div>
             <div class="space-y-3 flex-1 overflow-y-auto">
                 <div class="flex flex-wrap gap-2">
                     <button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button>
@@ -383,72 +423,38 @@
     <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes & Resources</h3><button onclick="toggleProjectNotesModal()" aria-label="Close" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6"><textarea aria-label="Full project notes" id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea></div><div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end"><button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500">Save Changes</button></div></div></div>
     <div id="backdrop-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><h3 class="font-bold text-sm text-slate-800">Stage Backdrop Designer</h3><button onclick="toggleBackdropModal()" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="grid grid-cols-3 gap-3"><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Primary</label><input type="color" aria-label="Primary Color" id="picker-primary" value="#090d16" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Secondary</label><input type="color" aria-label="Secondary Color" id="picker-secondary" value="#1e1b4b" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Tertiary</label><input type="color" aria-label="Tertiary Color" id="picker-tertiary" value="#4338ca" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Gradient Architecture</label><select aria-label="Background Gradient Style" id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-700 outline-none"><option value="radial-center">Radial Center Glow</option><option value="spotlight">Corner Spotlight Glow</option><option value="linear-diag">Diagonal Split (45°)</option><option value="linear-vert">Vertical Gradient</option><option value="mesh">3-Color Mesh Atmosphere</option><option value="solid">Solid Primary Color</option></select></div></div></div>
 
-    <!-- Project Retrospective / Post-Doc Modal -->
     <div id="project-retrospective-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div class="flex items-center gap-2.5">
-                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl">
-                        <i data-lucide="award" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-base text-slate-900" id="postdoc-modal-title">Project Post-Doc</h3>
-                        <p class="text-[11px] text-slate-400" id="postdoc-modal-subtitle">Momentum Retrospective & Calibration Summary</p>
-                    </div>
+                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><i data-lucide="award" class="w-6 h-6"></i></div>
+                    <div><h3 class="font-extrabold text-base text-slate-900" id="postdoc-modal-title">Project Post-Doc</h3><p class="text-[11px] text-slate-400" id="postdoc-modal-subtitle">Momentum Retrospective & Calibration Summary</p></div>
                 </div>
-                <button onclick="closeProjectRetrospectiveModal()" aria-label="Close Retrospective" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
+                <button onclick="closeProjectRetrospectiveModal()" aria-label="Close Retrospective" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-
             <div class="space-y-4 flex-1 overflow-y-auto pr-1">
                 <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white space-y-1 shadow-sm">
                     <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-100">Milestone Conquered</span>
                     <h4 class="text-lg font-black tracking-tight" id="postdoc-headline">Project Completed!</h4>
                     <p class="text-xs text-emerald-50 opacity-90" id="postdoc-dates-label">Completed • active runway</p>
                 </div>
-
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Time Invested</span>
-                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-total-time">0h 0m</span>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Planned</span>
-                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-target-time">0h 0m</span>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Accuracy</span>
-                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-accuracy">0%</span>
-                    </div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center">
-                        <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tasks Solved</span>
-                        <span class="text-base font-bold font-mono text-slate-800" id="postdoc-tasks-count">0/0</span>
-                    </div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Time Invested</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-total-time">0h 0m</span></div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Planned</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-target-time">0h 0m</span></div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Accuracy</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-accuracy">0%</span></div>
+                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tasks Solved</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-tasks-count">0/0</span></div>
                 </div>
-
-                <div class="space-y-1.5">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Task Execution Log</label>
-                    <div class="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div>
-                </div>
-
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Post-Doc Debrief & Future Calibrations</label>
-                    <textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 outline-none focus:bg-white focus:border-emerald-400 transition-all" placeholder="What went smoothly? Where was time underestimated?"></textarea>
-                </div>
+                <div class="space-y-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Task Execution Log</label><div class="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div></div>
+                <div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Post-Doc Debrief & Future Calibrations</label><textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 outline-none focus:bg-white focus:border-emerald-400 transition-all" placeholder="What went smoothly? Where was time underestimated?"></textarea></div>
             </div>
-
             <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                <button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5">
-                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen Project
-                </button>
-                <button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">
-                    Done
-                </button>
+                <button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen Project</button>
+                <button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">Done</button>
             </div>
         </div>
     </div>
 
+    <!-- Core Scripts -->
     <script src="js/mascots.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/audio.js"></script>
@@ -458,94 +464,5 @@
     <script src="js/treescope.js"></script>
     <script src="js/progression.js"></script>
     <script src="js/app.js"></script>
-
-    <!-- TreeScope v3 Full-Screen Modular WBS Overlay -->
-    <div id="treescope-overlay" class="fixed inset-0 bg-[#090d16] text-[#f8fafc] z-50 hidden flex-col font-sans-ui overflow-hidden">
-        <!-- Header Row 1: Project Selector, Global Depth & Close -->
-        <header class="bg-[#121826] border-b border-[#24324f] px-5 py-2.5 flex justify-between items-center gap-4 shrink-0 h-13">
-            <div class="flex items-center gap-3.5">
-                <span class="text-lg font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5">
-                    <i data-lucide="compass" class="w-5 h-5"></i> TreeScope v3
-                </span>
-                <select id="ts-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#090d16] text-[#f8fafc] border border-[#24324f] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none focus:border-[#38bdf8]"></select>
-            </div>
-            <div class="flex items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Global Depth:</span>
-                    <select id="ts-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#090d16] text-[#38bdf8] border border-[#24324f] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none">
-                        <option value="1">L1: Sub-Projects Only</option>
-                        <option value="2">L2: + Component Tracks</option>
-                        <option value="3">L3: + Tasks</option>
-                        <option value="4" selected>L4: + Micro-tasks (Full)</option>
-                        <option value="all">Expand All</option>
-                        <option value="collapse">Collapse All (L1)</option>
-                    </select>
-                </div>
-                <button onclick="ProgressionEngine.openModal()" class="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
-                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progression
-                </button>
-                <button onclick="TreeScopeEngine.close()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-slate-700">
-                    <i data-lucide="x" class="w-3.5 h-3.5"></i> Exit Map
-                </button>
-            </div>
-        </header>
-
-        <!-- Header Row 2: North Star Goal & WBS Layout Actions -->
-        <div class="bg-[#0f1523] px-5 py-1.5 text-xs border-b border-[#24324f] flex justify-between items-center gap-4 shrink-0 min-h-[38px]">
-            <div class="flex items-center gap-2 overflow-hidden truncate">
-                <span class="bg-[#38bdf8]/15 text-[#38bdf8] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0">Goal</span>
-                <span id="ts-goal-text" class="text-slate-200 font-medium truncate">No North Star Goal defined.</span>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-                <button id="ts-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#38bdf8] border border-[#38bdf8] rounded text-[11px] font-bold transition-all flex items-center gap-1">
-                    <span>↔</span> <span id="ts-fit-label">Fit Screen</span>
-                </button>
-                <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded text-[11px] font-bold transition-all flex items-center gap-1">
-                    <span>⊞</span> Auto-Stack (2 Rows)
-                </button>
-                <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded text-[11px] font-bold transition-all flex items-center gap-1">
-                    <span>⎌</span> Separate All
-                </button>
-            </div>
-        </div>
-
-        <!-- Fullscreen Canvas Stage -->
-        <main id="ts-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></main>
-    </div>
-
-    <!-- Project Progression & Output Variable Modal -->
-    <div id="progression-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
-        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl">
-                        <i data-lucide="trending-up" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-extrabold text-base text-slate-900" id="prog-modal-title">Project Progression & Output Variables</h3>
-                        <p class="text-[11px] text-slate-400">Track real-world ratings, counts, or visual growth journals over time.</p>
-                    </div>
-                </div>
-                <button onclick="ProgressionEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <!-- Tracker Type Mode Bar -->
-            <div class="flex gap-2 p-1 bg-slate-100 rounded-xl">
-                <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center">
-                    📊 Quantitative Metrics (Elo, MMR, Counts)
-                </button>
-                <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center">
-                    🎨 Visual Journal (Drawings & Photos)
-                </button>
-                <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center">
-                    ✓ Simple Milestone (Binary)
-                </button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto space-y-4 pr-1" id="prog-body-container"></div>
-        </div>
-    </div>
 </body>
 </html>
