@@ -126,6 +126,12 @@ function loadDefaultData() {
         activeMascotId: 'm-shiba',
         createdAt: new Date().toISOString(),
         completedAt: null,
+        progression: {
+            type: 'binary', // 'binary' | 'metrics' | 'gallery'
+            metrics: [],    // e.g. ['2v2 MMR', '1v1 MMR'] or ['Subscribers', 'Views']
+            entries: [],    // [{ id, date, metric, value, notes }]
+            gallery: []     // [{ id, date, title, imageUrl, notes }]
+        },
         tasks: [{ 
             id: 't-1', title: 'Verify custom matrix SVGs and animations', estimatedTime: 1800, actualTime: 0, 
             isCompleted: false, deadline: '', notes: 'Check all complexity steps.', completionDate: null,
@@ -134,7 +140,6 @@ function loadDefaultData() {
     }];
     saveStateLocally();
 }
-
 function saveStateLocally() {
     localStorage.setItem(STORAGE_KEY_V11, JSON.stringify(appState));
 }
