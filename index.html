@@ -46,10 +46,11 @@
             </div>
         </div>
         <div class="px-2.5 py-2.5 flex gap-1 border-b border-slate-200/60 font-sans-ui">
-            <button onclick="switchView('focus')" id="nav-focus" aria-label="Focus View" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"><i data-lucide="target" class="w-3 h-3"></i> Focus</button>
-            <button onclick="switchView('map')" id="nav-map" aria-label="Terrain Map" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="compass" class="w-3 h-3"></i> Map</button>
-            <button onclick="switchView('calendar')" id="nav-calendar" aria-label="Calendar View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> Cal</button>
-            <button onclick="switchView('analytics')" id="nav-analytics" aria-label="Analytics View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="bar-chart-2" class="w-3 h-3"></i> Stats</button>
+            <button onclick="switchView('focus')" id="nav-focus" aria-label="Focus View" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5"></i> Focus</button>
+            <button onclick="TreeScopeEngine.open()" id="nav-map" aria-label="TreeScope Map" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="compass" class="w-3.5 h-3.5"></i> Map</button>
+            <button onclick="ProgressionEngine.openModal()" id="nav-progress" aria-label="Progression Tracker" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progress</button>
+            <button onclick="switchView('calendar')" id="nav-calendar" aria-label="Calendar View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Cal</button>
+            <button onclick="switchView('analytics')" id="nav-analytics" aria-label="Analytics View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Stats</button>
         </div>
         <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2.5 bg-indigo-50/70 hover:bg-indigo-100/70 border-b border-slate-200/60 font-sans-ui cursor-pointer transition-colors">
             <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950"><span id="sprint-cycle-label">Sprint: Day 1 of 30</span><span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span></div>
@@ -454,6 +455,97 @@
     <script src="js/analytics.js"></script>
     <script src="js/calendar.js"></script>
     <script src="js/blueprint.js"></script>
+    <script src="js/treescope.js"></script>
+    <script src="js/progression.js"></script>
     <script src="js/app.js"></script>
+
+    <!-- TreeScope v3 Full-Screen Modular WBS Overlay -->
+    <div id="treescope-overlay" class="fixed inset-0 bg-[#090d16] text-[#f8fafc] z-50 hidden flex-col font-sans-ui overflow-hidden">
+        <!-- Header Row 1: Project Selector, Global Depth & Close -->
+        <header class="bg-[#121826] border-b border-[#24324f] px-5 py-2.5 flex justify-between items-center gap-4 shrink-0 h-13">
+            <div class="flex items-center gap-3.5">
+                <span class="text-lg font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5">
+                    <i data-lucide="compass" class="w-5 h-5"></i> TreeScope v3
+                </span>
+                <select id="ts-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#090d16] text-[#f8fafc] border border-[#24324f] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none focus:border-[#38bdf8]"></select>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Global Depth:</span>
+                    <select id="ts-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#090d16] text-[#38bdf8] border border-[#24324f] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none">
+                        <option value="1">L1: Sub-Projects Only</option>
+                        <option value="2">L2: + Component Tracks</option>
+                        <option value="3">L3: + Tasks</option>
+                        <option value="4" selected>L4: + Micro-tasks (Full)</option>
+                        <option value="all">Expand All</option>
+                        <option value="collapse">Collapse All (L1)</option>
+                    </select>
+                </div>
+                <button onclick="ProgressionEngine.openModal()" class="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progression
+                </button>
+                <button onclick="TreeScopeEngine.close()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-slate-700">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i> Exit Map
+                </button>
+            </div>
+        </header>
+
+        <!-- Header Row 2: North Star Goal & WBS Layout Actions -->
+        <div class="bg-[#0f1523] px-5 py-1.5 text-xs border-b border-[#24324f] flex justify-between items-center gap-4 shrink-0 min-h-[38px]">
+            <div class="flex items-center gap-2 overflow-hidden truncate">
+                <span class="bg-[#38bdf8]/15 text-[#38bdf8] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0">Goal</span>
+                <span id="ts-goal-text" class="text-slate-200 font-medium truncate">No North Star Goal defined.</span>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="ts-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#38bdf8] border border-[#38bdf8] rounded text-[11px] font-bold transition-all flex items-center gap-1">
+                    <span>↔</span> <span id="ts-fit-label">Fit Screen</span>
+                </button>
+                <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded text-[11px] font-bold transition-all flex items-center gap-1">
+                    <span>⊞</span> Auto-Stack (2 Rows)
+                </button>
+                <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded text-[11px] font-bold transition-all flex items-center gap-1">
+                    <span>⎌</span> Separate All
+                </button>
+            </div>
+        </div>
+
+        <!-- Fullscreen Canvas Stage -->
+        <main id="ts-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></main>
+    </div>
+
+    <!-- Project Progression & Output Variable Modal -->
+    <div id="progression-modal" class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl">
+                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-base text-slate-900" id="prog-modal-title">Project Progression & Output Variables</h3>
+                        <p class="text-[11px] text-slate-400">Track real-world ratings, counts, or visual growth journals over time.</p>
+                    </div>
+                </div>
+                <button onclick="ProgressionEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Tracker Type Mode Bar -->
+            <div class="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center">
+                    📊 Quantitative Metrics (Elo, MMR, Counts)
+                </button>
+                <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center">
+                    🎨 Visual Journal (Drawings & Photos)
+                </button>
+                <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center">
+                    ✓ Simple Milestone (Binary)
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-4 pr-1" id="prog-body-container"></div>
+        </div>
+    </div>
 </body>
 </html>
