@@ -1,5 +1,5 @@
 // ============================================================================
-// Focus Flow | TreeScope v3 Modular WBS Board Engine (js/treescope.js)
+// Focus Flow | Project Map Board Engine (js/treescope.js)
 // ============================================================================
 
 const TreeScopeEngine = {
@@ -7,34 +7,26 @@ const TreeScopeEngine = {
     columnLayout: [], // Array of columns: [ [subId1], [subId2, subId3] ]
     combiningSubId: null,
     activeProjectId: null,
+    isFullscreen: false,
+    currentDepth: '1', // Default: Level 1 (Sub-Projects only)
 
     open() {
-        const overlay = document.getElementById('treescope-overlay');
-        if (!overlay) return;
-        overlay.classList.remove('hidden');
-        overlay.classList.add('flex');
-
-        const activeProj = getActiveProject();
-        const root = activeProj ? getRootProject(activeProj) : (appState.projects || [])[0];
-        this.activeProjectId = root ? root.id : null;
-
-        this.populateProjectSelector();
-        this.initLayout();
-        this.render();
-        safeCreateIcons();
+        switchView('map');
     },
 
     close() {
-        const overlay = document.getElementById('treescope-overlay');
-        if (overlay) {
-            overlay.classList.add('hidden');
-            overlay.classList.remove('flex');
+        if (this.isFullscreen) {
+            this.toggleFullscreen();
+        } else {
+            switchView('focus');
         }
-        renderApp();
     },
 
     getActiveProjectObj() {
-        return (appState.projects || []).find(p => p.id === this.activeProjectId) || (appState.projects || [])[0];
+        const activeProj = getActiveProject();
+        const root = activeProj ? getRootProject(activeProj) : (appState.projects || [])[0];
+        if (!this.activeProjectId && root) this.activeProjectId = root.id;
+        return (appState.projects || []).find(p => p.id === this.activeProjectId) || root || (appState.projects || [])[0];
     },
 
     getSubProjects(rootId) {
@@ -46,7 +38,7 @@ const TreeScopeEngine = {
     },
 
     populateProjectSelector() {
-        const select = document.getElementById('ts-project-select');
+        const select = document.getElementById('map-project-select');
         if (!select) return;
         const roots = (appState.projects || []).filter(p => !p.parentId);
         select.innerHTML = roots.map(r => `
@@ -58,39 +50,60 @@ const TreeScopeEngine = {
 
     switchProject(rootId) {
         this.activeProjectId = rootId;
+        appState.activeProjectId = rootId;
         this.combiningSubId = null;
         this.initLayout();
         this.render();
+        saveStateLocally();
     },
 
+    // Default configuration: Auto-stack into 2 rows for immediate field-of-view clarity
     initLayout() {
         const subs = this.getSubProjects(this.activeProjectId);
-        this.columnLayout = subs.map(s => [s.id]);
+        if (subs.length <= 1) {
+            this.columnLayout = subs.map(s => [s.id]);
+            return;
+        }
+        const half = Math.ceil(subs.length / 2);
+        const newLayout = [];
+        for (let i = 0; i < half; i++) {
+            const col = [subs[i].id];
+            if (i + half < subs.length) col.push(subs[i + half].id);
+            newLayout.push(col);
+        }
+        this.columnLayout = newLayout;
     },
 
     render() {
         const root = this.getActiveProjectObj();
-        const stage = document.getElementById('ts-visualizer-stage');
-        const goalText = document.getElementById('ts-goal-text');
+        const stage = document.getElementById('map-visualizer-stage');
         if (!stage || !root) return;
 
-        if (goalText) goalText.textContent = root.goal || 'No North Star goal set for this project.';
-        stage.innerHTML = '';
+        this.populateProjectSelector();
 
+        // Update Goal Button Tooltip on hover
+        const goalTooltipText = document.getElementById('map-goal-tooltip-text');
+        const goalBtn = document.getElementById('map-goal-btn');
+        const goalStr = root.goal || 'No North Star Goal defined for this project.';
+        if (goalTooltipText) goalTooltipText.textContent = goalStr;
+        if (goalBtn) goalBtn.setAttribute('title', goalStr);
+
+        this.updateFitScreenUI();
+
+        stage.innerHTML = '';
         const container = document.createElement('div');
         container.className = `ts-columns-container ${this.isFitScreen ? 'fit-screen' : 'scroll-mode'}`;
         container.id = 'tsBoardContainer';
 
         const subs = this.getSubProjects(root.id);
 
-        // Edge case: Root project contains direct tasks
         if (subs.length === 0) {
             container.innerHTML = `
-                <div class="ts-board-column" style="flex: 1; max-width: 500px; margin: auto;">
+                <div class="ts-board-column" style="flex: 1; max-width: 520px; margin: auto;">
                     <div class="ts-subproject-tile">
                         <div class="ts-tile-header">
                             <span class="ts-tile-title font-bold text-[#38bdf8]">${root.title} Tasks</span>
-                            <span class="badge font-mono text-[10px]">${(root.tasks || []).length} tasks</span>
+                            <span class="badge font-mono text-[10px] bg-white/10 px-2 py-0.5 rounded text-slate-300">${(root.tasks || []).length} tasks</span>
                         </div>
                         <div class="ts-tile-body">
                             ${this.renderTaskListHTML(root.tasks || [], root.id)}
@@ -103,13 +116,15 @@ const TreeScopeEngine = {
             return;
         }
 
-        // Render modular columns
+        if (this.columnLayout.length === 0) {
+            this.initLayout();
+        }
+
         this.columnLayout.forEach((colSubIds, colIndex) => {
             const col = document.createElement('div');
             col.className = 'ts-board-column';
             col.setAttribute('data-col-index', colIndex);
 
-            // Drag over & drop
             col.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 col.classList.add('drop-target');
@@ -124,7 +139,6 @@ const TreeScopeEngine = {
                 if (draggedId) TreeScopeEngine.moveSubProjectToColumn(draggedId, colIndex);
             });
 
-            // Click-to-combine
             col.addEventListener('click', (e) => {
                 if (TreeScopeEngine.combiningSubId) {
                     e.stopPropagation();
@@ -147,7 +161,6 @@ const TreeScopeEngine = {
                 tile.className = `ts-subproject-tile ${TreeScopeEngine.combiningSubId === sub.id ? 'combine-source' : ''}`;
                 tile.id = `ts-sub-tile-${sub.id}`;
 
-                // Header (Level 1)
                 const header = document.createElement('div');
                 header.className = 'ts-tile-header';
                 header.draggable = true;
@@ -168,15 +181,14 @@ const TreeScopeEngine = {
                     <div class="flex items-center gap-1.5 shrink-0">
                         <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-white/10 text-slate-400">${taskCount}</span>
                         ${isStacked ? `
-                            <button class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-[#22304d] text-[10px] text-slate-300 border border-white/10" onclick="TreeScopeEngine.separateSubProject('${sub.id}', event)">⤢ Separate</button>
+                            <button class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-[#22304d] text-[10px] text-slate-300 border border-white/10 cursor-pointer" onclick="TreeScopeEngine.separateSubProject('${sub.id}', event)">⤢ Separate</button>
                         ` : `
-                            <button class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-[#22304d] text-[10px] text-slate-300 border border-white/10" onclick="TreeScopeEngine.startCombine('${sub.id}', event)">⤹ Combine</button>
+                            <button class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-[#22304d] text-[10px] text-slate-300 border border-white/10 cursor-pointer" onclick="TreeScopeEngine.startCombine('${sub.id}', event)">⤹ Combine</button>
                         `}
                     </div>
                 `;
                 tile.appendChild(header);
 
-                // Body (Level 2 & Level 3)
                 const body = document.createElement('div');
                 body.className = 'ts-tile-body';
                 body.id = `ts-sub-body-${sub.id}`;
@@ -212,7 +224,7 @@ const TreeScopeEngine = {
         });
 
         stage.appendChild(container);
-        const depthVal = document.getElementById('ts-depth-select')?.value || '4';
+        const depthVal = document.getElementById('map-depth-select')?.value || this.currentDepth || '1';
         this.applyDepthFilter(depthVal);
         safeCreateIcons();
     },
@@ -231,12 +243,12 @@ const TreeScopeEngine = {
                         <span class="text-xs font-semibold ${t.isCompleted ? 'line-through text-slate-500' : 'text-slate-100'}">${t.title}</span>
                         <div class="flex items-center gap-1 ml-auto shrink-0">
                             ${t.estimatedTime > 0 ? `<span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#38bdf8]/15 text-[#38bdf8]">${Math.round(t.estimatedTime/60)}m</span>` : ''}
-                            <button onclick="TreeScopeEngine.focusTask('${containerId}', '${t.id}', event)" title="Focus Task in FocusFlow" class="px-1.5 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/30 text-emerald-400 text-[10px] font-bold border border-emerald-500/20">🎯</button>
+                            <button onclick="TreeScopeEngine.focusTask('${containerId}', '${t.id}', event)" title="Focus Task in FocusFlow" class="px-1.5 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/30 text-emerald-400 text-[10px] font-bold border border-emerald-500/20 cursor-pointer">🎯</button>
                         </div>
                     </div>
                     <div class="ts-tree-children ts-task-children space-y-1" id="ts-task-children-${t.id}">
                         ${t.notes ? `<div class="text-[10px] text-slate-400 italic mb-1.5 leading-snug">${t.notes}</div>` : ''}
-                        ${microsteps.map((m, mIdx) => `
+                        ${microsteps.map((m) => `
                             <label class="ts-microtask-item ${m.isCompleted ? 'checked' : ''}">
                                 <input type="checkbox" ${m.isCompleted ? 'checked' : ''} onchange="TreeScopeEngine.toggleMicroStep('${containerId}', '${t.id}', '${m.id}', this.checked)">
                                 <span>${m.title}</span>
@@ -248,15 +260,43 @@ const TreeScopeEngine = {
         }).join('');
     },
 
-    // Layout Actions
     toggleFitScreen() {
         this.isFitScreen = !this.isFitScreen;
-        const btn = document.getElementById('ts-toggle-fit-btn');
+        this.updateFitScreenUI();
         const container = document.getElementById('tsBoardContainer');
-        if (btn) btn.classList.toggle('active', this.isFitScreen);
         if (container) {
             container.className = `ts-columns-container ${this.isFitScreen ? 'fit-screen' : 'scroll-mode'}`;
         }
+    },
+
+    updateFitScreenUI() {
+        const btn = document.getElementById('map-toggle-fit-btn');
+        const dot = document.getElementById('map-fit-dot');
+        if (dot) {
+            dot.className = this.isFitScreen
+                ? "w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] transition-all"
+                : "w-2 h-2 rounded-full bg-slate-500 shadow-none transition-all";
+        }
+        if (btn) {
+            if (this.isFitScreen) {
+                btn.className = "px-2.5 py-1 bg-[#182236] text-[#38bdf8] border border-[#38bdf8] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer";
+            } else {
+                btn.className = "px-2.5 py-1 bg-[#121826] text-slate-400 border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer";
+            }
+        }
+    },
+
+    toggleFullscreen() {
+        const container = document.getElementById('view-map-container');
+        if (!container) return;
+        this.isFullscreen = !this.isFullscreen;
+        container.classList.toggle('map-fullscreen', this.isFullscreen);
+
+        const label = document.getElementById('map-fullscreen-label');
+        const icon = document.getElementById('map-fullscreen-icon');
+        if (label) label.textContent = this.isFullscreen ? "Exit Map" : "Fullscreen";
+        if (icon) icon.setAttribute('data-lucide', this.isFullscreen ? "minimize-2" : "maximize-2");
+        safeCreateIcons();
     },
 
     autoStackColumns() {
@@ -274,7 +314,8 @@ const TreeScopeEngine = {
 
     resetLayout() {
         this.combiningSubId = null;
-        this.initLayout();
+        const subs = this.getSubProjects(this.activeProjectId);
+        this.columnLayout = subs.map(s => [s.id]);
         this.render();
     },
 
@@ -301,8 +342,8 @@ const TreeScopeEngine = {
         this.render();
     },
 
-    // Depth Filters
     applyDepthFilter(depth) {
+        this.currentDepth = depth;
         const bodies = document.querySelectorAll('.ts-tile-body');
         const compChildren = document.querySelectorAll('.ts-comp-children');
         const taskChildren = document.querySelectorAll('.ts-task-children');
@@ -326,7 +367,6 @@ const TreeScopeEngine = {
         }
     },
 
-    // Toggles
     toggleSubTile(subId, e) {
         if (e) e.stopPropagation();
         const b = document.getElementById(`ts-sub-body-${subId}`);
@@ -348,7 +388,6 @@ const TreeScopeEngine = {
         t.style.display = t.style.display === 'none' ? 'block' : 'none';
     },
 
-    // State Mutators
     toggleMicroStep(projectId, taskId, stepId, isChecked) {
         const p = (appState.projects || []).find(x => x.id === projectId);
         if (!p) return;
@@ -361,7 +400,7 @@ const TreeScopeEngine = {
 
     focusTask(projectId, taskId, e) {
         if (e) e.stopPropagation();
-        this.close();
+        if (this.isFullscreen) this.toggleFullscreen();
         appState.activeProjectId = projectId;
         const p = (appState.projects || []).find(x => x.id === projectId);
         if (p) p.activeTaskId = taskId;
@@ -369,3 +408,14 @@ const TreeScopeEngine = {
         switchView('focus');
     }
 };
+
+// Aliases and Escape hotkey listener
+const ProjectMapEngine = TreeScopeEngine;
+window.ProjectMapEngine = TreeScopeEngine;
+window.TreeScopeEngine = TreeScopeEngine;
+
+window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && TreeScopeEngine.isFullscreen) {
+        TreeScopeEngine.toggleFullscreen();
+    }
+});
