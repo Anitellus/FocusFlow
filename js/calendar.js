@@ -1,5 +1,3 @@
-// --- In js/calendar.js ---
-
 let calendarViewDate = new Date();
 
 function changeCalendarProjectFilter(projectId) {
@@ -114,9 +112,30 @@ function renderMonthlyGrid() {
     const firstDay = new Date(year, month, 1).getDay();
     const totalDays = new Date(year, month + 1, 0).getDate();
     const todayStr = getLocalFormattedDate(new Date());
+    const filterId = appState.calendarSelectedProjectId;
+
+    function isProjectParked(proj) {
+        let curr = proj;
+        while (curr) {
+            if (curr.isParked) return true;
+            if (!curr.parentId) break;
+            curr = (appState.projects || []).find(p => p.id === curr.parentId);
+        }
+        return false;
+    }
+
+    const visibleProjects = (appState.projects || []).filter(p => {
+        if (isProjectParked(p)) return false;
+        if (!filterId) return true;
+        let root = p;
+        while (root && root.parentId) {
+            root = (appState.projects || []).find(x => x.id === root.parentId);
+        }
+        return root && root.id === filterId;
+    });
 
     const dateMap = {};
-    (appState.projects || []).forEach(p => {
+    visibleProjects.forEach(p => {
         if (p.deadline) {
             dateMap[p.deadline] = dateMap[p.deadline] || [];
             dateMap[p.deadline].push({ id: p.id, type: 'project', title: p.title, projectId: p.id, isCompleted: !!p.completedAt });
@@ -130,12 +149,10 @@ function renderMonthlyGrid() {
     });
 
     let gridHTML = '';
-    // Pad start of month
     for (let i = 0; i < firstDay; i++) {
         gridHTML += `<div class="h-24 bg-slate-50/50 rounded-2xl border border-slate-100 opacity-40"></div>`;
     }
 
-    // Render active days
     for (let day = 1; day <= totalDays; day++) {
         const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         const isToday = dStr === todayStr;
@@ -150,7 +167,6 @@ function renderMonthlyGrid() {
         </div>`;
     }
 
-    // Fix trailing jaggedness in 7 column layout
     const totalCells = firstDay + totalDays;
     const trailingCells = (7 - (totalCells % 7)) % 7;
     for (let i = 0; i < trailingCells; i++) {
