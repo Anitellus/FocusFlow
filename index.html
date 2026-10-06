@@ -23,10 +23,10 @@
     <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-30 shrink-0">
         <div class="flex items-center gap-2 font-bold text-brand-600 text-lg"><i data-lucide="layers" class="w-6 h-6"></i><span>Focus Flow</span></div>
         <div class="flex items-center gap-2">
-            <button onclick="toggleThemePopover(event)" aria-label="Change Theme" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Change Theme"><i data-lucide="palette" class="w-4 h-4"></i></button>
-            <button onclick="BlueprintEngine.openModal()" aria-label="Momentum Blueprint" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Momentum Blueprint"><i data-lucide="file-up" class="w-4 h-4"></i></button>
-            <button onclick="toggleScratchpadModal()" aria-label="Scratchpad" class="p-2 bg-indigo-50 text-brand-600 rounded-xl" title="Scratchpad"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-            <button onclick="toggleMobileSidebar()" aria-label="Open Menu" class="p-2 bg-slate-100 text-slate-700 rounded-xl" title="Open Menu"><i data-lucide="menu" class="w-5 h-5"></i></button>
+            <button onclick="toggleThemePopover(event)" aria-label="Theme" class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="palette" class="w-4 h-4"></i></button>
+            <button onclick="BlueprintEngine.openModal()" aria-label="Blueprint" class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-4 h-4"></i></button>
+            <button onclick="toggleScratchpadModal()" aria-label="Scratchpad" class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+            <button onclick="toggleMobileSidebar()" aria-label="Menu" class="p-2 bg-slate-100 text-slate-700 rounded-xl"><i data-lucide="menu" class="w-5 h-5"></i></button>
         </div>
     </header>
 
@@ -38,43 +38,55 @@
                 <i data-lucide="layers" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span>Focus Flow</span><i data-lucide="help-circle" class="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors"></i>
             </button>
             <div class="flex items-center gap-1">
-                <button onclick="toggleThemePopover(event)" aria-label="Change Theme" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-slate-200/60 rounded-xl transition-colors" title="Change Visual Theme">
+                <button onclick="toggleThemePopover(event)" aria-label="Change Theme" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-slate-200/60 rounded-xl transition-colors" title="Change Theme">
                     <i data-lucide="palette" class="w-4 h-4"></i>
                 </button>
                 <button onclick="closeMobileSidebar()" aria-label="Close Sidebar" class="md:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
         </div>
-        
-        <!-- 5-View Primary Navigation -->
+
+        <!-- Linear 4-Stage Executive Pipeline Navigation -->
         <div class="px-2.5 py-2.5 flex gap-1 border-b border-slate-200/60 font-sans-ui">
-            <button onclick="switchView('focus')" id="nav-focus" aria-label="Focus View" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1"><i data-lucide="target" class="w-3.5 h-3.5"></i> Focus</button>
-            <button onclick="switchView('map')" id="nav-map" aria-label="Project Map" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="compass" class="w-3.5 h-3.5"></i> Map</button>
-            <button onclick="switchView('progress')" id="nav-progress" aria-label="Progression Tracker" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progress</button>
-            <button onclick="switchView('calendar')" id="nav-calendar" aria-label="Calendar View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Cal</button>
-            <button onclick="switchView('analytics')" id="nav-analytics" aria-label="Analytics View" class="flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Stats</button>
+            <button onclick="switchView('calendar')" id="nav-calendar" aria-label="1. Calendar" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1" title="Stage 1: Temporal Check"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Cal</button>
+            <button onclick="TreeScopeEngine.open()" id="nav-map" aria-label="2. Map" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1" title="Stage 2: Macro Orientation"><i data-lucide="compass" class="w-3.5 h-3.5"></i> Map</button>
+            <button onclick="switchView('focus')" id="nav-focus" aria-label="3. Focus" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1" title="Stage 3: Deep Focus"><i data-lucide="target" class="w-3.5 h-3.5"></i> Focus</button>
+            <button onclick="switchView('progress')" id="nav-progress" aria-label="4. Progress" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1" title="Stage 4: Outcome Progress"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progress</button>
         </div>
 
-        <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2.5 bg-indigo-50/70 hover:bg-indigo-100/70 border-b border-slate-200/60 font-sans-ui cursor-pointer transition-colors">
-            <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950"><span id="sprint-cycle-label">Sprint: Day 1 of 30</span><span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span></div>
-            <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden"><div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div></div>
+        <!-- Sprint Checkpoint (Includes Analytics Access) -->
+        <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2.5 bg-indigo-50/70 hover:bg-indigo-100/70 border-b border-slate-200/60 font-sans-ui cursor-pointer transition-colors" title="Click to view 30-day checkpoint & analytics">
+            <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950">
+                <span id="sprint-cycle-label">Sprint: Day 1 of 30</span>
+                <span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span>
+            </div>
+            <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden">
+                <div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div>
+            </div>
         </div>
+
         <div class="flex-1 overflow-y-auto p-3 space-y-3 font-sans-ui" id="project-list-container"></div>
-        <div class="p-3 border-t border-slate-200/60 bg-white/70 space-y-2 font-sans-ui">
+
+        <div class="p-3 border-t border-slate-200/60 bg-white/70 space-y-2 font-sans-ui shrink-0">
             <div class="flex items-center gap-1.5">
                 <button onclick="createNewProject()" aria-label="New Project" class="flex-1 py-2 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-500 hover:shadow-md transition-all flex items-center justify-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i> New Project</button>
-                <button onclick="BlueprintEngine.openModal()" aria-label="Open Blueprint" class="px-3 py-2 bg-indigo-50 border border-indigo-200 text-brand-700 hover:bg-indigo-100 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 shrink-0" title="Ingest AI Blueprint"><i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-600"></i> Blueprint</button>
+                <button onclick="BlueprintEngine.openModal()" aria-label="Open Blueprint" class="px-3 py-2 bg-indigo-50 border border-indigo-200 text-brand-700 hover:bg-indigo-100 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 shrink-0"><i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-600"></i> Blueprint</button>
             </div>
+
+            <!-- Secondary Drawer: Data & Analytics Review -->
             <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
-                <button onclick="toggleSaveStateDrawer()" id="btn-save-state-toggle" aria-label="Toggle Save State Drawer" class="w-full py-2 px-3 flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-100/80 transition-colors">
-                    <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-slate-500"></i><span>Project Save State</span></span>
+                <button onclick="toggleSaveStateDrawer()" id="btn-save-state-toggle" class="w-full py-2 px-3 flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-100/80 transition-colors">
+                    <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-slate-500"></i><span>Workspace & Data</span></span>
                     <i data-lucide="chevron-down" id="save-state-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i>
                 </button>
                 <div id="save-state-drawer" class="hidden p-2 space-y-1.5 border-t border-slate-200 bg-white">
-                    <button onclick="manualCloudSave()" id="btn-manual-save" aria-label="Save State to Cloud" class="w-full py-1.5 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-xs"><i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud</button>
+                    <button onclick="switchView('analytics'); toggleSaveStateDrawer();" class="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors">
+                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-brand-600"></i> Analytics & Retrospective
+                    </button>
+                    <button onclick="manualCloudSave()" id="btn-manual-save" class="w-full py-1.5 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-xs"><i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud</button>
                     <div class="flex gap-1.5">
-                        <button onclick="exportDataJSON()" aria-label="Backup Data" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 transition-all flex items-center justify-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> Backup</button>
-                        <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden" aria-label="Import File">
-                        <button onclick="document.getElementById('import-file-input').click()" aria-label="Restore Data" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 transition-all flex items-center justify-center gap-1"><i data-lucide="upload" class="w-3 h-3"></i> Restore</button>
+                        <button onclick="exportDataJSON()" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 flex items-center justify-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> Backup</button>
+                        <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                        <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 flex items-center justify-center gap-1"><i data-lucide="upload" class="w-3 h-3"></i> Restore</button>
                     </div>
                 </div>
             </div>
@@ -82,7 +94,7 @@
         </div>
     </aside>
 
-    <!-- 1. Focus View -->
+    <!-- VIEW 1: STAGE 3 — FOCUS WORKSPACE -->
     <main id="view-focus-container" class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
         <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md">
             <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
@@ -95,7 +107,7 @@
                     <input type="text" aria-label="Project Title" id="project-title-input" class="text-2xl sm:text-3xl font-extrabold text-slate-900 bg-transparent border-none focus:ring-0 outline-none w-full truncate tracking-tight" placeholder="Project Title">
                     <div class="flex items-center gap-2 font-sans-ui">
                         <input type="text" aria-label="Project Notes" id="project-notes-summary-input" class="flex-1 bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 placeholder-slate-400 outline-none focus:bg-white transition-all truncate" placeholder="Add notes, resources, links...">
-                        <button onclick="toggleProjectNotesModal()" aria-label="Expand Notes" class="px-3 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shrink-0"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Expand Notes</button>
+                        <button onclick="toggleProjectNotesModal()" class="px-3 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shrink-0"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Expand Notes</button>
                     </div>
                 </div>
                 
@@ -129,27 +141,27 @@
                                 <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 truncate" id="active-task-title">Select a task to begin</h2>
                             </div>
                             <div class="flex items-center gap-1.5 font-sans-ui shrink-0">
-                                <button onclick="openZenView()" aria-label="Zen Mode" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1"><i data-lucide="maximize-2" class="w-3.5 h-3.5 text-indigo-400"></i><span>Zen</span></button>
-                                <button onclick="toggleScratchpadModal()" aria-label="Scratchpad" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1" title="Scratchpad (Alt + S)"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i><span>Dump</span></button>
-                                <button onclick="toggleBloomPopover()" aria-label="Bloom Intensity" class="p-2 bg-slate-100 text-emerald-600 rounded-xl" title="Bloom Intensity"><i data-lucide="sun" class="w-4 h-4"></i></button>
+                                <button onclick="openZenView()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1"><i data-lucide="maximize-2" class="w-3.5 h-3.5 text-indigo-400"></i><span>Zen</span></button>
+                                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1" title="Scratchpad (Alt + S)"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i><span>Dump</span></button>
+                                <button onclick="toggleBloomPopover()" class="p-2 bg-slate-100 text-emerald-600 rounded-xl" title="Bloom"><i data-lucide="sun" class="w-4 h-4"></i></button>
                                 <div id="bloom-popover" class="absolute right-12 top-10 w-56 bg-white p-3 rounded-2xl shadow-xl border border-slate-200 hidden z-50 space-y-2">
-                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700"><span>Breathing Bloom Glow</span><span id="bloom-val-label" class="text-emerald-600">60%</span></div>
-                                    <input type="range" aria-label="Bloom Slider" id="bloom-slider" min="10" max="100" value="60" oninput="updateBloomOpacity(this.value)" class="w-full accent-emerald-500 cursor-pointer">
+                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700"><span>Breathing Bloom</span><span id="bloom-val-label" class="text-emerald-600">60%</span></div>
+                                    <input type="range" id="bloom-slider" min="10" max="100" value="60" oninput="updateBloomOpacity(this.value)" class="w-full accent-emerald-500 cursor-pointer">
                                 </div>
-                                <button onclick="toggleAudioPopover()" aria-label="Audio Options" id="btn-audio-popover-trigger" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Audio"><i data-lucide="volume-2" class="w-4 h-4" id="audio-icon-display"></i></button>
+                                <button onclick="toggleAudioPopover()" id="btn-audio-popover-trigger" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Audio"><i data-lucide="volume-2" class="w-4 h-4" id="audio-icon-display"></i></button>
                                 <div id="audio-popover" class="absolute right-0 top-10 w-72 bg-white p-4 rounded-2xl shadow-xl border border-slate-200 hidden z-50 space-y-3">
                                     <div class="flex items-center justify-between pb-2 border-b border-slate-100"><span class="text-xs font-bold text-slate-800">Audio Profile</span><button onclick="toggleMuteAudio()" id="btn-mute-toggle" class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded">Mute</button></div>
-                                    <div class="space-y-1"><div class="flex justify-between text-[10px] font-bold text-slate-500"><span>Volume</span><span id="volume-label">80%</span></div><input type="range" aria-label="Volume Slider" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer"></div>
-                                    <div class="space-y-1"><label class="text-[10px] font-bold text-slate-500 block">Sound Style</label><select aria-label="Audio Style" id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold text-slate-700 outline-none"><option value="woodblock">Woodblock (Acoustic)</option><option value="pip">8-Bit Pip (Chiptune)</option><option value="zen">Zen Chord (Pure Sine)</option></select></div>
+                                    <div class="space-y-1"><div class="flex justify-between text-[10px] font-bold text-slate-500"><span>Volume</span><span id="volume-label">80%</span></div><input type="range" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer"></div>
+                                    <div class="space-y-1"><label class="text-[10px] font-bold text-slate-500 block">Sound Style</label><select id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold text-slate-700 outline-none"><option value="woodblock">Woodblock (Acoustic)</option><option value="pip">8-Bit Pip (Chiptune)</option><option value="zen">Zen Chord (Pure Sine)</option></select></div>
                                 </div>
-                                <button onclick="toggleThemePopover(event)" aria-label="Theme Selection" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Visual Theme">
-                                    <i data-lucide="palette" class="w-4 h-4"></i>
-                                </button>
+                                <button onclick="toggleThemePopover(event)" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Theme"><i data-lucide="palette" class="w-4 h-4"></i></button>
                             </div>
                         </div>
+
                         <div id="main-mascot-mount-wrapper" class="w-full flex justify-center items-center mb-4 hidden">
                             <div class="p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 flex items-center justify-center gap-3"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Companion</span><div id="main-mascot-mount" class="w-14 h-14 flex items-center justify-center mascot-mount-box"></div></div>
                         </div>
+
                         <div class="relative flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 w-full mb-6">
                             <div class="relative flex items-center justify-center">
                                 <div class="absolute inset-0 pointer-events-none flex items-center justify-center -rotate-90">
@@ -164,8 +176,10 @@
                                     <div class="relative z-10 flex flex-col items-center"><div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="timer-state-text">Paused</div><div class="text-4xl sm:text-6xl font-bold font-mono tracking-tighter" id="active-timer-display">00:00:00</div><div class="text-xs font-medium mt-2 opacity-80 flex items-center gap-1" id="active-timer-estimate"><i data-lucide="target" class="w-3.5 h-3.5"></i> <span>No Target</span></div></div>
                                 </button>
                             </div>
-                            <button onclick="completeActiveTask()" aria-label="Complete Active Task" id="btn-complete-task" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-400 shadow-md flex flex-col items-center justify-center gap-1 shrink-0 font-sans-ui"><i data-lucide="check-circle" class="w-6 h-6 sm:w-8 sm:h-8"></i><span class="text-[9px] uppercase tracking-wider">Done</span></button>
+                            <button onclick="completeActiveTask()" aria-label="Done" id="btn-complete-task" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-400 shadow-md flex flex-col items-center justify-center gap-1 shrink-0 font-sans-ui"><i data-lucide="check-circle" class="w-6 h-6 sm:w-8 sm:h-8"></i><span class="text-[9px] uppercase tracking-wider">Done</span></button>
                         </div>
+
+                        <!-- Micro-steps -->
                         <div class="w-full bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 font-sans-ui mb-4 space-y-2.5">
                             <div class="flex items-center justify-between"><div class="flex items-center gap-1.5 text-xs font-bold text-indigo-900"><i data-lucide="split" class="w-4 h-4 text-brand-600"></i><span>Micro-Step Decomposer (&le; 5-min atomic actions)</span></div><span class="text-[10px] text-slate-400 font-mono" id="microstep-summary">0/0 done</span></div>
                             <div class="flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600">
@@ -174,25 +188,27 @@
                                 <button onclick="addPresetMicroStep('Draft initial section outline', 5)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Rough Pass (5m)</button>
                             </div>
                             <div class="space-y-1.5" id="active-task-microsteps-list"></div>
-                            <div class="flex items-center gap-2 pt-1"><input type="text" aria-label="Custom Microstep" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step..."><button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button></div>
+                            <div class="flex items-center gap-2 pt-1"><input type="text" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step..."><button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button></div>
                         </div>
 
+                        <!-- Editable Notes & Target Minutes -->
                         <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
                             <div class="flex-1">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
-                                <textarea aria-label="Task Notes" id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
+                                <textarea id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
                             </div>
                             <div class="shrink-0 w-full md:w-32">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Target (Mins)</label>
-                                <input type="number" aria-label="Task Target Minutes" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-700 outline-none font-mono focus:border-brand-400" placeholder="0 = Open">
+                                <input type="number" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-700 outline-none font-mono focus:border-brand-400" placeholder="0 = Open">
                             </div>
                             <div class="shrink-0 w-full md:w-44">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label>
-                                <input type="date" aria-label="Task Deadline" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
+                                <input type="date" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
                             </div>
                         </div>
                     </div>
                 </section>
+
                 <section class="bg-white rounded-3xl p-5 shadow-sm ring-1 ring-slate-900/5 space-y-3 font-sans-ui">
                     <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
                         <div class="flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-indigo-600"></i><h3 class="font-bold text-slate-800 text-sm">Focus Companions</h3></div>
@@ -200,16 +216,17 @@
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5" id="mascot-gallery-grid"></div>
                 </section>
+
                 <section class="font-sans-ui" id="project-tasks-section">
                     <div id="tasks-header-wrapper" class="flex items-center justify-between mb-3 px-1"><h3 class="text-base font-bold text-slate-700 flex items-center gap-2" id="tasks-section-title"><i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Active Tasks</h3><span class="text-xs font-semibold text-slate-500 bg-white px-2.5 py-0.5 rounded-full ring-1 ring-slate-200" id="task-progress-text">0/0 Completed</span></div>
                     <div id="container-milestone-hub" class="space-y-3 hidden"></div>
                     <div class="space-y-2" id="task-list-container"></div>
                     <div id="add-task-container" class="mt-3 bg-white p-2 rounded-2xl shadow-sm ring-1 ring-slate-200 flex flex-col sm:flex-row items-center gap-2">
-                        <input type="text" aria-label="New Task Title" id="new-task-title-input" class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-slate-700 placeholder-slate-400 py-1.5 font-medium text-xs px-2 w-full" placeholder="Add atomic task... (Enter)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end pr-1"><span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">*Target:</span><input type="number" aria-label="Task Estimate Mins" id="new-task-est-input" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none text-center font-mono" placeholder="min" min="0" max="999"><button onclick="handleAddTask()" class="bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0">Add</button></div>
+                        <input type="text" id="new-task-title-input" class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-slate-700 placeholder-slate-400 py-1.5 font-medium text-xs px-2 w-full" placeholder="Add atomic task... (Enter)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end pr-1"><span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">*Target:</span><input type="number" id="new-task-est-input" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none text-center font-mono" placeholder="min" min="0" max="999"><button onclick="handleAddTask()" class="bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0">Add</button></div>
                     </div>
                     <div id="completed-tasks-wrapper" class="mt-4 pt-2 border-t border-slate-200/60 hidden">
-                        <button onclick="toggleCompletedTasksDrawer()" aria-label="Toggle Completed Tasks" id="btn-completed-toggle" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200/80 rounded-xl text-xs font-bold text-slate-500 flex items-center justify-between transition-colors"><span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i><span id="completed-tasks-count-label">Completed Tasks (0)</span></span><i data-lucide="chevron-down" id="completed-tasks-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i></button>
+                        <button onclick="toggleCompletedTasksDrawer()" id="btn-completed-toggle" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200/80 rounded-xl text-xs font-bold text-slate-500 flex items-center justify-between transition-colors"><span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i><span id="completed-tasks-count-label">Completed Tasks (0)</span></span><i data-lucide="chevron-down" id="completed-tasks-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i></button>
                         <div id="completed-tasks-container" class="mt-2 space-y-2 hidden"></div>
                     </div>
                 </section>
@@ -217,113 +234,22 @@
         </div>
     </main>
 
-    <!-- 2. Project Map View (1-Row Clean Header & Autostack Stage) -->
-    <main id="view-map-container" class="flex-1 flex flex-col h-full overflow-hidden bg-[#090d16] text-[#f8fafc] hidden font-sans-ui">
-        <!-- 1-Row Header -->
-        <header id="map-header-bar" class="bg-[#121826] border-b border-[#24324f] px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0 text-[#f8fafc] h-14">
-            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span class="text-sm sm:text-base font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5 shrink-0">
-                    <i data-lucide="compass" class="w-4 h-4 sm:w-5 sm:h-5 text-[#38bdf8]"></i> Project Map
-                </span>
-                <select id="map-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#090d16] text-[#f8fafc] border border-[#24324f] px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none focus:border-[#38bdf8] max-w-[150px] sm:max-w-[210px] truncate"></select>
-                
-                <!-- Goal Button with Mouseover Hover Card -->
-                <div class="relative group shrink-0">
-                    <button id="map-goal-btn" class="px-2.5 py-1 bg-[#1e293b] hover:bg-[#334155] text-[#38bdf8] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
-                        <i data-lucide="target" class="w-3.5 h-3.5 text-[#38bdf8]"></i>
-                        <span class="hidden sm:inline">Goal</span>
-                    </button>
-                    <div id="map-goal-tooltip" class="absolute left-0 top-full mt-2 z-50 w-72 sm:w-80 p-3 bg-[#0f172a] border border-[#38bdf8]/40 rounded-xl shadow-2xl text-xs text-slate-200 hidden group-hover:block transition-all pointer-events-none">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] font-mono mb-1 flex items-center gap-1">
-                            <i data-lucide="target" class="w-3 h-3"></i> North Star Goal
-                        </div>
-                        <p id="map-goal-tooltip-text" class="text-xs text-slate-200 font-medium leading-relaxed">No North Star Goal defined.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                <!-- Fit Screen with Active Indicator -->
-                <button id="map-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#182236] text-[#38bdf8] border border-[#38bdf8] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer" title="Toggle Fit to Screen">
-                    <span id="map-fit-dot" class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
-                    <span class="hidden md:inline">Fit Screen</span>
-                </button>
-
-                <!-- Auto-Stack Button -->
-                <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Auto-Stack Columns (2 Rows)">
-                    <span>⊞</span> <span class="hidden md:inline">Auto-Stack</span>
-                </button>
-
-                <!-- Separate All Button -->
-                <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Separate All Columns">
-                    <span>⎌</span> <span class="hidden md:inline">Separate All</span>
-                </button>
-
-                <!-- Global Depth Dropdown -->
-                <select id="map-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#090d16] text-[#38bdf8] border border-[#24324f] px-2 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none max-w-[110px] sm:max-w-none">
-                    <option value="1" selected>L1: Sub-Projects Only</option>
-                    <option value="2">L2: + Component Tracks</option>
-                    <option value="3">L3: + Tasks</option>
-                    <option value="4">L4: + Micro-tasks (Full)</option>
-                    <option value="all">Expand All</option>
-                    <option value="collapse">Collapse All (L1)</option>
-                </select>
-
-                <!-- Fullscreen / Exit Map Toggle -->
-                <button id="map-fullscreen-btn" onclick="TreeScopeEngine.toggleFullscreen()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
-                    <i data-lucide="maximize-2" class="w-3.5 h-3.5" id="map-fullscreen-icon"></i>
-                    <span id="map-fullscreen-label">Fullscreen</span>
-                </button>
-            </div>
-        </header>
-
-        <div id="map-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></div>
-    </main>
-
-    <!-- 3. Progress Tab Page (First-Class Page, No Popup Modal) -->
-    <main id="view-progress-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
-        <header class="px-4 sm:px-8 py-4 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
-            <div>
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Project Progression & Output Variables
-                </h1>
-                <p class="text-xs text-slate-500 mt-0.5">Track Elo/MMR numbers, subscriber counts, or visual drawing journal archives.</p>
-            </div>
-            <div class="flex items-center gap-2 self-start sm:self-auto">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project:</label>
-                <select id="prog-project-select" onchange="ProgressionEngine.switchProject(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
-            <div class="max-w-5xl mx-auto space-y-5">
-                <!-- Mode Switcher Tabs -->
-                <div class="flex gap-2 p-1 bg-slate-200/70 rounded-2xl">
-                    <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">
-                        📊 Quantitative Metrics (Elo, MMR, Counts)
-                    </button>
-                    <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">
-                        🎨 Visual Journal (Drawings & Photos)
-                    </button>
-                    <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">
-                        ✓ Simple Milestone (Binary)
-                    </button>
-                </div>
-
-                <!-- Page Content Area -->
-                <div id="prog-page-content" class="space-y-4"></div>
-            </div>
-        </div>
-    </main>
-
-    <!-- 4. Calendar View -->
+    <!-- VIEW 2: STAGE 1 — CALENDAR VIEW (Calm Single-Project Focus) -->
     <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
-        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3">
-            <div><h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Calendar & Temporal Horizons</h1><p class="text-xs text-slate-500 mt-0.5">Compassionate scheduling and shame-free date calibration.</p></div>
-            <div class="flex items-center gap-2 self-start sm:self-auto">
-                <button onclick="navigateCalendarMonth(-1)" aria-label="Previous Month" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+        <header class="px-4 sm:px-8 py-4 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Calendar Horizons</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Shame-free schedule view filtered cleanly for clarity.</p>
+            </div>
+            <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <!-- Single Project Filter Dropdown -->
+                <div class="flex items-center gap-1.5 mr-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project:</label>
+                    <select id="calendar-project-filter" onchange="changeCalendarProjectFilter(this.value)" class="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
+                </div>
+                <button onclick="navigateCalendarMonth(-1)" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
                 <span class="text-xs font-bold font-mono px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 min-w-[120px] text-center" id="calendar-month-label">Month 2026</span>
-                <button onclick="navigateCalendarMonth(1)" aria-label="Next Month" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                <button onclick="navigateCalendarMonth(1)" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                 <button onclick="resetCalendarToToday()" class="px-2.5 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold rounded-xl border border-brand-200">Today</button>
             </div>
         </header>
@@ -339,9 +265,35 @@
         </div>
     </main>
 
-    <!-- 5. Analytics View -->
+    <!-- VIEW 3: STAGE 4 — PROGRESSION & OUTPUT VARIABLES (Native Full Page) -->
+    <main id="view-progression-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
+        <header class="px-4 sm:px-8 py-4 z-10 border-b border-slate-200/60 bg-white/70 backdrop-blur-md flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                    <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Project Progression
+                </h1>
+                <p class="text-xs text-slate-500 mt-0.5">Real-world rating tracking, output variables, and visual journals.</p>
+            </div>
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project:</label>
+                <select id="prog-project-selector" onchange="ProgressionEngine.switchProject(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
+            </div>
+        </header>
+        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
+            <div class="max-w-5xl mx-auto space-y-5">
+                <div class="flex gap-2 p-1 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+                    <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">📊 Quantitative Metrics (MMR, Elo, Counts)</button>
+                    <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">🎨 Visual Journal (Photos & Drawings)</button>
+                    <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">✓ Simple Binary Milestone</button>
+                </div>
+                <div id="prog-page-body-container" class="space-y-4"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- VIEW 4: ANALYTICS & RETROSPECTIVE (Secondary Review View) -->
     <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
-        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm"><h1 class="text-xl sm:text-2xl font-bold text-slate-800">Analytics & Retrospective</h1><p class="text-xs text-slate-500 mt-0.5">Compassionate biofeedback, time perception audits, and sustainable momentum calibration.</p></header>
+        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex justify-between items-center"><h1 class="text-xl sm:text-2xl font-bold text-slate-800">Analytics & Retrospective</h1><button onclick="switchView('focus')" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold">Return to Focus</button></header>
         <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
             <div class="max-w-5xl mx-auto space-y-6">
                 <div class="flex bg-white p-1 rounded-xl shadow-sm ring-1 ring-slate-200 inline-flex">
@@ -350,111 +302,99 @@
                     <button onclick="renderAnalytics(30)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="30">30 Days</button>
                     <button onclick="renderAnalytics(9999)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="9999">All Time</button>
                 </div>
-                <div class="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">⚡</div><div><h4 class="font-extrabold text-sm text-emerald-950">Rolling Momentum Battery</h4><p class="text-[11px] text-emerald-700">Forgiving consistency index based on 5 of 7 active days. Never resets to zero on missed days.</p></div></div><span class="text-xl sm:text-2xl font-mono font-extrabold text-emerald-700" id="stat-battery-pct">0%</span></div><div class="w-full h-3 bg-white rounded-full overflow-hidden border border-emerald-200"><div id="stat-battery-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div></div></div>
+                <div class="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">⚡</div><div><h4 class="font-extrabold text-sm text-emerald-950">Rolling Momentum Battery</h4><p class="text-[11px] text-emerald-700">Forgiving consistency index based on 5 of 7 active days.</p></div></div><span class="text-xl sm:text-2xl font-mono font-extrabold text-emerald-700" id="stat-battery-pct">0%</span></div><div class="w-full h-3 bg-white rounded-full overflow-hidden border border-emerald-200"><div id="stat-battery-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div></div></div>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                     <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Focused Time</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-total-time">0m</p></div>
                     <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tasks Completed</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tasks-done">0</p></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time Accuracy</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-accuracy">0%</p><p class="text-[9px] text-slate-400 mt-0.5">Actual vs Target</p></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Complexity</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tci">0.0</p><p class="text-[9px] text-slate-400 mt-0.5">Deep work ratio</p></div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time Accuracy</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-accuracy">0%</p></div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Complexity</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tci">0.0</p></div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2.5"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Time-Blindness Recalibration</h4><div class="space-y-1.5 text-xs"><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Underestimated Tasks (>25% over)</span><span class="font-mono font-bold text-slate-800" id="stat-underestimated-count">0</span></div><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Context Switching Density</span><span class="font-mono font-bold text-slate-800" id="stat-switching-density">0/hr</span></div><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Zen Mode Ratio</span><span class="font-mono font-bold text-slate-800" id="stat-zen-ratio">0%</span></div><div class="flex justify-between py-1"><span class="text-slate-500">Weekend vs. Weekday Focus</span><span class="font-mono font-bold text-slate-800" id="stat-weekend-split">0% / 0%</span></div></div></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Circadian Chronotype Alignment</h4><p class="text-xs text-slate-500">Peak window: <strong class="text-slate-800" id="stat-circadian-peak">Detecting...</strong></p><div class="grid grid-cols-12 gap-1 py-1" id="circadian-bars-grid"></div><div class="flex justify-between text-[8px] text-slate-400 font-mono"><span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span></div></div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2.5"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Time-Blindness Recalibration</h4><div class="space-y-1.5 text-xs"><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Underestimated Tasks</span><span class="font-mono font-bold text-slate-800" id="stat-underestimated-count">0</span></div><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Context Switching Density</span><span class="font-mono font-bold text-slate-800" id="stat-switching-density">0/hr</span></div><div class="flex justify-between py-1"><span class="text-slate-500">Zen Mode Ratio</span><span class="font-mono font-bold text-slate-800" id="stat-zen-ratio">0%</span></div></div></div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Circadian Alignment</h4><p class="text-xs text-slate-500">Peak window: <strong class="text-slate-800" id="stat-circadian-peak">Detecting...</strong></p><div class="grid grid-cols-12 gap-1 py-1" id="circadian-bars-grid"></div></div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian (Untouched ≥ 14 Days)</h4><div class="space-y-1.5" id="dormant-projects-list"></div></div>
-                <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-slate-200 space-y-2.5"><div class="flex items-center justify-between"><h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Activity Heatmap</h3><span class="text-[10px] bg-slate-100 font-mono px-2 py-0.5 rounded text-slate-500">Last 30 Days</span></div><div class="grid grid-cols-10 gap-1.5 py-1" id="heatmap-grid"></div></div>
+                <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian</h4><div class="space-y-1.5" id="dormant-projects-list"></div></div>
+                <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-slate-200 space-y-2.5"><div class="flex items-center justify-between"><h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Activity Heatmap</h3></div><div class="grid grid-cols-10 gap-1.5 py-1" id="heatmap-grid"></div></div>
                 <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden"><div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i><h3 class="font-bold text-slate-800 text-sm">Completed Task Archive</h3></div><div class="divide-y divide-slate-100 max-h-80 overflow-y-auto" id="analytics-log-container"></div></div>
             </div>
         </div>
     </main>
 
-    <!-- Modals & Overlays -->
-    <div id="zen-overlay" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col font-sans-ui overflow-hidden transition-all duration-500 items-center justify-center">
-        <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
-            <div id="mascot-roam-wrapper" class="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer mascot-roam hidden">
-                <div id="mascot-scale-wrapper" class="transition-transform duration-300" style="transform: scale(1.0);"><div id="mascot-anim-wrapper" class="mascot-bob relative" onclick="triggerMascotAnim('squish')"><div id="sleep-particle-z" class="hidden"><div class="z-particle z-1">Z</div></div><div id="emote-pop-container" class="emote-icon text-rose-500"><i data-lucide="heart" class="w-6 h-6 fill-rose-500"></i></div><div id="zen-mascot-mount" class="mascot-mount-box"></div></div></div>
+    <!-- FULLSCREEN OVERLAY 1: TREESCOPE V3 WBS BOARD -->
+    <div id="treescope-overlay" class="fixed inset-0 bg-[#090d16] text-[#f8fafc] z-50 hidden flex-col font-sans-ui overflow-hidden">
+        <header class="bg-[#121826] border-b border-[#24324f] px-5 py-2.5 flex justify-between items-center gap-4 shrink-0 h-13">
+            <div class="flex items-center gap-3.5">
+                <span class="text-lg font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5"><i data-lucide="compass" class="w-5 h-5"></i> TreeScope v3</span>
+                <select id="ts-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#090d16] text-[#f8fafc] border border-[#24324f] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none"></select>
             </div>
-        </div>
-        <div class="absolute top-6 left-6 right-6 flex items-center justify-between z-20"><span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase tracking-widest font-mono">Zen Mode</span><div class="flex items-center gap-2"><button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1.5 shadow"><i data-lucide="edit-3" class="w-3.5 h-3.5 text-brand-400"></i> Dump</button><button onclick="toggleBackdropModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1.5 shadow"><i data-lucide="palette" class="w-3.5 h-3.5 text-indigo-400"></i> Backdrops</button><button onclick="closeZenView()" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold backdrop-blur border border-slate-700 transition-colors flex items-center gap-1 shadow"><i data-lucide="minimize-2" class="w-3.5 h-3.5"></i> Exit</button></div></div>
-        <div class="flex-1 flex flex-col items-center justify-center z-20 space-y-6 w-full max-w-xl text-center my-auto px-4"><h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight" id="zen-active-task-title">Workspace Active</h2><div class="w-full flex justify-center items-center"><button aria-label="Toggle Zen Timer" onclick="toggleTimer()" class="w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden relative shadow-2xl timer-red-container" id="zen-timer-btn"><div id="zen-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div><div class="relative z-10 flex flex-col items-center"><div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="zen-timer-state">Paused</div><div class="text-5xl sm:text-6xl font-mono font-bold tracking-tighter" id="zen-timer-display">00:00:00</div></div></button></div><p class="text-xs text-slate-300/80 font-mono w-full truncate max-w-md mx-auto" id="zen-task-notes">No notes attached</p></div>
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-5xl bg-slate-900/90 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800 z-20 flex items-center justify-between gap-2 font-sans-ui shadow-2xl overflow-x-auto flex-nowrap">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold text-[#94a3b8] uppercase tracking-wider">Depth:</span>
+                    <select id="ts-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#090d16] text-[#38bdf8] border border-[#24324f] px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer outline-none">
+                        <option value="1">L1: Sub-Projects Only</option>
+                        <option value="2">L2: + Component Tracks</option>
+                        <option value="3">L3: + Tasks</option>
+                        <option value="4" selected>L4: + Micro-tasks (Full)</option>
+                        <option value="all">Expand All</option>
+                        <option value="collapse">Collapse All (L1)</option>
+                    </select>
+                </div>
+                <button onclick="TreeScopeEngine.close()" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border border-slate-700"><i data-lucide="x" class="w-3.5 h-3.5"></i> Exit Map</button>
+            </div>
+        </header>
+        <div class="bg-[#0f1523] px-5 py-1.5 text-xs border-b border-[#24324f] flex justify-between items-center gap-4 shrink-0 min-h-[38px]">
+            <div class="flex items-center gap-2 overflow-hidden truncate">
+                <span class="bg-[#38bdf8]/15 text-[#38bdf8] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider shrink-0">Goal</span>
+                <span id="ts-goal-text" class="text-slate-200 font-medium truncate">No Goal defined.</span>
+            </div>
             <div class="flex items-center gap-2 shrink-0">
-                <div class="flex bg-slate-800 p-1 rounded-xl text-[10px] font-bold shrink-0"><button onclick="setMascotBehavior('still')" id="btn-beh-still" class="px-2 py-0.5 rounded text-slate-400">Still</button><button onclick="setMascotBehavior('roam')" id="btn-beh-roam" class="px-2.5 py-1 rounded bg-indigo-600 text-white shadow">Roam</button><button onclick="setMascotBehavior('float')" id="btn-beh-float" class="px-2.5 py-1 rounded text-slate-400">Float</button><button onclick="setMascotBehavior('sleep')" id="btn-beh-sleep" class="px-2.5 py-1 rounded text-slate-400">Sleep</button></div>
-                <select aria-label="Mascot Scale" id="mascot-scale-select" onchange="setMascotScale(parseFloat(this.value))" class="bg-slate-800 border border-slate-700 rounded-xl px-2 py-1 text-[11px] font-bold text-slate-200 outline-none shrink-0"><option value="1.0">1.0x</option><option value="1.3">1.3x</option><option value="1.6">1.6x</option><option value="2.0">2.0x</option></select>
+                <button id="ts-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#38bdf8] border border-[#38bdf8] rounded text-[11px] font-bold transition-all flex items-center gap-1"><span>↔</span> Fit Screen</button>
+                <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded text-[11px] font-bold transition-all flex items-center gap-1"><span>⊞</span> Auto-Stack (2 Rows)</button>
+                <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded text-[11px] font-bold transition-all flex items-center gap-1"><span>⎌</span> Separate All</button>
             </div>
-            <div class="flex items-center gap-1 shrink-0 flex-nowrap">
-                <button onclick="triggerMascotAnim('squish')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold shrink-0">Squish</button><button onclick="triggerMascotAnim('hop')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold shrink-0">Hop</button><button onclick="triggerMascotAnim('frontflip')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold shrink-0">Flip</button>
-                <div class="h-4 w-px bg-slate-700 mx-1 shrink-0"></div>
-                <button onclick="triggerEmote('heart')" aria-label="Heart Emote" class="p-1.5 bg-slate-800 text-rose-500 rounded-lg shrink-0"><i data-lucide="heart" class="w-3.5 h-3.5 fill-rose-500"></i></button>
-                <button onclick="triggerEmote('lightbulb')" aria-label="Idea Emote" class="p-1.5 bg-slate-800 text-amber-500 rounded-lg shrink-0"><i data-lucide="lightbulb" class="w-3.5 h-3.5 fill-amber-400"></i></button>
-                <button onclick="triggerEmote('flame')" aria-label="Flame Emote" class="p-1.5 bg-slate-800 text-orange-500 rounded-lg shrink-0"><i data-lucide="flame" class="w-3.5 h-3.5 fill-orange-500"></i></button>
+        </div>
+        <main id="ts-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></main>
+    </div>
+
+    <!-- FULLSCREEN OVERLAY 2: COMPULSORY 90-MIN HYPERFOCUS SAFETY LOCK -->
+    <div id="compulsory-break-overlay" class="fixed inset-0 bg-slate-950/95 text-white z-50 hidden flex-col items-center justify-center p-6 font-sans-ui backdrop-blur-xl">
+        <div class="max-w-md w-full bg-slate-900 border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
+            <div class="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center text-2xl font-bold">⚠️</div>
+            <div class="space-y-2">
+                <span class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-400">Biological Reality Check</span>
+                <h2 class="text-2xl font-black tracking-tight text-white">90-Minute Focus Boundary</h2>
+                <p class="text-xs text-slate-400 leading-relaxed">Continuous hyperfocus past 90 minutes degrades working memory and causes cognitive crash. Take a mandatory 3-minute physical reset.</p>
             </div>
+            <div class="p-6 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-2">
+                <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">Lockdown Closes In</span>
+                <span class="text-5xl font-mono font-extrabold text-amber-400" id="break-countdown-display">03:00</span>
+                <div class="text-[11px] text-slate-400 pt-2 space-y-1">
+                    <p>💧 Drink a glass of water</p>
+                    <p>👀 Look 20 feet away to relax optic muscles</p>
+                    <p>🚶 Stand up, stretch spine and shoulders</p>
+                </div>
+            </div>
+            <button id="btn-dismiss-break" disabled onclick="dismissCompulsoryBreak()" class="w-full py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl transition-all cursor-not-allowed">Reset in Progress...</button>
         </div>
     </div>
 
-    <!-- Theme Selector Modal -->
-    <div id="theme-popover" class="fixed top-16 left-4 sm:left-20 md:left-80 z-50 w-72 bg-white p-4 rounded-3xl shadow-2xl border border-slate-200 hidden font-sans-ui space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-            <div class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4 text-brand-600"></i><span class="text-xs font-bold text-slate-800">Visual Theme</span></div>
-            <button onclick="closeThemePopover()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
-        </div>
-        <div class="space-y-1.5" id="theme-options-container"></div>
+    <!-- ZEN OVERLAY -->
+    <div id="zen-overlay" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col font-sans-ui overflow-hidden items-center justify-center">
+        <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden"><div id="mascot-roam-wrapper" class="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer mascot-roam hidden"><div id="mascot-scale-wrapper" class="transition-transform duration-300" style="transform: scale(1.0);"><div id="mascot-anim-wrapper" class="mascot-bob relative" onclick="triggerMascotAnim('squish')"><div id="sleep-particle-z" class="hidden"><div class="z-particle z-1">Z</div></div><div id="emote-pop-container" class="emote-icon text-rose-500"><i data-lucide="heart" class="w-6 h-6 fill-rose-500"></i></div><div id="zen-mascot-mount" class="mascot-mount-box"></div></div></div></div></div>
+        <div class="absolute top-6 left-6 right-6 flex items-center justify-between z-20"><span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase tracking-widest font-mono">Zen Mode</span><div class="flex items-center gap-2"><button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1.5 shadow"><i data-lucide="edit-3" class="w-3.5 h-3.5 text-brand-400"></i> Dump</button><button onclick="toggleBackdropModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1.5 shadow"><i data-lucide="palette" class="w-3.5 h-3.5 text-indigo-400"></i> Backdrops</button><button onclick="closeZenView()" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1 shadow"><i data-lucide="minimize-2" class="w-3.5 h-3.5"></i> Exit</button></div></div>
+        <div class="flex-1 flex flex-col items-center justify-center z-20 space-y-6 w-full max-w-xl text-center my-auto px-4"><h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight" id="zen-active-task-title">Workspace Active</h2><div class="w-full flex justify-center items-center"><button aria-label="Toggle Zen Timer" onclick="toggleTimer()" class="w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden relative shadow-2xl timer-red-container" id="zen-timer-btn"><div id="zen-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div><div class="relative z-10 flex flex-col items-center"><div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="zen-timer-state">Paused</div><div class="text-5xl sm:text-6xl font-mono font-bold tracking-tighter" id="zen-timer-display">00:00:00</div></div></button></div><p class="text-xs text-slate-300/80 font-mono w-full truncate max-w-md mx-auto" id="zen-task-notes">No notes attached</p></div>
     </div>
 
-    <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3><p class="text-[11px] text-slate-400">Dopamine checkpoint and shame-free sprint calibration.</p></div></div><button onclick="closeSprintReviewModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-slate-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div><p class="text-[11px] text-slate-500">Every 30 days is a natural reset boundary. ADHD brains thrive on novelty.</p></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Sprint Actions</label><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Analytics</button></div></div></div></div></div>
-    
-    <div id="blueprint-modal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3><p class="text-[11px] text-slate-400">Transform conversational plans into active FocusFlow workspaces.</p></div></div><button onclick="BlueprintEngine.closeModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div>
-            <div class="space-y-3 flex-1 overflow-y-auto">
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button>
-                    <button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button>
-                    <button onclick="BlueprintEngine.exportCurrentWorkspaceToMarkdown()" id="btn-export-blueprint" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-emerald-200"><i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> Export Workspace to Markdown</button>
-                </div>
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Destination</label><select aria-label="Blueprint Mount Destination" id="blueprint-target-select" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"></select></div><div><div class="flex justify-between items-center mb-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Paste Markdown Blueprint</label><span class="text-[10px] text-slate-400 font-mono">Accepts: (25m), (1h 15m), (5m 30s), (90s)</span></div><textarea aria-label="Blueprint Paste Box" id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]"></textarea></div></div><div class="flex justify-between items-center pt-3 border-t border-slate-100"><button onclick="BlueprintEngine.closeModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Cancel</button><button onclick="BlueprintEngine.executeImport()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Ingest Blueprint</button></div></div></div>
-    <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3></div></div><button onclick="toggleScratchpadModal()" aria-label="Close" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="flex gap-2"><input type="text" aria-label="Scratchpad Input" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="Type thought and press Enter..."><button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button></div><div class="max-h-56 overflow-y-auto divide-y divide-slate-100 space-y-1" id="scratchpad-items-list"></div></div></div>
-    <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100"><div class="flex items-center gap-3 border-b border-slate-100 pb-3"><div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-slate-800">Anchor Your Momentum</h3></div></div><div class="space-y-3"><div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Where did you stop?</label><input type="text" aria-label="Where stopped input" id="park-stopped-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Finished reviewing part A"></div><div><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Immediate next 60s launchpad action?</label><input type="text" aria-label="Next action input" id="park-next60s-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500" placeholder="e.g., Open test suite"></div></div><div class="flex justify-between items-center pt-2"><button onclick="dismissParkModal()" class="px-4 py-2 text-slate-400 hover:text-slate-600 text-xs font-semibold">Just Pause</button><button onclick="confirmParkAndPause()" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md">Anchor & Pause</button></div></div></div>
-    <div id="instructions-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h2 class="text-lg font-bold text-brand-700 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i> Focus Flow Complete Program Guide</h2><button onclick="toggleInstructionsModal()" aria-label="Close" class="p-2 text-slate-400 hover:bg-slate-200 rounded-xl"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-4 leading-relaxed"><div><h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">1. Strict 3-Tier Hierarchy (Main &rarr; Sub &rarr; Component)</h3><p>Organize work across three structural depths: <strong>Main Project</strong>, <strong>Sub-Project</strong>, and <strong>Component Project</strong>.</p></div></div></div></div>
-    <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes & Resources</h3><button onclick="toggleProjectNotesModal()" aria-label="Close" class="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6"><textarea aria-label="Full project notes" id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 focus:ring-2 focus:ring-brand-400 outline-none resize-none"></textarea></div><div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end"><button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500">Save Changes</button></div></div></div>
-    <div id="backdrop-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><h3 class="font-bold text-sm text-slate-800">Stage Backdrop Designer</h3><button onclick="toggleBackdropModal()" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="grid grid-cols-3 gap-3"><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Primary</label><input type="color" aria-label="Primary Color" id="picker-primary" value="#090d16" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Secondary</label><input type="color" aria-label="Secondary Color" id="picker-secondary" value="#1e1b4b" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Tertiary</label><input type="color" aria-label="Tertiary Color" id="picker-tertiary" value="#4338ca" oninput="onCustomColorChange()" class="w-full h-8 rounded border-0 cursor-pointer"></div></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Gradient Architecture</label><select aria-label="Background Gradient Style" id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs font-semibold text-slate-700 outline-none"><option value="radial-center">Radial Center Glow</option><option value="spotlight">Corner Spotlight Glow</option><option value="linear-diag">Diagonal Split (45°)</option><option value="linear-vert">Vertical Gradient</option><option value="mesh">3-Color Mesh Atmosphere</option><option value="solid">Solid Primary Color</option></select></div></div></div>
+    <!-- Modals -->
+    <div id="theme-popover" class="fixed top-16 left-4 sm:left-20 md:left-80 z-50 w-72 bg-white p-4 rounded-3xl shadow-2xl border border-slate-200 hidden font-sans-ui space-y-3"><div class="flex items-center justify-between pb-2 border-b border-slate-100"><div class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4 text-brand-600"></i><span class="text-xs font-bold text-slate-800">Visual Theme</span></div><button onclick="closeThemePopover()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div><div class="space-y-1.5" id="theme-options-container"></div></div>
+    <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3><p class="text-[11px] text-slate-400">Dopamine checkpoint and sprint calibration.</p></div></div><button onclick="closeSprintReviewModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-slate-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Actions</label><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Analytics & Retrospective</button></div></div></div></div></div>
+    <div id="blueprint-modal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3><p class="text-[11px] text-slate-400">Ingest conversational roadmaps.</p></div></div><button onclick="BlueprintEngine.closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 flex-1 overflow-y-auto"><div class="flex flex-wrap gap-2"><button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button><button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button><button onclick="BlueprintEngine.exportCurrentWorkspaceToMarkdown()" id="btn-export-blueprint" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200"><i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> Export Workspace</button></div><div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Destination</label><select id="blueprint-target-select" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"></select></div><textarea id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]"></textarea></div><div class="flex justify-between items-center pt-3 border-t border-slate-100"><button onclick="BlueprintEngine.closeModal()" class="px-4 py-2 text-slate-400 text-xs font-semibold">Cancel</button><button onclick="BlueprintEngine.executeImport()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Ingest Blueprint</button></div></div></div>
+    <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div><h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3></div><button onclick="toggleScratchpadModal()" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="flex gap-2"><input type="text" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none" placeholder="Dump thought..."><button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button></div><div class="max-h-56 overflow-y-auto divide-y divide-slate-100" id="scratchpad-items-list"></div></div></div>
+    <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100"><div class="flex items-center gap-3 border-b border-slate-100 pb-3"><div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div><h3 class="font-bold text-sm text-slate-800">Anchor Your Momentum</h3></div><div class="space-y-3"><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Where did you stop?</label><input type="text" id="park-stopped-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none" placeholder="e.g. Finished part A"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Immediate 60s launchpad action?</label><input type="text" id="park-next60s-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none" placeholder="e.g. Open test suite"></div></div><div class="flex justify-between items-center pt-2"><button onclick="dismissParkModal()" class="px-4 py-2 text-slate-400 text-xs font-semibold">Just Pause</button><button onclick="confirmParkAndPause()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold shadow-md">Anchor & Pause</button></div></div></div>
+    <div id="instructions-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h2 class="text-lg font-bold text-brand-700 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i> Focus Flow Guide</h2><button onclick="toggleInstructionsModal()" class="p-2 text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-4 leading-relaxed"><div><h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">The 4-Stage Focus Cycle</h3><p><strong>1. Calendar:</strong> Check dates for one project.<br><strong>2. Map:</strong> Review macro architecture in TreeScope.<br><strong>3. Focus:</strong> Execute atomic tasks.<br><strong>4. Progress:</strong> Log output ratings or drawings.</p></div></div></div></div>
+    <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes</h3><button onclick="toggleProjectNotesModal()" class="p-1.5 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6"><textarea id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 outline-none resize-none"></textarea></div><div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end"><button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save Changes</button></div></div></div>
+    <div id="project-retrospective-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><i data-lucide="award" class="w-6 h-6"></i></div><div><h3 class="font-extrabold text-base text-slate-900" id="postdoc-modal-title">Project Post-Doc</h3><p class="text-[11px] text-slate-400" id="postdoc-modal-subtitle">Momentum Retrospective</p></div></div><button onclick="closeProjectRetrospectiveModal()" class="text-slate-400 p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-4 flex-1 overflow-y-auto pr-1"><div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white space-y-1"><span class="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-100">Milestone Complete</span><h4 class="text-lg font-black" id="postdoc-headline">Project Completed!</h4><p class="text-xs text-emerald-50" id="postdoc-dates-label"></p></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Time Spent</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-total-time">0h 0m</span></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planned</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-target-time">0h 0m</span></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Accuracy</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-accuracy">0%</span></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tasks</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-tasks-count">0/0</span></div></div><div class="space-y-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tasks</label><div class="divide-y divide-slate-100 border border-slate-200 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Debrief Notes</label><textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 outline-none"></textarea></div></div><div class="flex items-center justify-between pt-3 border-t border-slate-100"><button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen</button><button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold">Done</button></div></div></div>
 
-    <div id="project-retrospective-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
-        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><i data-lucide="award" class="w-6 h-6"></i></div>
-                    <div><h3 class="font-extrabold text-base text-slate-900" id="postdoc-modal-title">Project Post-Doc</h3><p class="text-[11px] text-slate-400" id="postdoc-modal-subtitle">Momentum Retrospective & Calibration Summary</p></div>
-                </div>
-                <button onclick="closeProjectRetrospectiveModal()" aria-label="Close Retrospective" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
-            <div class="space-y-4 flex-1 overflow-y-auto pr-1">
-                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white space-y-1 shadow-sm">
-                    <span class="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-100">Milestone Conquered</span>
-                    <h4 class="text-lg font-black tracking-tight" id="postdoc-headline">Project Completed!</h4>
-                    <p class="text-xs text-emerald-50 opacity-90" id="postdoc-dates-label">Completed • active runway</p>
-                </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Time Invested</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-total-time">0h 0m</span></div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Target Planned</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-target-time">0h 0m</span></div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Accuracy</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-accuracy">0%</span></div>
-                    <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tasks Solved</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-tasks-count">0/0</span></div>
-                </div>
-                <div class="space-y-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Task Execution Log</label><div class="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div></div>
-                <div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Post-Doc Debrief & Future Calibrations</label><textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 outline-none focus:bg-white focus:border-emerald-400 transition-all" placeholder="What went smoothly? Where was time underestimated?"></textarea></div>
-            </div>
-            <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                <button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen Project</button>
-                <button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm">Done</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Core Scripts -->
     <script src="js/mascots.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/audio.js"></script>
