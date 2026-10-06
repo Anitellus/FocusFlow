@@ -23,28 +23,13 @@ function formatTimeHuman(totalSeconds) {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function formatTimeFull(totalSeconds) {
-    if (!totalSeconds || totalSeconds === 0) return '0m';
-    const d = Math.floor(totalSeconds / 86400);
-    const h = Math.floor((totalSeconds % 86400) / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    let parts = [];
-    if (d > 0) parts.push(`${d}d`);
-    if (h > 0) parts.push(`${h}h`);
-    if (m > 0 || parts.length === 0) parts.push(`${m}m`);
-    return parts.join(' ');
-}
-
 function safeCreateIcons() { 
     try { lucide.createIcons(); } catch(e) {} 
 }
 
 // --- Firebase & State Storage Engine ---
-const STORAGE_KEY_V10 = 'focus_flow_master_v10';
 const STORAGE_KEY_V11 = 'focus_flow_master_v11';
 
-// [SECURITY NOTE]: Initialize via environment variables or replace these with actual keys if deploying directly. 
-// Protect your credentials using strict Firestore Rules and App Check configuration.
 const firebaseConfig = {
     apiKey: "AIzaSyCzpHlAhANEmgZd3tMsfTnHGlbaK9L9sIM",
     authDomain: "focus-flow-app-87591.firebaseapp.com",
@@ -63,15 +48,15 @@ const docRef = db.collection('focus_flow').doc('user_workspace');
 
 let currentUser = null;
 let firestoreUnsubscribe = null;
-let lastSyncedStateString = ""; // Prevents unnecessary/destructive document overwrites
+let lastSyncedStateString = "";
 
 let appState = {
     version: 11,
     theme: 'light',
     activeProjectId: null,
-    calendarSelectedProjectId: null, // Single-project filter
-    activeTimerSession: null,         // Live timer resilience across page refresh
-    continuousFocusSeconds: 0,        // 90-min hyperfocus tracker
+    calendarSelectedProjectId: null,
+    activeTimerSession: null,
+    continuousFocusSeconds: 0,
     sprintStartDate: new Date().toISOString(),
     sprintCycleDays: 30,
     saveStateDrawerOpen: false,
@@ -102,19 +87,19 @@ function saveStateLocally() {
         localStorage.setItem(STORAGE_KEY_V11, JSON.stringify(appState));
     } catch (e) {
         if (e.name === 'QuotaExceededError' || e.code === 22) {
-            console.error("Storage quota exceeded! Compressing session memory.", e);
-            alert("Warning: Local storage is nearly full. Your photo gallery images will be compressed automatically.");
-            // Purge temporary logs if critically full
-            if (appState.sessionLogs && appState.sessionLogs.length > 500) {
-                appState.sessionLogs = appState.sessionLogs.slice(-200);
+            console.warn("Storage quota exceeded. Compressing telemetry session logs.", e);
+            if (appState.sessionLogs && appState.sessionLogs.length > 300) {
+                appState.sessionLogs = appState.sessionLogs.slice(-150);
+            }
+            try {
+                localStorage.setItem(STORAGE_KEY_V11, JSON.stringify(appState));
+            } catch (innerErr) {
+                alert("Storage quota warning: consider backing up your workspace to JSON.");
             }
         }
     }
 }
 
-
-
-// --- Migration & Local Storage ---
 function initializeAndMigrateStorage() {
     const rawV11 = localStorage.getItem(STORAGE_KEY_V11);
     if (rawV11) {
@@ -148,10 +133,10 @@ function loadDefaultData() {
         createdAt: new Date().toISOString(),
         completedAt: null,
         progression: {
-            type: 'binary', // 'binary' | 'metrics' | 'gallery'
-            metrics: [],    // e.g. ['2v2 MMR', '1v1 MMR'] or ['Subscribers', 'Views']
-            entries: [],    // [{ id, date, metric, value, notes }]
-            gallery: []     // [{ id, date, title, imageUrl, notes }]
+            type: 'binary',
+            metrics: [],
+            entries: [],
+            gallery: []
         },
         tasks: [{ 
             id: 't-1', title: 'Verify custom matrix SVGs and animations', estimatedTime: 1800, actualTime: 0, 
@@ -160,9 +145,6 @@ function loadDefaultData() {
         }]
     }];
     saveStateLocally();
-}
-function saveStateLocally() {
-    localStorage.setItem(STORAGE_KEY_V11, JSON.stringify(appState));
 }
 
 function syncHeaderInputsToState() {
@@ -178,7 +160,6 @@ function syncHeaderInputsToState() {
     if (nEl && nEl.value !== undefined) p.notes = nEl.value;
 }
 
-// --- Data Export & Import Handlers ---
 function exportDataJSON() {
     syncHeaderInputsToState();
     const cleanData = JSON.stringify(appState, null, 2);
@@ -199,7 +180,6 @@ function importDataJSON(event) {
         try {
             const imported = JSON.parse(e.target.result);
             if (imported && Array.isArray(imported.projects)) {
-                // Ensure a deep overwrite of the entire tree so orphaned artifacts from shallow merging are purged
                 appState = JSON.parse(JSON.stringify(imported));
                 saveStateLocally();
                 renderApp();
@@ -214,7 +194,6 @@ function importDataJSON(event) {
     reader.readAsText(file);
 }
 
-// --- Google Authentication & Cloud Sync Engine ---
 function signInWithGoogle() {
     if (!auth) return alert("Firebase not properly configured.");
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -282,7 +261,6 @@ function manualCloudSave() {
     });
 }
 
-// Background sync (guarded against active user interaction & unnecessary overwrites)
 setInterval(() => {
     if (!currentUser || !docRef) return;
     const isUserTyping = document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA');
@@ -292,7 +270,6 @@ setInterval(() => {
     const cleanData = JSON.parse(JSON.stringify(appState));
     const currentString = JSON.stringify(cleanData);
     
-    // Prevent destructive overwrites if local state hasn't meaningfully changed
     if (currentString === lastSyncedStateString) return;
 
     docRef.set(cleanData, { merge: true }).then(() => {
@@ -326,9 +303,6 @@ if (auth) {
                 }
             }, err => {
                 console.error("Firestore Listener Error:", err);
-                if (err.code === 'permission-denied') {
-                    alert("Permission denied. Check that the email in your Firestore rules matches: " + user.email);
-                }
             });
         } else {
             if (firestoreUnsubscribe) {
