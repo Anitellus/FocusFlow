@@ -67,13 +67,17 @@ let lastSyncedStateString = ""; // Prevents unnecessary/destructive document ove
 
 let appState = {
     version: 11,
-    theme: 'light', // 'light' | 'dark' | 'earth' | 'fire'
+    theme: 'light',
     activeProjectId: null,
+    calendarSelectedProjectId: null, // Single-project filter
+    activeTimerSession: null,         // Live timer resilience across page refresh
+    continuousFocusSeconds: 0,        // 90-min hyperfocus tracker
     sprintStartDate: new Date().toISOString(),
     sprintCycleDays: 30,
     saveStateDrawerOpen: false,
     parkingLotOpen: false,
     completedTasksDrawerOpen: false,
+    completedProjectsDrawerOpen: false,
     audioFamily: 'woodblock',
     audioVolume: 80,
     audioMuted: false,
@@ -92,6 +96,23 @@ let appState = {
     sessionLogs: [],
     projects: []
 };
+
+function saveStateLocally() {
+    try {
+        localStorage.setItem(STORAGE_KEY_V11, JSON.stringify(appState));
+    } catch (e) {
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+            console.error("Storage quota exceeded! Compressing session memory.", e);
+            alert("Warning: Local storage is nearly full. Your photo gallery images will be compressed automatically.");
+            // Purge temporary logs if critically full
+            if (appState.sessionLogs && appState.sessionLogs.length > 500) {
+                appState.sessionLogs = appState.sessionLogs.slice(-200);
+            }
+        }
+    }
+}
+
+
 
 // --- Migration & Local Storage ---
 function initializeAndMigrateStorage() {
