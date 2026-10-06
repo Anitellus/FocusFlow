@@ -86,38 +86,67 @@ function getCompletedRootProjects() {
 function switchView(viewName) {
     currentView = viewName;
     const focusContainer = document.getElementById('view-focus-container');
-    const mapContainer = document.getElementById('view-map-container');
     const calContainer = document.getElementById('view-calendar-container');
+    const progContainer = document.getElementById('view-progression-container');
     const analyticsContainer = document.getElementById('view-analytics-container');
 
     const navFocus = document.getElementById('nav-focus');
-    const navMap = document.getElementById('nav-map');
     const navCal = document.getElementById('nav-calendar');
-    const navAnalytics = document.getElementById('nav-analytics');
+    const navProg = document.getElementById('nav-progress');
 
     if (focusContainer) focusContainer.classList.toggle('hidden', viewName !== 'focus');
-    if (mapContainer) mapContainer.classList.toggle('hidden', viewName !== 'map');
     if (calContainer) calContainer.classList.toggle('hidden', viewName !== 'calendar');
+    if (progContainer) progContainer.classList.toggle('hidden', viewName !== 'progress');
     if (analyticsContainer) analyticsContainer.classList.toggle('hidden', viewName !== 'analytics');
 
     const activeNavClass = "flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1";
-    const inactiveNavClass = "flex-1 py-1.5 rounded-xl text-xs font-medium text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1";
+    const inactiveNavClass = "flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1";
 
     if (navFocus) navFocus.className = viewName === 'focus' ? activeNavClass : inactiveNavClass;
-    if (navMap) navMap.className = viewName === 'map' ? activeNavClass : inactiveNavClass;
     if (navCal) navCal.className = viewName === 'calendar' ? activeNavClass : inactiveNavClass;
-    if (navAnalytics) navAnalytics.className = viewName === 'analytics' ? activeNavClass : inactiveNavClass;
+    if (navProg) navProg.className = viewName === 'progress' ? activeNavClass : inactiveNavClass;
 
-    if (viewName === 'map') {
-        renderMapView();
-    } else if (viewName === 'calendar' && typeof renderCalendarView === 'function') {
+    if (viewName === 'calendar' && typeof renderCalendarView === 'function') {
         renderCalendarView();
+    } else if (viewName === 'progress' && typeof ProgressionEngine !== 'undefined') {
+        ProgressionEngine.render();
     } else if (viewName === 'analytics' && typeof renderAnalytics === 'function') {
         renderAnalytics(30);
     } else if (viewName === 'focus') {
         renderApp();
     }
     safeCreateIcons();
+}
+
+// 2. Resilient Timer: Survives page refresh and enforces 90m boundary
+let breakInterval = null;
+
+function toggleTimer() {
+    const task = getActiveTask();
+    if (!task || task.isCompleted) return;
+
+    if (isPlaying) {
+        openParkModal();
+        return;
+    }
+
+    isPlaying = true;
+    activeSessionStart = new Date();
+    if (!task.startedAt) task.startedAt = new Date().toISOString();
+
+    // Store absolute timestamp in localStorage to survive hard refreshes (F5/Cmd+R)
+    appState.activeTimerSession = {
+        taskId: task.id,
+        projectId: getActiveProject().id,
+        startedTimestamp: Date.now(),
+        taskBaseActualTime: task.actualTime
+    };
+    saveStateLocally();
+
+    renderTimerVisuals();
+    playSound('start');
+    timerInterval = setInterval(timerTick, 1000);
+    scheduleNextAudioJitter();
 }
 
 // --- Project Terrain Map Engine (Panoramic Macro Visualization) ---
@@ -1225,8 +1254,18 @@ function timerTick() {
         if (isPlaying) forcePause();
         return;
     }
+
     t.actualTime += 1;
     p.totalTimeSpent += 1;
+    appState.continuousFocusSeconds = (appState.continuousFocusSeconds || 0) + 1;
+
+    // Hard boundary: Trigger compulsory 3-minute physical reset after 90 continuous minutes
+    if (appState.continuousFocusSeconds >= 5400) {
+        forcePause();
+        triggerCompulsoryBreak();
+        return;
+    }
+
     tickCounter++;
     if (tickCounter >= 5) {
         saveStateLocally();
@@ -1241,9 +1280,11 @@ function forcePause() {
     clearInterval(timerInterval);
     if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
 
+    appState.activeTimerSession = null; // Clear live reload session
+
     if (activeSessionStart) {
         const durationSec = Math.round((Date.now() - activeSessionStart.getTime()) / 1000);
-        const cappedDuration = Math.min(durationSec, 14400); // 4-hour max ceiling per slice
+        const cappedDuration = Math.min(durationSec, 14400);
         logSessionTelemetry(getActiveTask()?.id, getActiveProject()?.id, cappedDuration, false);
         activeSessionStart = null;
     }
@@ -1251,6 +1292,70 @@ function forcePause() {
     renderTimerVisuals();
     saveStateLocally();
 }
+
+// Compulsory Break Runner (Unskippable 180s Lockdown)
+function triggerCompulsoryBreak() {
+    const overlay = document.getElementById('compulsory-break-overlay');
+    const display = document.getElementById('break-countdown-display');
+    const dismissBtn = document.getElementById('btn-dismiss-break');
+    if (!overlay) return;
+
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+
+    let remainingSeconds = 180;
+    dismissBtn.disabled = true;
+    dismissBtn.className = "w-full py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed";
+    dismissBtn.textContent = "Lockdown in Progress...";
+
+    if (breakInterval) clearInterval(breakInterval);
+    breakInterval = setInterval(() => {
+        remainingSeconds--;
+        const m = Math.floor(remainingSeconds / 60);
+        const s = remainingSeconds % 60;
+        if (display) display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+        if (remainingSeconds <= 0) {
+            clearInterval(breakInterval);
+            dismissBtn.disabled = false;
+            dismissBtn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg";
+            dismissBtn.textContent = "Break Complete — Resume FocusFlow";
+        }
+    }, 1000);
+}
+
+function dismissCompulsoryBreak() {
+    const overlay = document.getElementById('compulsory-break-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+    }
+    appState.continuousFocusSeconds = 0; // Reset hyperfocus counter
+    saveStateLocally();
+    renderApp();
+}
+
+// 3. Restore session across hard reload
+window.addEventListener('DOMContentLoaded', () => {
+    // If browser crashed or refreshed mid-timer, restore the exact delta
+    if (appState.activeTimerSession) {
+        const sess = appState.activeTimerSession;
+        const proj = (appState.projects || []).find(p => p.id === sess.projectId);
+        if (proj) {
+            const task = (proj.tasks || []).find(t => t.id === sess.taskId);
+            if (task && !task.isCompleted) {
+                const deltaSec = Math.floor((Date.now() - sess.startedTimestamp) / 1000);
+                task.actualTime = sess.taskBaseActualTime + deltaSec;
+                proj.totalTimeSpent = (proj.totalTimeSpent || 0) + deltaSec;
+                appState.activeProjectId = proj.id;
+                proj.activeTaskId = task.id;
+                console.info(`Recovered ${deltaSec}s of active focus from hard reload.`);
+            }
+        }
+        appState.activeTimerSession = null; // Clean up until user manually clicks to restart
+        saveStateLocally();
+    }
+});
 
 function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
     if (!durationSec || durationSec < 4) return;
