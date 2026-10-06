@@ -1,6 +1,31 @@
+// --- In js/calendar.js ---
+
 let calendarViewDate = new Date();
 
+function changeCalendarProjectFilter(projectId) {
+    appState.calendarSelectedProjectId = projectId === 'ALL' ? null : projectId;
+    saveStateLocally();
+    renderCalendarView();
+}
+
+function syncCalendarProjectFilterUI() {
+    const sel = document.getElementById('calendar-project-filter');
+    if (!sel) return;
+    const roots = (appState.projects || []).filter(p => !p.parentId && !p.completedAt);
+    
+    // Auto-select active project if filter is unset
+    if (!appState.calendarSelectedProjectId) {
+        appState.calendarSelectedProjectId = appState.activeProjectId || (roots[0]?.id || null);
+    }
+
+    sel.innerHTML = `
+        ${roots.map(r => `<option value="${r.id}" ${r.id === appState.calendarSelectedProjectId ? 'selected' : ''}>${r.title}</option>`).join('')}
+        <option value="ALL" ${appState.calendarSelectedProjectId === null ? 'selected' : ''}>All Projects (Busy)</option>
+    `;
+}
+
 function renderCalendarView() {
+    syncCalendarProjectFilterUI();
     renderTemporalHorizons();
     renderMonthlyGrid();
     safeCreateIcons();
@@ -20,6 +45,7 @@ function renderTemporalHorizons() {
     const todayStr = getLocalFormattedDate(new Date());
     const sevenDaysLater = new Date(Date.now() + 7 * 86400000);
     const allItems = [];
+    const filterId = appState.calendarSelectedProjectId;
 
     function isProjectParked(proj) {
         let curr = proj;
@@ -31,8 +57,18 @@ function renderTemporalHorizons() {
         return false;
     }
 
-    (appState.projects || []).forEach(p => {
-        if (isProjectParked(p)) return;
+    // Filter projects matching selection
+    const visibleProjects = (appState.projects || []).filter(p => {
+        if (isProjectParked(p)) return false;
+        if (!filterId) return true;
+        let root = p;
+        while (root && root.parentId) {
+            root = (appState.projects || []).find(x => x.id === root.parentId);
+        }
+        return root && root.id === filterId;
+    });
+
+    visibleProjects.forEach(p => {
         if (p.deadline) {
             allItems.push({ id: p.id, type: 'project', title: p.title, deadline: p.deadline, projectId: p.id, isCompleted: !!p.completedAt });
         }
@@ -52,19 +88,19 @@ function renderTemporalHorizons() {
     document.getElementById('horizon-count-recalibrate').textContent = `${recalibrateItems.length} items`;
 
     document.getElementById('horizon-list-today').innerHTML = todayItems.length === 0 
-        ? `<p class="text-xs text-slate-400 italic py-2">No deadlines today. Sustainable pace.</p>`
-        : todayItems.map(item => `<div onclick="jumpToItem('${item.type}', '${item.id}', '${item.projectId}')" class="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/80 cursor-pointer transition-colors text-xs"><span class="font-semibold text-slate-700 truncate">${item.type === 'project' ? '📁 ' : '📝 '}${item.title}</span><span class="text-[10px] font-mono font-bold text-emerald-600 shrink-0 ml-2">Today</span></div>`).join('');
+        ? `<p class="text-xs text-slate-400 italic py-2">No deadlines today for this project.</p>`
+        : todayItems.map(item => `<div onclick="jumpToItem('${item.type}', '${item.id}', '${item.projectId}')" class="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-200/80 cursor-pointer text-xs"><span class="font-semibold text-slate-700 truncate">${item.title}</span><span class="text-[10px] font-mono font-bold text-emerald-600 ml-2">Today</span></div>`).join('');
 
     document.getElementById('horizon-list-week').innerHTML = weekItems.length === 0 
-        ? `<p class="text-xs text-slate-400 italic py-2">Nothing scheduled in the next 7 days.</p>`
-        : weekItems.map(item => `<div onclick="jumpToItem('${item.type}', '${item.id}', '${item.projectId}')" class="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 cursor-pointer transition-colors text-xs"><span class="font-semibold text-slate-700 truncate">${item.type === 'project' ? '📁 ' : '📝 '}${item.title}</span><span class="text-[10px] font-mono text-slate-500 shrink-0 ml-2">${item.deadline.slice(5)}</span></div>`).join('');
+        ? `<p class="text-xs text-slate-400 italic py-2">Nothing scheduled next 7 days.</p>`
+        : weekItems.map(item => `<div onclick="jumpToItem('${item.type}', '${item.id}', '${item.projectId}')" class="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-indigo-50 border border-slate-200/80 cursor-pointer text-xs"><span class="font-semibold text-slate-700 truncate">${item.title}</span><span class="text-[10px] font-mono text-slate-500 ml-2">${item.deadline.slice(5)}</span></div>`).join('');
 
     document.getElementById('horizon-list-recalibrate').innerHTML = recalibrateItems.length === 0 
-        ? `<p class="text-xs text-slate-400 italic py-2">Zero passed dates. Calendar is aligned.</p>`
+        ? `<p class="text-xs text-slate-400 italic py-2">Zero passed dates.</p>`
         : recalibrateItems.map(item => `
             <div class="p-2.5 rounded-xl bg-white border border-amber-200/80 space-y-1.5 text-xs shadow-sm">
-                <div class="flex items-center justify-between"><span class="font-bold text-slate-800 truncate">${item.type === 'project' ? '📁 ' : '📝 '}${item.title}</span><span class="text-[9px] font-mono font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">${item.deadline}</span></div>
-                <div class="flex items-center gap-1.5 pt-1"><span class="text-[9px] text-slate-400">Reschedule:</span><button onclick="rescheduleItem('${item.type}', '${item.id}', '${item.projectId}', 1)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold text-slate-700">+1 Day</button><button onclick="rescheduleItem('${item.type}', '${item.id}', '${item.projectId}', 3)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold text-slate-700">+3 Days</button><button onclick="rescheduleItem('${item.type}', '${item.id}', '${item.projectId}', 7)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 rounded text-[10px] font-bold text-slate-700">+1 Week</button></div>
+                <div class="flex items-center justify-between"><span class="font-bold text-slate-800 truncate">${item.title}</span><span class="text-[9px] font-mono font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">${item.deadline}</span></div>
+                <div class="flex items-center gap-1.5 pt-1"><span class="text-[9px] text-slate-400">Reschedule:</span><button onclick="rescheduleItem('${item.type}', '${item.id}', '${item.projectId}', 1)" class="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-700">+1d</button><button onclick="rescheduleItem('${item.type}', '${item.id}', '${item.projectId}', 3)" class="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-700">+3d</button><button onclick="rescheduleItem('${item.type}', '${item.id}', '${item.projectId}', 7)" class="px-2 py-0.5 bg-slate-100 rounded text-[10px] font-bold text-slate-700">+1w</button></div>
             </div>
         `).join('');
 }
