@@ -11,6 +11,7 @@ let activeSessionStart = null;
 let activeSessionMode = 'focus';
 let visibilityTimeout = null;
 let activePostDocProjectId = null;
+let breakInterval = null;
 
 // Tab visibility guard against runaway background sessions (pauses after 15m AFK)
 document.addEventListener('visibilitychange', () => {
@@ -87,15 +88,18 @@ function switchView(viewName) {
     currentView = viewName;
     const focusContainer = document.getElementById('view-focus-container');
     const calContainer = document.getElementById('view-calendar-container');
+    const mapContainer = document.getElementById('view-map-container');
     const progContainer = document.getElementById('view-progression-container');
     const analyticsContainer = document.getElementById('view-analytics-container');
 
     const navFocus = document.getElementById('nav-focus');
     const navCal = document.getElementById('nav-calendar');
+    const navMap = document.getElementById('nav-map');
     const navProg = document.getElementById('nav-progress');
 
     if (focusContainer) focusContainer.classList.toggle('hidden', viewName !== 'focus');
     if (calContainer) calContainer.classList.toggle('hidden', viewName !== 'calendar');
+    if (mapContainer) mapContainer.classList.toggle('hidden', viewName !== 'map');
     if (progContainer) progContainer.classList.toggle('hidden', viewName !== 'progress');
     if (analyticsContainer) analyticsContainer.classList.toggle('hidden', viewName !== 'analytics');
 
@@ -104,10 +108,13 @@ function switchView(viewName) {
 
     if (navFocus) navFocus.className = viewName === 'focus' ? activeNavClass : inactiveNavClass;
     if (navCal) navCal.className = viewName === 'calendar' ? activeNavClass : inactiveNavClass;
+    if (navMap) navMap.className = viewName === 'map' ? activeNavClass : inactiveNavClass;
     if (navProg) navProg.className = viewName === 'progress' ? activeNavClass : inactiveNavClass;
 
     if (viewName === 'calendar' && typeof renderCalendarView === 'function') {
         renderCalendarView();
+    } else if (viewName === 'map' && typeof TreeScopeEngine !== 'undefined') {
+        TreeScopeEngine.render();
     } else if (viewName === 'progress' && typeof ProgressionEngine !== 'undefined') {
         ProgressionEngine.render();
     } else if (viewName === 'analytics' && typeof renderAnalytics === 'function') {
@@ -118,9 +125,7 @@ function switchView(viewName) {
     safeCreateIcons();
 }
 
-// 2. Resilient Timer: Survives page refresh and enforces 90m boundary
-let breakInterval = null;
-
+// --- Resilient Timer Engine ---
 function toggleTimer() {
     const task = getActiveTask();
     if (!task || task.isCompleted) return;
@@ -134,7 +139,6 @@ function toggleTimer() {
     activeSessionStart = new Date();
     if (!task.startedAt) task.startedAt = new Date().toISOString();
 
-    // Store absolute timestamp in localStorage to survive hard refreshes (F5/Cmd+R)
     appState.activeTimerSession = {
         taskId: task.id,
         projectId: getActiveProject().id,
@@ -149,232 +153,185 @@ function toggleTimer() {
     scheduleNextAudioJitter();
 }
 
-// --- Project Terrain Map Engine (Panoramic Macro Visualization) ---
-let currentMappedRootId = null;
-
-function renderMapView(selectedRootId = null) {
-    const selector = document.getElementById('map-project-selector');
-    const canvas = document.getElementById('map-canvas-container');
-    if (!canvas) return;
-
-    // Get all root projects
-    const allRoots = (appState.projects || []).filter(p => !p.parentId);
-    if (allRoots.length === 0) {
-        canvas.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200">No projects exist yet. Create a project to view its terrain map.</div>`;
+function timerTick() {
+    const p = getActiveProject();
+    const t = getActiveTask();
+    if (!t || t.isCompleted) {
+        if (isPlaying) forcePause();
         return;
     }
 
-    // Determine current root to inspect
-    if (selectedRootId) {
-        currentMappedRootId = selectedRootId;
-    } else if (!currentMappedRootId || !allRoots.some(r => r.id === currentMappedRootId)) {
-        const activeProj = getActiveProject();
-        const rootOfActive = activeProj ? getRootProject(activeProj) : allRoots[0];
-        currentMappedRootId = rootOfActive ? rootOfActive.id : allRoots[0].id;
-    }
+    t.actualTime += 1;
+    p.totalTimeSpent += 1;
+    appState.continuousFocusSeconds = (appState.continuousFocusSeconds || 0) + 1;
 
-    const currentRoot = allRoots.find(r => r.id === currentMappedRootId) || allRoots[0];
-
-    // Populate Selector Dropdown
-    if (selector) {
-        selector.innerHTML = allRoots.map(r => `
-            <option value="${r.id}" ${r.id === currentRoot.id ? 'selected' : ''}>
-                ${r.title} ${r.isParked ? '(Parked)' : ''} ${r.completedAt ? '✓' : ''}
-            </option>
-        `).join('');
-    }
-
-    // Header Details
-    document.getElementById('map-project-title').textContent = currentRoot.title;
-    document.getElementById('map-project-goal').textContent = currentRoot.goal || 'No North Star goal attached.';
-    const totalRootSec = getCumulativeTime(currentRoot.id);
-    document.getElementById('map-project-total-time').textContent = formatTimeHuman(totalRootSec);
-
-    // Effort Allocation Calculation
-    const subTracks = (appState.projects || []).filter(p => p.parentId === currentRoot.id);
-    const effortBar = document.getElementById('map-effort-bar');
-    const effortLegend = document.getElementById('map-effort-legend');
-
-    const palette = ['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4', '#8b5cf6', '#14b8a6'];
-
-    if (subTracks.length === 0 || totalRootSec === 0) {
-        effortBar.innerHTML = `<div class="w-full h-full bg-slate-200 flex items-center justify-center text-[9px] text-slate-400 font-mono font-semibold">No track telemetry logged yet</div>`;
-        effortLegend.innerHTML = `<span class="text-slate-400 italic">Work across sub-tracks to see momentum distribution.</span>`;
-    } else {
-        let barHtml = '';
-        let legendHtml = '';
-        subTracks.forEach((sub, idx) => {
-            const subSec = getCumulativeTime(sub.id);
-            const pct = Math.round((subSec / totalRootSec) * 100);
-            const color = palette[idx % palette.length];
-            if (pct > 0) {
-                barHtml += `<div style="width: ${pct}%; background-color: ${color};" title="${sub.title}: ${pct}% (${formatTimeHuman(subSec)})"></div>`;
-            }
-            legendHtml += `
-                <div class="flex items-center gap-1.5 font-medium">
-                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${color};"></span>
-                    <span class="text-slate-700">${sub.title}</span>
-                    <span class="text-slate-400 font-mono font-semibold">(${pct}%)</span>
-                </div>
-            `;
-        });
-        effortBar.innerHTML = barHtml || `<div class="w-full h-full bg-slate-200"></div>`;
-        effortLegend.innerHTML = legendHtml;
-    }
-
-    // Render Terrain Board
-    // Case A: Root has direct tasks (Leaf Project)
-    if (subTracks.length === 0) {
-        canvas.innerHTML = `
-            <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div>
-                        <h3 class="font-extrabold text-sm text-slate-900">Direct Action Tasks</h3>
-                        <p class="text-xs text-slate-400">This project executes at root tier without sub-projects.</p>
-                    </div>
-                    <span class="text-xs font-mono font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
-                        ${(currentRoot.tasks || []).filter(t => t.isCompleted).length}/${(currentRoot.tasks || []).length} done
-                    </span>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    ${renderMapTaskList(currentRoot.tasks || [], currentRoot.id)}
-                </div>
-            </div>
-        `;
-        safeCreateIcons();
+    if (appState.continuousFocusSeconds >= 5400) {
+        forcePause();
+        triggerCompulsoryBreak();
         return;
     }
 
-    // Case B: Full Hierarchy (Sub-Projects & Component Tracks)
-    let boardHtml = '';
-    subTracks.forEach((sub, idx) => {
-        const components = (appState.projects || []).filter(p => p.parentId === sub.id);
-        const subSec = getCumulativeTime(sub.id);
-        const subColor = palette[idx % palette.length];
-
-        boardHtml += `
-            <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div class="flex items-center gap-2.5 min-w-0">
-                        <span class="w-3 h-3 rounded-full shrink-0" style="background-color: ${subColor};"></span>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-black text-base text-slate-900 truncate">${sub.title}</h3>
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-mono font-bold bg-indigo-50 text-indigo-700">Tier 2 Track</span>
-                            </div>
-                            ${sub.notes ? `<p class="text-xs text-slate-500 mt-0.5 whitespace-pre-line leading-relaxed">${sub.notes}</p>` : ''}
-                        </div>
-                    </div>
-                    <span class="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-full self-start sm:self-auto shrink-0">
-                        ${formatTimeHuman(subSec)} invested
-                    </span>
-                </div>
-        `;
-
-        if (components.length === 0) {
-            // Sub-project directly holds tasks
-            boardHtml += `
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    ${renderMapTaskList(sub.tasks || [], sub.id)}
-                </div>
-            `;
-        } else {
-            // Components inside Sub-project
-            boardHtml += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">`;
-            components.forEach(comp => {
-                const compTasks = comp.tasks || [];
-                const doneCount = compTasks.filter(t => t.isCompleted).length;
-                boardHtml += `
-                    <div class="bg-slate-50/70 border border-slate-200/70 rounded-2xl p-4 space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                            <div class="min-w-0">
-                                <div class="flex items-center gap-1.5">
-                                    <span class="font-extrabold text-xs text-slate-800 truncate">${comp.title}</span>
-                                    <span class="text-[9px] px-1.5 py-0.2 rounded font-mono font-bold bg-brand-100 text-brand-700">Tier 3</span>
-                                </div>
-                                ${comp.notes ? `<p class="text-[11px] text-slate-400 truncate mt-0.5">${comp.notes}</p>` : ''}
-                            </div>
-                            <span class="text-[10px] font-mono font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full shrink-0">
-                                ${doneCount}/${compTasks.length} done
-                            </span>
-                        </div>
-                        <div class="space-y-2">
-                            ${renderMapTaskList(compTasks, comp.id)}
-                        </div>
-                    </div>
-                `;
-            });
-            boardHtml += `</div>`;
-        }
-
-        boardHtml += `</div>`;
-    });
-
-    canvas.innerHTML = boardHtml;
-    safeCreateIcons();
+    tickCounter++;
+    if (tickCounter >= 5) {
+        saveStateLocally();
+        tickCounter = 0;
+    }
+    updateTimerTexts(p, t);
 }
 
-function renderMapTaskList(tasks, projectId) {
-    if (!tasks || tasks.length === 0) {
-        return `<p class="text-xs text-slate-400 italic py-2">No tasks created yet.</p>`;
+function forcePause() {
+    if (!isPlaying) return;
+    isPlaying = false;
+    clearInterval(timerInterval);
+    if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
+
+    appState.activeTimerSession = null;
+
+    if (activeSessionStart) {
+        const durationSec = Math.round((Date.now() - activeSessionStart.getTime()) / 1000);
+        const cappedDuration = Math.min(durationSec, 14400);
+        logSessionTelemetry(getActiveTask()?.id, getActiveProject()?.id, cappedDuration, false);
+        activeSessionStart = null;
     }
 
-    return tasks.map(t => {
-        const microCount = (t.microSteps || []).length;
-        const microDone = (t.microSteps || []).filter(ms => ms.isCompleted).length;
-
-        return `
-            <div class="p-3 bg-white border border-slate-200/80 rounded-2xl space-y-2 shadow-2xs hover:border-brand-400 transition-all flex flex-col justify-between">
-                <div class="space-y-1.5">
-                    <div class="flex items-start justify-between gap-2">
-                        <span class="text-xs font-bold leading-snug ${t.isCompleted ? 'line-through text-slate-400' : 'text-slate-800'}">
-                            ${t.title}
-                        </span>
-                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded shrink-0 ${t.isCompleted ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'}">
-                            ${t.isCompleted ? 'Done' : 'Open'}
-                        </span>
-                    </div>
-
-                    ${t.notes ? `
-                        <p class="text-[11px] text-slate-500 leading-relaxed whitespace-pre-line line-clamp-3 bg-slate-50 p-2 rounded-xl border border-slate-100 font-normal">
-                            ${t.notes}
-                        </p>
-                    ` : ''}
-
-                    ${microCount > 0 ? `
-                        <div class="space-y-1 pt-1">
-                            <span class="text-[9px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Atomic Micro-Steps (${microDone}/${microCount})</span>
-                            <div class="space-y-1">
-                                ${t.microSteps.map(ms => `
-                                    <div class="flex items-center gap-1.5 text-[10px] text-slate-600 truncate">
-                                        <i data-lucide="${ms.isCompleted ? 'check-circle' : 'circle'}" class="w-3 h-3 ${ms.isCompleted ? 'text-emerald-500' : 'text-slate-300'} shrink-0"></i>
-                                        <span class="truncate ${ms.isCompleted ? 'line-through text-slate-400' : ''}">${ms.title}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-
-                <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-                    <span class="text-[10px] font-mono text-slate-400 font-semibold">
-                        ${t.actualTime > 0 ? `${formatTimeCompact(t.actualTime)} spent` : 'Ready to start'}
-                    </span>
-                    <button onclick="focusTaskFromMap('${projectId}', '${t.id}')" class="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-lg text-[10px] font-bold transition-colors flex items-center gap-1">
-                        <i data-lucide="target" class="w-3 h-3"></i> Focus
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function focusTaskFromMap(projectId, taskId) {
-    appState.activeProjectId = projectId;
-    const p = (appState.projects || []).find(x => x.id === projectId);
-    if (p) p.activeTaskId = taskId;
+    renderTimerVisuals();
     saveStateLocally();
-    switchView('focus');
+}
+
+function triggerCompulsoryBreak() {
+    const overlay = document.getElementById('compulsory-break-overlay');
+    const display = document.getElementById('break-countdown-display');
+    const dismissBtn = document.getElementById('btn-dismiss-break');
+    if (!overlay) return;
+
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+
+    let remainingSeconds = 180;
+    dismissBtn.disabled = true;
+    dismissBtn.className = "w-full py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed";
+    dismissBtn.textContent = "Lockdown in Progress...";
+
+    if (breakInterval) clearInterval(breakInterval);
+    breakInterval = setInterval(() => {
+        remainingSeconds--;
+        const m = Math.floor(remainingSeconds / 60);
+        const s = remainingSeconds % 60;
+        if (display) display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+        if (remainingSeconds <= 0) {
+            clearInterval(breakInterval);
+            dismissBtn.disabled = false;
+            dismissBtn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg";
+            dismissBtn.textContent = "Break Complete — Resume FocusFlow";
+        }
+    }, 1000);
+}
+
+function dismissCompulsoryBreak() {
+    const overlay = document.getElementById('compulsory-break-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+    }
+    appState.continuousFocusSeconds = 0;
+    saveStateLocally();
+    renderApp();
+}
+
+function completeActiveTask() {
+    const t = getActiveTask();
+    const p = getActiveProject();
+    if (!t || t.isCompleted) return;
+    if (isPlaying) forcePause();
+    t.isCompleted = true;
+    t.completionDate = new Date().toISOString();
+    playSound('complete');
+    confetti({ particleCount: 80, spread: 60 });
+    logSessionTelemetry(t.id, p.id, t.actualTime, true);
+    saveStateLocally();
+    setTimeout(() => {
+        p.activeTaskId = (p.tasks.find(x => !x.isCompleted) || {}).id || null;
+        saveStateLocally();
+        renderApp();
+    }, 1000);
+    renderApp();
+}
+
+function updateTimerTexts(p, task) {
+    document.getElementById('active-timer-display').textContent = formatTimeCompact(task.actualTime);
+    document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
+    document.getElementById('active-timer-estimate').textContent = task.estimatedTime > 0 ? `Target: ${Math.round(task.estimatedTime / 60)}m` : 'Open ended';
+
+    const zenDisplay = document.getElementById('zen-timer-display');
+    if (zenDisplay) zenDisplay.textContent = formatTimeCompact(task.actualTime);
+
+    const c = 930;
+    const target = task.estimatedTime > 0 ? task.estimatedTime : 1800;
+    const arc = document.getElementById('radial-progress-arc');
+    const halo = document.getElementById('radial-overtime-halo');
+    const stateText = document.getElementById('timer-state-text');
+    const timerBtn = document.getElementById('main-timer-btn');
+    const zenBtn = document.getElementById('zen-timer-btn');
+
+    if (arc) {
+        const progress = Math.min(task.actualTime / target, 1.0);
+        arc.style.strokeDashoffset = (c * (1 - progress)).toString();
+        if (task.actualTime <= target || task.estimatedTime === 0) {
+            arc.style.stroke = isPlaying ? '#10b981' : '#f43f5e';
+            if (halo) halo.classList.add('opacity-0');
+            if (stateText) stateText.textContent = isPlaying ? 'Active' : 'Paused';
+            if (timerBtn) {
+                timerBtn.classList.remove('timer-amber-container');
+                timerBtn.classList.toggle('timer-green-container', isPlaying);
+                timerBtn.classList.toggle('timer-red-container', !isPlaying);
+            }
+            if (zenBtn) {
+                zenBtn.classList.remove('timer-amber-container');
+                zenBtn.classList.toggle('timer-green-container', isPlaying);
+                zenBtn.classList.toggle('timer-red-container', !isPlaying);
+            }
+        } else {
+            const overtime = task.actualTime - target;
+            arc.style.stroke = '#f59e0b';
+            if (halo) {
+                const haloC = 980;
+                const otProgress = Math.min(overtime / target, 1.0);
+                halo.style.strokeDashoffset = (haloC * (1 - otProgress)).toString();
+                halo.classList.remove('opacity-0');
+                halo.classList.add('overtime-pulse');
+            }
+            if (stateText) stateText.textContent = `Flow Zone (+${formatTimeCompact(overtime)})`;
+            if (timerBtn) {
+                timerBtn.classList.remove('timer-green-container', 'timer-red-container');
+                timerBtn.classList.add('timer-amber-container');
+            }
+            if (zenBtn) {
+                zenBtn.classList.remove('timer-green-container', 'timer-red-container');
+                zenBtn.classList.add('timer-amber-container');
+            }
+        }
+    }
+}
+
+function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
+    if (!durationSec || durationSec < 4) return;
+    const taskObj = (appState.projects || []).flatMap(p => p.tasks || []).find(x => x.id === taskId);
+    const projObj = (appState.projects || []).find(x => x.id === projectId);
+    appState.sessionLogs = appState.sessionLogs || [];
+    appState.sessionLogs.push({
+        id: 'sess-' + generateId(),
+        taskId: taskId,
+        taskTitle: taskObj ? taskObj.title : 'Focus Session',
+        projectId: projectId,
+        projectTitle: projObj ? projObj.title : 'General Project',
+        startedAt: new Date(Date.now() - durationSec * 1000).toISOString(),
+        endedAt: new Date().toISOString(),
+        durationSeconds: durationSec,
+        mode: activeSessionMode || 'focus',
+        completedTask: completed
+    });
+    saveStateLocally();
 }
 
 // --- Sprint Novelty Engine ---
@@ -427,7 +384,7 @@ function confirmSprintReset() {
     confetti({ particleCount: 60, spread: 55 });
 }
 
-// --- Drawer & Mobile Navigation Toggles ---
+// --- Drawer Toggles ---
 function toggleSaveStateDrawer() {
     appState.saveStateDrawerOpen = !appState.saveStateDrawerOpen;
     const drawer = document.getElementById('save-state-drawer');
@@ -499,7 +456,7 @@ function createNewProject(parentId = null) {
         }
         const parent = (appState.projects || []).find(p => p.id === parentId);
         if (parent && parent.tasks && parent.tasks.length > 0) {
-            if (!confirm(`"${parent.title}" currently has ${parent.tasks.length} task(s).\n\nTasks only live at the lowest leaf level.\n\nWould you like to move all tasks into the new sub-project?`)) return;
+            if (!confirm(`"${parent.title}" currently has ${parent.tasks.length} task(s).\n\nTasks only live at the lowest leaf level.\n\nMove all tasks into the new sub-project?`)) return;
             tasksToMigrate = [...parent.tasks];
             parent.tasks = [];
             parent.activeTaskId = null;
@@ -603,7 +560,6 @@ function deleteProject(projectId, e) {
     }
 }
 
-// --- Project & Subproject Completion Architecture ---
 function toggleCompleteCurrentProject() {
     const p = getActiveProject();
     if (!p) return;
@@ -636,7 +592,6 @@ function toggleCompleteProject(projectId, e) {
     }
 }
 
-// --- Project Post-Doc Retrospective Engine ---
 function openProjectRetrospective(projectId) {
     const p = (appState.projects || []).find(x => x.id === projectId);
     if (!p) return;
@@ -645,7 +600,6 @@ function openProjectRetrospective(projectId) {
     const modal = document.getElementById('project-retrospective-modal');
     if (!modal) return;
 
-    // Gather tree tasks
     const allProjTasks = [];
     function collectTasks(proj) {
         (proj.tasks || []).forEach(t => allProjTasks.push({ ...t, projectTitle: proj.title }));
@@ -791,7 +745,6 @@ function renderSidebar() {
         return nodeHtml;
     }
 
-    // 1. Active Sprint Containers
     html += `<div class="space-y-1">`;
     html += `<div class="flex items-center justify-between px-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider"><span>Active Sprint</span><span>${activeRoots.length}/4 Max</span></div>`;
     if (activeRoots.length === 0) {
@@ -803,7 +756,6 @@ function renderSidebar() {
     }
     html += `</div>`;
 
-    // 2. Parking Lot Containers
     if (parkedRoots.length > 0 || appState.parkingLotOpen) {
         html += `
             <div class="mt-4 pt-3 border-t border-slate-200/80">
@@ -826,7 +778,6 @@ function renderSidebar() {
         html += `</div>`;
     }
 
-    // 3. Completed Projects Bucket (Archived / Greyed Out)
     if (completedRoots.length > 0 || appState.completedProjectsDrawerOpen) {
         html += `
             <div class="mt-4 pt-3 border-t border-slate-200/80">
@@ -861,12 +812,10 @@ function renderSidebar() {
     safeCreateIcons();
 }
 
-// --- Active Project Header Synchronizer ---
 function renderActiveProjectHeader() {
     const p = getActiveProject();
     if (!p) return;
 
-    // Breadcrumbs
     const crumbs = document.getElementById('project-breadcrumbs');
     if (crumbs) {
         let chain = [];
@@ -893,7 +842,6 @@ function renderActiveProjectHeader() {
     if (nEl && document.activeElement !== nEl) nEl.value = p.notes || '';
     if (cumEl) cumEl.textContent = formatTimeCompact(getCumulativeTime(p.id));
 
-    // Dynamic Complete / Post-Doc Header Button
     const completeBtn = document.getElementById('btn-toggle-project-complete');
     const completeLbl = document.getElementById('label-toggle-project-complete');
     if (completeBtn && completeLbl) {
@@ -932,7 +880,6 @@ function renderTasks() {
 
     const isParentNode = hasSubProjects(p.id);
 
-    // Rule: Tasks live only at the lowest tier
     if (isParentNode) {
         if (milestoneHub) {
             milestoneHub.classList.remove('hidden');
@@ -970,7 +917,6 @@ function renderTasks() {
         taskProgressText.textContent = `${completedTasks.length}/${tasks.length} Completed`;
     }
 
-    // Pending tasks
     if (taskContainer) {
         if (pendingTasks.length === 0) {
             taskContainer.innerHTML = `<div class="p-6 bg-white rounded-2xl border border-slate-200 text-center text-xs text-slate-400 italic">No active tasks. Add one below to kickstart momentum!</div>`;
@@ -1007,7 +953,6 @@ function renderTasks() {
         }
     }
 
-    // Completed tasks drawer
     if (completedWrapper && completedContainer) {
         if (completedTasks.length > 0) {
             completedWrapper.classList.remove('hidden');
@@ -1118,7 +1063,6 @@ function deleteTask(taskId, e) {
     }
 }
 
-// --- Target Estimate Update Handlers ---
 function handleActiveTaskEstimateChange(newVal) {
     const task = getActiveTask();
     if (!task) return;
@@ -1139,9 +1083,8 @@ function handleActiveTaskEstimateChange(newVal) {
     const targetSec = cleanMins * 60;
     if (targetSec === task.estimatedTime) return;
 
-    // Prompt user confirmation if time has already accumulated
     if (task.actualTime > 0) {
-        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged. Revising will adjust your time-accuracy calibration.`);
+        const proceed = confirm(`Are you sure you want to revise the estimated time?\n\nThis task already has ${formatTimeCompact(task.actualTime)} logged.`);
         if (!proceed) {
             renderTimerVisuals();
             return;
@@ -1228,231 +1171,7 @@ function renderTimerVisuals() {
     }
 }
 
-// --- Timer Engine & Overtime Calculations ---
-function toggleTimer() {
-    const task = getActiveTask();
-    if (!task || task.isCompleted) return;
-
-    if (isPlaying) {
-        openParkModal();
-        return;
-    }
-
-    isPlaying = true;
-    activeSessionStart = new Date();
-    if (!task.startedAt) task.startedAt = new Date().toISOString();
-    renderTimerVisuals();
-    playSound('start');
-    timerInterval = setInterval(timerTick, 1000);
-    scheduleNextAudioJitter();
-}
-
-function timerTick() {
-    const p = getActiveProject();
-    const t = getActiveTask();
-    if (!t || t.isCompleted) {
-        if (isPlaying) forcePause();
-        return;
-    }
-
-    t.actualTime += 1;
-    p.totalTimeSpent += 1;
-    appState.continuousFocusSeconds = (appState.continuousFocusSeconds || 0) + 1;
-
-    // Hard boundary: Trigger compulsory 3-minute physical reset after 90 continuous minutes
-    if (appState.continuousFocusSeconds >= 5400) {
-        forcePause();
-        triggerCompulsoryBreak();
-        return;
-    }
-
-    tickCounter++;
-    if (tickCounter >= 5) {
-        saveStateLocally();
-        tickCounter = 0;
-    }
-    updateTimerTexts(p, t);
-}
-
-function forcePause() {
-    if (!isPlaying) return;
-    isPlaying = false;
-    clearInterval(timerInterval);
-    if (jitterAudioTimer) clearTimeout(jitterAudioTimer);
-
-    appState.activeTimerSession = null; // Clear live reload session
-
-    if (activeSessionStart) {
-        const durationSec = Math.round((Date.now() - activeSessionStart.getTime()) / 1000);
-        const cappedDuration = Math.min(durationSec, 14400);
-        logSessionTelemetry(getActiveTask()?.id, getActiveProject()?.id, cappedDuration, false);
-        activeSessionStart = null;
-    }
-
-    renderTimerVisuals();
-    saveStateLocally();
-}
-
-// Compulsory Break Runner (Unskippable 180s Lockdown)
-function triggerCompulsoryBreak() {
-    const overlay = document.getElementById('compulsory-break-overlay');
-    const display = document.getElementById('break-countdown-display');
-    const dismissBtn = document.getElementById('btn-dismiss-break');
-    if (!overlay) return;
-
-    overlay.classList.remove('hidden');
-    overlay.classList.add('flex');
-
-    let remainingSeconds = 180;
-    dismissBtn.disabled = true;
-    dismissBtn.className = "w-full py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed";
-    dismissBtn.textContent = "Lockdown in Progress...";
-
-    if (breakInterval) clearInterval(breakInterval);
-    breakInterval = setInterval(() => {
-        remainingSeconds--;
-        const m = Math.floor(remainingSeconds / 60);
-        const s = remainingSeconds % 60;
-        if (display) display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-
-        if (remainingSeconds <= 0) {
-            clearInterval(breakInterval);
-            dismissBtn.disabled = false;
-            dismissBtn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl cursor-pointer shadow-lg";
-            dismissBtn.textContent = "Break Complete — Resume FocusFlow";
-        }
-    }, 1000);
-}
-
-function dismissCompulsoryBreak() {
-    const overlay = document.getElementById('compulsory-break-overlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
-        overlay.classList.remove('flex');
-    }
-    appState.continuousFocusSeconds = 0; // Reset hyperfocus counter
-    saveStateLocally();
-    renderApp();
-}
-
-// 3. Restore session across hard reload
-window.addEventListener('DOMContentLoaded', () => {
-    // If browser crashed or refreshed mid-timer, restore the exact delta
-    if (appState.activeTimerSession) {
-        const sess = appState.activeTimerSession;
-        const proj = (appState.projects || []).find(p => p.id === sess.projectId);
-        if (proj) {
-            const task = (proj.tasks || []).find(t => t.id === sess.taskId);
-            if (task && !task.isCompleted) {
-                const deltaSec = Math.floor((Date.now() - sess.startedTimestamp) / 1000);
-                task.actualTime = sess.taskBaseActualTime + deltaSec;
-                proj.totalTimeSpent = (proj.totalTimeSpent || 0) + deltaSec;
-                appState.activeProjectId = proj.id;
-                proj.activeTaskId = task.id;
-                console.info(`Recovered ${deltaSec}s of active focus from hard reload.`);
-            }
-        }
-        appState.activeTimerSession = null; // Clean up until user manually clicks to restart
-        saveStateLocally();
-    }
-});
-
-function logSessionTelemetry(taskId, projectId, durationSec, completed = false) {
-    if (!durationSec || durationSec < 4) return;
-    const taskObj = (appState.projects || []).flatMap(p => p.tasks || []).find(x => x.id === taskId);
-    const projObj = (appState.projects || []).find(x => x.id === projectId);
-    appState.sessionLogs = appState.sessionLogs || [];
-    appState.sessionLogs.push({
-        id: 'sess-' + generateId(),
-        taskId: taskId,
-        taskTitle: taskObj ? taskObj.title : 'Focus Session',
-        projectId: projectId,
-        projectTitle: projObj ? projObj.title : 'General Project',
-        startedAt: new Date(Date.now() - durationSec * 1000).toISOString(),
-        endedAt: new Date().toISOString(),
-        durationSeconds: durationSec,
-        mode: activeSessionMode || 'focus',
-        completedTask: completed
-    });
-    saveStateLocally();
-}
-
-function completeActiveTask() {
-    const t = getActiveTask();
-    const p = getActiveProject();
-    if (!t || t.isCompleted) return;
-    if (isPlaying) forcePause();
-    t.isCompleted = true;
-    t.completionDate = new Date().toISOString();
-    playSound('complete');
-    confetti({ particleCount: 80, spread: 60 });
-    logSessionTelemetry(t.id, p.id, t.actualTime, true);
-    saveStateLocally();
-    setTimeout(() => {
-        p.activeTaskId = (p.tasks.find(x => !x.isCompleted) || {}).id || null;
-        saveStateLocally();
-        renderApp();
-    }, 1000);
-    renderApp();
-}
-
-function updateTimerTexts(p, task) {
-    document.getElementById('active-timer-display').textContent = formatTimeCompact(task.actualTime);
-    document.getElementById('project-cumulative-timer').textContent = formatTimeCompact(getCumulativeTime(p.id));
-    document.getElementById('active-timer-estimate').textContent = task.estimatedTime > 0 ? `Target: ${Math.round(task.estimatedTime / 60)}m` : 'Open ended';
-
-    const zenDisplay = document.getElementById('zen-timer-display');
-    if (zenDisplay) zenDisplay.textContent = formatTimeCompact(task.actualTime);
-
-    const c = 930;
-    const target = task.estimatedTime > 0 ? task.estimatedTime : 1800; // Open-ended defaults ring calibration to 30m
-    const arc = document.getElementById('radial-progress-arc');
-    const halo = document.getElementById('radial-overtime-halo');
-    const stateText = document.getElementById('timer-state-text');
-    const timerBtn = document.getElementById('main-timer-btn');
-    const zenBtn = document.getElementById('zen-timer-btn');
-
-    if (arc) {
-        const progress = Math.min(task.actualTime / target, 1.0);
-        arc.style.strokeDashoffset = (c * (1 - progress)).toString();
-        if (task.actualTime <= target || task.estimatedTime === 0) {
-            arc.style.stroke = isPlaying ? '#10b981' : '#f43f5e';
-            if (halo) halo.classList.add('opacity-0');
-            if (stateText) stateText.textContent = isPlaying ? 'Active' : 'Paused';
-            if (timerBtn) {
-                timerBtn.classList.remove('timer-amber-container');
-                timerBtn.classList.toggle('timer-green-container', isPlaying);
-                timerBtn.classList.toggle('timer-red-container', !isPlaying);
-            }
-            if (zenBtn) {
-                zenBtn.classList.remove('timer-amber-container');
-                zenBtn.classList.toggle('timer-green-container', isPlaying);
-                zenBtn.classList.toggle('timer-red-container', !isPlaying);
-            }
-        } else {
-            const overtime = task.actualTime - target;
-            arc.style.stroke = '#f59e0b';
-            if (halo) {
-                const haloC = 980;
-                const otProgress = Math.min(overtime / target, 1.0);
-                halo.style.strokeDashoffset = (haloC * (1 - otProgress)).toString();
-                halo.classList.remove('opacity-0');
-                halo.classList.add('overtime-pulse');
-            }
-            if (stateText) stateText.textContent = `Flow Zone (+${formatTimeCompact(overtime)})`;
-            if (timerBtn) {
-                timerBtn.classList.remove('timer-green-container', 'timer-red-container');
-                timerBtn.classList.add('timer-amber-container');
-            }
-            if (zenBtn) {
-                zenBtn.classList.remove('timer-green-container', 'timer-red-container');
-                zenBtn.classList.add('timer-amber-container');
-            }
-        }
-    }
-}
-
-// --- Park & Momentum Anchoring Modal ---
+// --- Momentum Anchoring & Launchpad ---
 function openParkModal() {
     const modal = document.getElementById('park-resume-modal');
     if (!modal) {
@@ -1531,7 +1250,7 @@ function renderResumptionBanner() {
     safeCreateIcons();
 }
 
-// --- Micro-Step Decomposer Engine ---
+// --- Micro-Steps ---
 function renderMicroSteps(task) {
     const list = document.getElementById('active-task-microsteps-list');
     const summary = document.getElementById('microstep-summary');
@@ -1688,7 +1407,7 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-// --- Companion & Mascot System (Reads from mascotDatabase in js/mascots.js) ---
+// --- Companions ---
 function getAvailableMascots() {
     if (typeof mascotDatabase !== 'undefined' && Array.isArray(mascotDatabase) && mascotDatabase.length > 0) {
         return mascotDatabase;
@@ -1696,9 +1415,7 @@ function getAvailableMascots() {
     if (typeof window !== 'undefined' && window.mascotDatabase && Array.isArray(window.mascotDatabase)) {
         return window.mascotDatabase;
     }
-    return [
-        { id: 'm-bunny', name: 'Bunny', emoji: '🐰', svg: '<span class="text-3xl">🐰</span>' }
-    ];
+    return [{ id: 'm-bunny', name: 'Bunny', emoji: '🐰', svg: '<span class="text-3xl">🐰</span>' }];
 }
 
 function renderMascotGallery() {
@@ -1757,13 +1474,9 @@ function renderActiveMascot() {
 
     if (mascot) {
         if (mainWrapper) mainWrapper.classList.remove('hidden');
-        if (mainMount) {
-            mainMount.innerHTML = mascot.svg || `<span class="text-3xl">${mascot.emoji || '🐾'}</span>`;
-        }
+        if (mainMount) mainMount.innerHTML = mascot.svg || `<span class="text-3xl">${mascot.emoji || '🐾'}</span>`;
         if (zenRoam) zenRoam.classList.remove('hidden');
-        if (zenMount) {
-            zenMount.innerHTML = mascot.svg || `<span class="text-5xl">${mascot.emoji || '🐾'}</span>`;
-        }
+        if (zenMount) zenMount.innerHTML = mascot.svg || `<span class="text-5xl">${mascot.emoji || '🐾'}</span>`;
     } else {
         if (mainWrapper) mainWrapper.classList.add('hidden');
         if (zenRoam) zenRoam.classList.add('hidden');
@@ -1780,9 +1493,7 @@ function setMascotBehavior(behavior) {
 
     ['still', 'roam', 'float', 'sleep'].forEach(b => {
         const btn = document.getElementById(`btn-beh-${b}`);
-        if (btn) {
-            btn.className = b === behavior ? 'px-2.5 py-1 rounded bg-indigo-600 text-white shadow' : 'px-2 py-0.5 rounded text-slate-400';
-        }
+        if (btn) btn.className = b === behavior ? 'px-2.5 py-1 rounded bg-indigo-600 text-white shadow' : 'px-2 py-0.5 rounded text-slate-400';
     });
     saveStateLocally();
 }
@@ -1830,7 +1541,6 @@ function closeZenView() {
     renderApp();
 }
 
-// --- Backdrop Designer ---
 function toggleBackdropModal() {
     const modal = document.getElementById('backdrop-modal');
     if (modal) modal.classList.toggle('hidden');
@@ -1966,7 +1676,6 @@ function renderThemeUI() {
     safeCreateIcons();
 }
 
-// Close theme popover if clicking outside
 document.addEventListener('click', (e) => {
     const popover = document.getElementById('theme-popover');
     const trigger = e.target.closest('[onclick*="toggleThemePopover"]');
@@ -1975,8 +1684,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
-
-// --- Master Application Render Loop ---
+// --- Master Render Loop ---
 function renderApp() {
     renderSidebar();
     renderActiveProjectHeader();
@@ -1990,9 +1698,8 @@ function renderApp() {
     safeCreateIcons();
 }
 
-// --- Initialization & Event Bindings ---
+// --- Initialization & Hard-Reload Delta Recovery ---
 window.addEventListener('DOMContentLoaded', () => {
-    // Apply saved visual theme immediately on startup
     const savedTheme = appState.theme || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
     updateBloomOpacity(appState.bloomOpacity || 60);
@@ -2003,7 +1710,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const famSelect = document.getElementById('audio-family-select');
     if (famSelect) famSelect.value = appState.audioFamily || 'woodblock';
 
-    // Live sync project header inputs
     ['project-title-input', 'project-goal-input', 'project-deadline-input', 'project-notes-summary-input'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -2014,7 +1720,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Active task details autosave
     const taskNotes = document.getElementById('active-task-notes');
     if (taskNotes) {
         taskNotes.addEventListener('input', (e) => {
@@ -2037,7 +1742,6 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Enter key shortcuts for fast task entry
     const newTaskInput = document.getElementById('new-task-title-input');
     const newEstInput = document.getElementById('new-task-est-input');
     [newTaskInput, newEstInput].forEach(inp => {
@@ -2047,6 +1751,25 @@ window.addEventListener('DOMContentLoaded', () => {
             });
         }
     });
+
+    // Hard-reload timer delta recovery
+    if (appState.activeTimerSession) {
+        const sess = appState.activeTimerSession;
+        const proj = (appState.projects || []).find(p => p.id === sess.projectId);
+        if (proj) {
+            const task = (proj.tasks || []).find(t => t.id === sess.taskId);
+            if (task && !task.isCompleted) {
+                const deltaSec = Math.floor((Date.now() - sess.startedTimestamp) / 1000);
+                task.actualTime = sess.taskBaseActualTime + deltaSec;
+                proj.totalTimeSpent = (proj.totalTimeSpent || 0) + deltaSec;
+                appState.activeProjectId = proj.id;
+                proj.activeTaskId = task.id;
+                console.info(`Recovered ${deltaSec}s from active session reload.`);
+            }
+        }
+        appState.activeTimerSession = null;
+        saveStateLocally();
+    }
 
     renderApp();
 });
