@@ -3,13 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Flow | Master Single-Task Tracker</title>
+    <title>Focus Flow | Maker's Workbench & Executive Co-Pilot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] }, colors: { brand: { 50: '#eef2ff', 100: '#e0e7ff', 400: '#818cf8', 500: '#6366f1', 600: '#4f46e5', 900: '#312e81' } }, boxShadow: { 'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)', 'float': '0 10px 40px -10px rgba(0, 0, 0, 0.08)' } } } }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            900: '#312e81'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(28, 25, 23, 0.05)',
+                        'float': '0 10px 40px -10px rgba(28, 25, 23, 0.08)'
+                    }
+                }
+            }
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,399 +41,720 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col md:flex-row selection:bg-brand-100 selection:text-brand-900">
-    <!-- Mobile Header -->
-    <header class="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 z-30 shrink-0">
-        <div class="flex items-center gap-2 font-bold text-brand-600 text-lg"><i data-lucide="layers" class="w-6 h-6"></i><span>Focus Flow</span></div>
-        <div class="flex items-center gap-2">
-            <button onclick="toggleThemePopover(event)" aria-label="Theme" class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="palette" class="w-4 h-4"></i></button>
-            <button onclick="BlueprintEngine.openModal()" aria-label="Blueprint" class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-4 h-4"></i></button>
-            <button onclick="toggleScratchpadModal()" aria-label="Scratchpad" class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
-            <button onclick="toggleMobileSidebar()" aria-label="Menu" class="p-2 bg-slate-100 text-slate-700 rounded-xl"><i data-lucide="menu" class="w-5 h-5"></i></button>
+<body class="studio-workbench-bg h-screen overflow-hidden flex flex-col selection:bg-brand-100 selection:text-brand-900">
+
+    <!-- ======================================================================
+         TOP WORKBENCH BAR (Cognitive Mode Switcher + Essential Studio Tools)
+         ====================================================================== -->
+    <header class="px-4 sm:px-6 py-2.5 bg-white/90 backdrop-blur-md border-b border-stone-200 flex items-center justify-between gap-3 z-30 shrink-0">
+        <!-- Left: Brand & Guide -->
+        <div class="flex items-center gap-3">
+            <button onclick="toggleInstructionsModal()" aria-label="Workbench Guide" class="flex items-center gap-2 text-stone-900 font-extrabold text-base sm:text-lg tracking-tight focus:outline-none group">
+                <span class="w-8 h-8 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                    <i data-lucide="layers" class="w-4 h-4"></i>
+                </span>
+                <span class="hidden sm:inline">Focus Flow</span>
+                <i data-lucide="help-circle" class="w-3.5 h-3.5 text-stone-400 group-hover:text-brand-600 transition-colors"></i>
+            </button>
+        </div>
+
+        <!-- Center: Hard Cognitive Wall (Operator vs. Architect) -->
+        <div class="mode-switcher-pill" role="tablist" aria-label="Cognitive Mode">
+            <button onclick="enterOperatorMode()" id="mode-btn-operator" class="mode-switch-btn active-operator" role="tab">
+                <i data-lucide="play-circle" class="w-4 h-4"></i>
+                <span>Operator</span>
+                <span class="hidden md:inline text-[10px] font-medium opacity-75">• Execute</span>
+            </button>
+            <button onclick="enterArchitectMode()" id="mode-btn-architect" class="mode-switch-btn" role="tab">
+                <i data-lucide="compass" class="w-4 h-4"></i>
+                <span>Architect</span>
+                <span class="hidden md:inline text-[10px] font-medium opacity-75">• Plan &amp; Slice</span>
+            </button>
+        </div>
+
+        <!-- Right: Mental RAM Dump, Theme & Cloud Sync -->
+        <div class="flex items-center gap-1.5 relative">
+            <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5" title="Mental RAM Dump (Alt + S)">
+                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span class="hidden sm:inline">RAM Dump</span>
+            </button>
+            <button onclick="toggleThemePopover(event)" aria-label="Visual Theme" class="p-2 text-stone-600 hover:text-brand-600 hover:bg-stone-100 rounded-xl transition-colors" title="Visual Theme">
+                <i data-lucide="palette" class="w-4 h-4"></i>
+            </button>
+            <button onclick="toggleWorkspacePopover(event)" aria-label="Cloud & Backup" class="p-2 text-stone-600 hover:text-brand-600 hover:bg-stone-100 rounded-xl transition-colors" title="Cloud Sync & Backup">
+                <i data-lucide="cloud" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Workspace & Cloud Sync Popover -->
+            <div id="workspace-popover" class="hidden absolute right-0 top-12 w-72 bg-white rounded-2xl shadow-2xl border border-stone-200 p-4 z-50 space-y-3 font-sans-ui">
+                <div class="flex items-center justify-between border-b border-stone-100 pb-2">
+                    <span class="text-xs font-bold text-stone-800 flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-brand-600"></i> Workspace &amp; Cloud</span>
+                    <button onclick="closeWorkspacePopover()" class="text-stone-400 hover:text-stone-600 p-0.5"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                </div>
+                <button onclick="manualCloudSave()" id="btn-manual-save" class="w-full py-2 bg-emerald-600 text-white rounded-xl font-bold text-xs hover:bg-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-xs">
+                    <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="exportDataJSON()" class="flex-1 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 text-xs font-bold hover:text-brand-600 flex items-center justify-center gap-1">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Backup JSON
+                    </button>
+                    <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
+                    <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-stone-700 text-xs font-bold hover:text-brand-600 flex items-center justify-center gap-1">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore
+                    </button>
+                </div>
+                <div id="auth-status-container" class="pt-1 border-t border-stone-100"></div>
+            </div>
         </div>
     </header>
 
-    <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-40 hidden md:hidden"></div>
+    <!-- ======================================================================
+         MODE 1: OPERATOR VIEW (Re-Entry GPS + Curated Queue + Deep Focus)
+         ====================================================================== -->
+    <main id="view-focus-container" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 pb-24 z-10 scroll-smooth">
+        <div class="max-w-3xl mx-auto space-y-6">
 
-    <aside id="sidebar-drawer" class="fixed md:static inset-y-0 left-0 w-80 bg-slate-100/95 border-r border-slate-200 flex flex-col backdrop-blur-xl shrink-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-        <div class="p-5 border-b border-slate-200/60 flex items-center justify-between">
-            <button onclick="toggleInstructionsModal()" aria-label="Instructions" class="flex items-center gap-2.5 text-brand-600 font-bold text-xl tracking-tight text-left focus:outline-none group">
-                <i data-lucide="layers" class="w-6 h-6 group-hover:scale-110 transition-transform"></i><span>Focus Flow</span><i data-lucide="help-circle" class="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors"></i>
-            </button>
-            <div class="flex items-center gap-1">
-                <button onclick="toggleThemePopover(event)" aria-label="Change Theme" class="p-1.5 text-slate-500 hover:text-brand-600 hover:bg-slate-200/60 rounded-xl transition-colors" title="Change Theme">
-                    <i data-lucide="palette" class="w-4 h-4"></i>
-                </button>
-                <button onclick="closeMobileSidebar()" aria-label="Close Sidebar" class="md:hidden text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button>
-            </div>
+            <!-- 1. STUDIO GPS RE-ENTRY CARD ("Where You Are in the Plan") -->
+            <section id="studio-gps-card" class="gps-card">
+                <!-- Band A: Horizon & Phase Stepper -->
+                <div class="gps-horizon-band space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="min-w-0 space-y-0.5">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span id="gps-slot-badge" class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider">Headliner Project</span>
+                                <span id="gps-time-invested" class="text-[11px] font-mono-code text-stone-500 font-semibold">00:00:00 invested</span>
+                                <span id="gps-deadline-badge" class="text-[11px] font-mono-code text-stone-400"></span>
+                            </div>
+                            <h1 id="gps-project-title" class="text-xl sm:text-2xl font-black text-stone-900 tracking-tight truncate">Core Production Module</h1>
+                            <p id="gps-project-goal" class="text-xs text-stone-600 font-medium truncate">Ship production ready client build with single-task workflows</p>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                            <button onclick="openProjectSettingsModal()" class="p-2 bg-white hover:bg-stone-100 text-stone-600 border border-stone-200 rounded-xl text-xs font-bold transition-colors" title="Edit Project Goal, Deadline & Notes">
+                                <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="enterArchitectMode('map')" class="px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-brand-700 border border-indigo-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5">
+                                <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+                                <span>Open Map</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Phase Progress Bar & Stepper Track -->
+                    <div class="space-y-1.5 pt-1">
+                        <div class="flex items-center justify-between text-[11px] font-bold">
+                            <span id="gps-phase-label" class="text-stone-700">Current Track: Direct Execution</span>
+                            <span id="gps-phase-pct" class="font-mono-code text-brand-600">0% complete</span>
+                        </div>
+                        <div class="w-full h-2 bg-stone-200/70 rounded-full overflow-hidden">
+                            <div id="gps-phase-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <div id="gps-phase-stepper" class="phase-track-rail pt-1"></div>
+                    </div>
+                </div>
+
+                <!-- Band B: Warm Re-Entry Anchor (Auto-Telemetry + Manual Bookmark) -->
+                <div id="gps-anchor-band" class="gps-anchor-band">
+                    <div id="resumption-banner-mount"></div>
+                </div>
+
+                <!-- Band C: Curated "On Deck" Queue (Max 3 Slices) -->
+                <div class="gps-ondeck-band space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-extrabold uppercase tracking-wider text-stone-500 flex items-center gap-1.5">
+                            <i data-lucide="flame" class="w-3.5 h-3.5 text-amber-500"></i>
+                            On Deck Queue <span id="gps-ondeck-count" class="text-stone-400 font-mono-code font-normal">(0/3)</span>
+                        </span>
+                        <button onclick="enterArchitectMode('map')" class="text-[11px] font-bold text-brand-600 hover:underline flex items-center gap-1">
+                            <span>Curate in Map</span>
+                            <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                    <div id="gps-ondeck-list" class="grid grid-cols-1 sm:grid-cols-3 gap-2"></div>
+                </div>
+            </section>
+
+            <!-- 2. SINGLE-TASK EXECUTION STAGE -->
+            <section class="relative bg-white rounded-[2rem] shadow-float border border-stone-200/90 p-5 sm:p-8 overflow-hidden flex flex-col items-center" id="active-task-stage">
+                <div class="relative z-10 w-full flex flex-col items-center">
+
+                    <!-- Active Slice Header & Utility Controls -->
+                    <div class="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span id="active-task-readiness-badge" class="readiness-badge readiness-slice shrink-0">⚡ Ready Slice</span>
+                            <h2 class="text-lg sm:text-xl font-extrabold text-stone-900 truncate" id="active-task-title">Select a slice to begin</h2>
+                        </div>
+
+                        <div class="flex items-center gap-1.5 shrink-0 relative">
+                            <!-- Compact Living Companion Pill -->
+                            <button onclick="toggleCompanionPopover(event)" id="compact-companion-trigger" class="px-2.5 py-1.5 bg-stone-100 hover:bg-stone-200/80 text-stone-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5" title="Focus Companion">
+                                <span id="main-mascot-mount" class="w-5 h-5 flex items-center justify-center mascot-mount-box">🐾</span>
+                                <span class="hidden md:inline text-[11px]" id="compact-companion-name">Companion</span>
+                            </button>
+
+                            <button onclick="openZenView()" class="px-3 py-1.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1">
+                                <i data-lucide="maximize-2" class="w-3.5 h-3.5 text-indigo-400"></i>
+                                <span>Zen</span>
+                            </button>
+
+                            <button onclick="toggleBloomPopover()" class="p-2 bg-stone-100 hover:bg-stone-200/80 text-emerald-600 rounded-xl transition-colors" title="Breathing Bloom">
+                                <i data-lucide="sun" class="w-4 h-4"></i>
+                            </button>
+                            <div id="bloom-popover" class="absolute right-10 top-10 w-56 bg-white p-3.5 rounded-2xl shadow-xl border border-stone-200 hidden z-50 space-y-2">
+                                <div class="flex justify-between items-center text-xs font-bold text-stone-700">
+                                    <span>Breathing Bloom</span>
+                                    <span id="bloom-val-label" class="text-emerald-600">60%</span>
+                                </div>
+                                <input type="range" id="bloom-slider" min="10" max="100" value="60" oninput="updateBloomOpacity(this.value)" class="w-full accent-emerald-500 cursor-pointer">
+                            </div>
+
+                            <button onclick="toggleAudioPopover()" id="btn-audio-popover-trigger" class="p-2 bg-stone-100 hover:bg-stone-200/80 text-brand-600 rounded-xl transition-colors" title="Audio Cue">
+                                <i data-lucide="volume-2" class="w-4 h-4" id="audio-icon-display"></i>
+                            </button>
+                            <div id="audio-popover" class="absolute right-0 top-10 w-72 bg-white p-4 rounded-2xl shadow-xl border border-stone-200 hidden z-50 space-y-3">
+                                <div class="flex items-center justify-between pb-2 border-b border-stone-100">
+                                    <span class="text-xs font-bold text-stone-800">Audio Profile</span>
+                                    <button onclick="toggleMuteAudio()" id="btn-mute-toggle" class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded">Mute</button>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[10px] font-bold text-stone-500">
+                                        <span>Volume</span>
+                                        <span id="volume-label">80%</span>
+                                    </div>
+                                    <input type="range" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer">
+                                </div>
+                                <div class="space-y-1">
+                                    <label class="text-[10px] font-bold text-stone-500 block">Sound Style</label>
+                                    <select id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-stone-50 border border-stone-200 rounded-lg p-1.5 text-xs font-semibold text-stone-700 outline-none">
+                                        <option value="woodblock">Woodblock (Acoustic)</option>
+                                        <option value="pip">8-Bit Pip (Chiptune)</option>
+                                        <option value="zen">Zen Chord (Pure Sine)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center Radial Timer + Slicer & Done Actions -->
+                    <div class="relative flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-8 w-full mb-6">
+                        <!-- Left Action: Slice It (Anti-Paralysis Valve) -->
+                        <button onclick="openTaskSlicerModal()" id="btn-slice-active-task" class="order-2 sm:order-1 px-4 py-3 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition-all flex sm:flex-col items-center justify-center gap-1.5 shrink-0" title="Feeling stuck? Break this task into smaller slices">
+                            <i data-lucide="scissors" class="w-5 h-5 text-amber-600"></i>
+                            <span>Slice It</span>
+                        </button>
+
+                        <!-- Center Timer Dial -->
+                        <div class="relative flex items-center justify-center order-1 sm:order-2">
+                            <div class="absolute inset-0 pointer-events-none flex items-center justify-center -rotate-90">
+                                <svg class="w-64 h-64 sm:w-72 sm:h-72" viewBox="0 0 320 320">
+                                    <circle cx="160" cy="160" r="148" stroke="#e7e5e4" stroke-width="8" fill="none" class="opacity-60" />
+                                    <circle id="radial-progress-arc" cx="160" cy="160" r="148" stroke="#10b981" stroke-width="9" stroke-linecap="round" fill="none" stroke-dasharray="930" stroke-dashoffset="930" class="transition-all duration-300 ease-out" />
+                                    <circle id="radial-overtime-halo" cx="160" cy="160" r="156" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none" stroke-dasharray="980" stroke-dashoffset="980" class="opacity-0 transition-all duration-700 ease-out" />
+                                </svg>
+                            </div>
+                            <button aria-label="Toggle Timer" id="main-timer-btn" onclick="toggleTimer()" class="relative flex flex-col items-center justify-center w-64 h-64 sm:w-72 sm:h-72 rounded-full border-[8px] transition-all duration-300 timer-red-container cursor-pointer outline-none overflow-hidden">
+                                <div id="inner-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div>
+                                <div class="relative z-10 flex flex-col items-center px-4">
+                                    <div class="text-[11px] font-bold uppercase tracking-widest mb-1 opacity-75" id="timer-state-text">Ready when you are</div>
+                                    <div class="text-4xl sm:text-5xl font-bold font-mono-code tracking-tighter" id="active-timer-display">00:00:00</div>
+                                    <div class="text-xs font-medium mt-2 opacity-80 flex items-center gap-1" id="active-timer-estimate">
+                                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                                        <span>Open flow</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+
+                        <!-- Right Action: Done -->
+                        <button onclick="completeActiveTask()" aria-label="Complete Slice" id="btn-complete-task" class="order-3 px-5 py-3 sm:w-20 sm:h-20 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-500 shadow-md flex sm:flex-col items-center justify-center gap-1.5 shrink-0 transition-all">
+                            <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            <span class="text-[10px] uppercase tracking-wider">Done</span>
+                        </button>
+                    </div>
+
+                    <!-- 60-Second Starter Micro-Steps -->
+                    <div class="w-full bg-stone-50 rounded-2xl p-4 border border-stone-200/80 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-1.5 text-xs font-bold text-stone-800">
+                                <i data-lucide="footprints" class="w-4 h-4 text-emerald-600"></i>
+                                <span>Tiny Starter Steps (Zero-Friction Ignition)</span>
+                            </div>
+                            <span class="text-[10px] text-stone-400 font-mono-code" id="microstep-summary">0/0 done</span>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5 text-[10px] font-semibold text-stone-600">
+                            <button onclick="addPresetMicroStep('Open workspace & clean canvas', 2)" class="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-stone-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-emerald-600"></i> Open file (2m)</button>
+                            <button onclick="addPresetMicroStep('Jot down 3 messy bullets', 3)" class="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-stone-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-emerald-600"></i> 3 messy bullets (3m)</button>
+                            <button onclick="addPresetMicroStep('Do one ugly rough pass', 5)" class="px-2.5 py-1 bg-white hover:bg-emerald-50 border border-stone-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-emerald-600"></i> Ugly rough pass (5m)</button>
+                        </div>
+                        <div class="space-y-1.5" id="active-task-microsteps-list"></div>
+                        <div class="flex items-center gap-2 pt-1">
+                            <input type="text" id="custom-microstep-input" class="flex-1 bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs placeholder-stone-400 outline-none focus:border-brand-400" placeholder="Add a tiny 2-minute physical action...">
+                            <button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-stone-800 text-white rounded-xl text-xs font-bold hover:bg-stone-700 transition-colors shrink-0">Add</button>
+                        </div>
+                    </div>
+
+                    <!-- Progressive Disclosure: Optional Notes, Readiness Type & Clock -->
+                    <div class="w-full mt-3">
+                        <button onclick="toggleTaskDetailsDrawer()" id="btn-toggle-task-details" class="w-full py-2 px-3 rounded-xl text-xs font-bold text-stone-500 hover:text-stone-800 hover:bg-stone-50 flex items-center justify-between transition-colors">
+                            <span class="flex items-center gap-1.5"><i data-lucide="file-text" class="w-3.5 h-3.5"></i> Slice Notes, Mode &amp; Optional Clock</span>
+                            <i data-lucide="chevron-down" id="task-details-chevron" class="w-3.5 h-3.5 transition-transform"></i>
+                        </button>
+                        <div id="task-details-drawer" class="hidden mt-2 bg-stone-50 rounded-2xl p-4 border border-stone-200/80 space-y-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Slice Notes &amp; Acceptance Check</label>
+                                <textarea id="active-task-notes" rows="2" class="w-full bg-white border border-stone-200 rounded-xl p-2.5 text-xs text-stone-700 outline-none focus:border-brand-400 resize-none" placeholder="What does 'done' look like for this single slice?"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Readiness Type</label>
+                                    <select id="active-task-readiness-select" onchange="changeActiveTaskReadiness(this.value)" class="w-full bg-white border border-stone-200 rounded-xl p-2 text-xs font-bold text-stone-700 outline-none">
+                                        <option value="slice">⚡ Ready Slice</option>
+                                        <option value="spike">🔍 20m Research Spike</option>
+                                        <option value="boulder">🐘 Needs Slicing</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Optional Clock (Mins)</label>
+                                    <input type="number" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-stone-200 rounded-xl p-2 text-xs text-stone-700 outline-none font-mono-code" placeholder="0 = Open flow">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Target Date</label>
+                                    <input type="date" id="active-task-deadline" class="w-full bg-white border border-stone-200 rounded-xl p-2 text-xs text-stone-600 outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 3. CURRENT TRACK SLICES (Filtered strictly to active leaf track) -->
+            <section id="project-tasks-section" class="bg-white rounded-3xl p-5 border border-stone-200/80 shadow-soft space-y-3">
+                <div id="tasks-header-wrapper" class="flex items-center justify-between">
+                    <h3 class="text-sm font-extrabold text-stone-800 flex items-center gap-2" id="tasks-section-title">
+                        <i data-lucide="list-checks" class="w-4 h-4 text-emerald-600"></i> Current Track Slices
+                    </h3>
+                    <span class="text-xs font-semibold text-stone-500 bg-stone-100 px-2.5 py-0.5 rounded-full" id="task-progress-text">0/0 Done</span>
+                </div>
+
+                <div id="container-milestone-hub" class="space-y-3 hidden"></div>
+                <div class="space-y-2" id="task-list-container"></div>
+
+                <!-- Frictionless Quick-Add (No mandatory time estimate!) -->
+                <div id="add-task-container" class="pt-1 flex flex-col sm:flex-row items-center gap-2">
+                    <input type="text" id="new-task-title-input" class="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-800 placeholder-stone-400 outline-none focus:bg-white focus:border-brand-400 w-full" placeholder="Add a concrete slice to this track... (Press Enter)">
+                    <div class="flex items-center gap-1.5 w-full sm:w-auto justify-end">
+                        <select id="new-task-type-input" class="bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-2 text-xs font-bold text-stone-700 outline-none">
+                            <option value="slice">⚡ Slice</option>
+                            <option value="spike">🔍 20m Spike</option>
+                            <option value="boulder">🐘 Boulder</option>
+                        </select>
+                        <input type="number" id="new-task-est-input" class="hidden" placeholder="min" min="0" max="999">
+                        <button onclick="handleAddTask()" class="bg-stone-900 hover:bg-stone-800 text-white px-4 py-2 rounded-xl text-xs font-bold shrink-0 transition-colors">Add</button>
+                    </div>
+                </div>
+
+                <div id="completed-tasks-wrapper" class="pt-2 border-t border-stone-100 hidden">
+                    <button onclick="toggleCompletedTasksDrawer()" id="btn-completed-toggle" class="w-full py-2 px-3 bg-stone-50 hover:bg-stone-100 rounded-xl text-xs font-bold text-stone-500 flex items-center justify-between transition-colors">
+                        <span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i><span id="completed-tasks-count-label">Completed Slices (0)</span></span>
+                        <i data-lucide="chevron-down" id="completed-tasks-chevron" class="w-3.5 h-3.5 text-stone-400 transition-transform duration-200"></i>
+                    </button>
+                    <div id="completed-tasks-container" class="mt-2 space-y-2 hidden"></div>
+                </div>
+            </section>
+
         </div>
+    </main>
 
-        <!-- 4-Stage Executive Pipeline Navigation -->
-        <div class="px-2.5 py-2.5 flex gap-1 border-b border-slate-200/60 font-sans-ui">
-            <button onclick="switchView('calendar')" id="nav-calendar" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1" title="Stage 1: Calendar Horizons"><i data-lucide="calendar" class="w-3.5 h-3.5"></i> Cal</button>
-            <button onclick="switchView('map')" id="nav-map" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1" title="Stage 2: Macro Orientation"><i data-lucide="compass" class="w-3.5 h-3.5"></i> Map</button>
-            <button onclick="switchView('focus')" id="nav-focus" class="flex-1 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-sm ring-1 ring-slate-200 transition-all flex justify-center items-center gap-1" title="Stage 3: Deep Focus"><i data-lucide="target" class="w-3.5 h-3.5"></i> Focus</button>
-            <button onclick="switchView('progress')" id="nav-progress" class="flex-1 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-200 hover:text-slate-700 transition-all flex justify-center items-center gap-1" title="Stage 4: Progression Tracker"><i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progress</button>
-        </div>
-
-        <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2.5 bg-indigo-50/70 hover:bg-indigo-100/70 border-b border-slate-200/60 font-sans-ui cursor-pointer transition-colors" title="Click to view 30-day checkpoint & analytics">
-            <div class="flex items-center justify-between text-[11px] font-bold text-indigo-950">
-                <span id="sprint-cycle-label">Sprint: Day 1 of 30</span>
-                <span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono font-semibold">30d left</span>
-            </div>
-            <div class="w-full h-1.5 bg-indigo-200/60 rounded-full mt-1.5 overflow-hidden">
-                <div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full transition-all duration-500" style="width: 3.3%"></div>
-            </div>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-3 space-y-3 font-sans-ui" id="project-list-container"></div>
-
-        <div class="p-3 border-t border-slate-200/60 bg-white/70 space-y-2 font-sans-ui shrink-0">
+    <!-- ======================================================================
+         MODE 2: ARCHITECT SHELL (Map Slicer + Project Vault + Horizons + Logs)
+         ====================================================================== -->
+    <div id="architect-shell" class="flex-1 flex flex-col h-full overflow-hidden hidden">
+        <!-- Architect Sub-Navigation Bar -->
+        <nav class="px-4 sm:px-6 py-2 bg-stone-100/90 border-b border-stone-200 flex items-center justify-between gap-2 overflow-x-auto shrink-0">
             <div class="flex items-center gap-1.5">
-                <button onclick="createNewProject()" class="flex-1 py-2 bg-brand-600 text-white rounded-xl font-bold text-xs hover:bg-brand-500 hover:shadow-md transition-all flex items-center justify-center gap-1.5"><i data-lucide="plus" class="w-4 h-4"></i> New Project</button>
-                <button onclick="BlueprintEngine.openModal()" class="px-3 py-2 bg-indigo-50 border border-indigo-200 text-brand-700 hover:bg-indigo-100 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1 shrink-0"><i data-lucide="file-up" class="w-3.5 h-3.5 text-brand-600"></i> Blueprint</button>
-            </div>
-
-            <div class="border border-slate-200 rounded-xl overflow-hidden bg-slate-50/60">
-                <button onclick="toggleSaveStateDrawer()" id="btn-save-state-toggle" class="w-full py-2 px-3 flex items-center justify-between text-xs font-bold text-slate-700 hover:bg-slate-100/80 transition-colors">
-                    <span class="flex items-center gap-1.5"><i data-lucide="hard-drive" class="w-3.5 h-3.5 text-slate-500"></i><span>Workspace & Data</span></span>
-                    <i data-lucide="chevron-down" id="save-state-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i>
+                <button onclick="switchView('map')" id="arch-nav-map" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-brand-600 shadow-2xs border border-stone-200 flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="compass" class="w-3.5 h-3.5"></i> Interactive Map &amp; Slicer
                 </button>
-                <div id="save-state-drawer" class="hidden p-2 space-y-1.5 border-t border-slate-200 bg-white">
-                    <button onclick="switchView('analytics'); toggleSaveStateDrawer();" class="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors">
-                        <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-brand-600"></i> Analytics & Retrospective
+                <button onclick="switchView('vault')" id="arch-nav-vault" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-stone-600 hover:bg-white/70 flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="folder-kanban" class="w-3.5 h-3.5"></i> Project Vault (1+1)
+                </button>
+                <button onclick="switchView('calendar')" id="arch-nav-calendar" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-stone-600 hover:bg-white/70 flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Horizons
+                </button>
+                <button onclick="switchView('progress')" id="arch-nav-progress" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-stone-600 hover:bg-white/70 flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Progression
+                </button>
+                <button onclick="switchView('analytics')" id="arch-nav-analytics" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-stone-600 hover:bg-white/70 flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i> Retrospective
+                </button>
+            </div>
+            <button onclick="BlueprintEngine.openModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-700 border border-indigo-200 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0">
+                <i data-lucide="file-up" class="w-3.5 h-3.5"></i> Import Blueprint
+            </button>
+        </nav>
+
+        <!-- ARCHITECT VIEW A: INTERACTIVE PROJECT MAP & SLICER -->
+        <main id="view-map-container" class="flex-1 flex flex-col h-full overflow-hidden bg-[#0b1120] text-[#f8fafc] hidden font-sans-ui">
+            <header id="map-header-bar" class="bg-[#131c31] border-b border-[#263554] px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0 text-[#f8fafc] h-14">
+                <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <span class="text-sm font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5 shrink-0">
+                        <i data-lucide="compass" class="w-4 h-4 text-[#38bdf8]"></i> WBS Board
+                    </span>
+                    <select id="map-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#0b1120] text-[#f8fafc] border border-[#263554] px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none focus:border-[#38bdf8] max-w-[160px] sm:max-w-[230px] truncate"></select>
+                    <button onclick="TreeScopeEngine.promptAddSubProject()" class="px-2.5 py-1 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer shrink-0">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline">Add Phase</span>
                     </button>
-                    <button onclick="manualCloudSave()" id="btn-manual-save" class="w-full py-1.5 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-500 transition-all flex items-center justify-center gap-1.5 shadow-xs"><i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i> Save State to Cloud</button>
-                    <div class="flex gap-1.5">
-                        <button onclick="exportDataJSON()" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 flex items-center justify-center gap-1"><i data-lucide="download" class="w-3 h-3"></i> Backup</button>
-                        <input type="file" id="import-file-input" accept=".json" onchange="importDataJSON(event)" class="hidden">
-                        <button onclick="document.getElementById('import-file-input').click()" class="flex-1 py-1.5 bg-white border border-slate-200 shadow-xs rounded-lg text-slate-600 text-[10px] font-bold hover:text-brand-600 flex items-center justify-center gap-1"><i data-lucide="upload" class="w-3 h-3"></i> Restore</button>
+                    <div class="relative group shrink-0">
+                        <button id="map-goal-btn" class="px-2.5 py-1 bg-[#1e293b] hover:bg-[#334155] text-[#38bdf8] border border-[#263554] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                            <i data-lucide="target" class="w-3.5 h-3.5 text-[#38bdf8]"></i>
+                            <span class="hidden md:inline">North Star</span>
+                        </button>
+                        <div id="map-goal-tooltip" class="absolute left-0 top-full mt-2 z-50 w-72 sm:w-80 p-3 bg-[#0f172a] border border-[#38bdf8]/40 rounded-xl shadow-2xl text-xs text-slate-200 hidden group-hover:block pointer-events-none">
+                            <div class="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] font-mono-code mb-1">North Star Goal</div>
+                            <p id="map-goal-tooltip-text" class="text-xs text-slate-200 font-medium leading-relaxed">No North Star Goal defined.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="auth-status-container" class="pt-0.5"></div>
-        </div>
-    </aside>
 
-    <!-- VIEW 1: FOCUS WORKSPACE -->
-    <main id="view-focus-container" class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50">
-        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/60 bg-white/60 backdrop-blur-md">
-            <div class="flex flex-col lg:flex-row justify-between items-start gap-4">
-                <div class="flex-1 w-full space-y-2">
-                    <div id="project-breadcrumbs" class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 font-sans-ui truncate"></div>
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <span id="map-ondeck-pill" class="px-2.5 py-1 bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-lg text-[11px] font-mono-code font-bold hidden sm:inline-flex items-center gap-1">
+                        ⭐ On Deck: 0/3
+                    </span>
+                    <button id="map-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#182236] text-[#38bdf8] border border-[#38bdf8] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer" title="Toggle Fit to Screen">
+                        <span id="map-fit-dot" class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
+                        <span class="hidden lg:inline">Fit</span>
+                    </button>
+                    <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#131c31] hover:bg-[#1e2d4a] text-[#94a3b8] hover:text-[#f8fafc] border border-[#263554] rounded-lg text-xs font-bold transition-all cursor-pointer" title="Auto-Stack Columns">⊞</button>
+                    <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#131c31] hover:bg-[#1e2d4a] text-[#94a3b8] hover:text-[#f8fafc] border border-[#263554] rounded-lg text-xs font-bold transition-all cursor-pointer" title="Separate All Columns">⎌</button>
+                    <select id="map-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#0b1120] text-[#38bdf8] border border-[#263554] px-2 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none max-w-[120px] sm:max-w-none">
+                        <option value="1">L1: Phases Only</option>
+                        <option value="2">L2: + Tracks</option>
+                        <option value="3" selected>L3: + Slices</option>
+                        <option value="4">L4: + Micro-steps</option>
+                        <option value="all">Expand All</option>
+                        <option value="collapse">Collapse All</option>
+                    </select>
+                    <button id="map-fullscreen-btn" onclick="TreeScopeEngine.toggleFullscreen()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
+                        <i data-lucide="maximize-2" class="w-3.5 h-3.5" id="map-fullscreen-icon"></i>
+                        <span id="map-fullscreen-label" class="hidden md:inline">Fullscreen</span>
+                    </button>
+                </div>
+            </header>
+            <div id="map-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></div>
+        </main>
+
+        <!-- ARCHITECT VIEW B: PROJECT VAULT (1 Headliner + 1 Co-Pilot + Parking Lot) -->
+        <main id="view-vault-container" class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 hidden font-sans-ui">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">Project Vault &amp; Focus Guardrails</h1>
+                        <p class="text-xs text-stone-500 mt-0.5">To prevent scattered attention, only <strong>1 Headliner</strong> and <strong>1 Co-Pilot</strong> can be active at a time.</p>
+                    </div>
                     <div class="flex items-center gap-2">
-                        <span class="px-2.5 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase tracking-wider font-sans-ui flex items-center gap-1 shrink-0"><i data-lucide="target" class="w-3.5 h-3.5 text-indigo-600"></i> GOAL</span>
-                        <input type="text" id="project-goal-input" class="bg-transparent border-none focus:ring-0 text-slate-600 text-sm font-semibold w-full placeholder-slate-400 outline-none font-sans-ui" placeholder="Main project goal?">
-                    </div>
-                    <input type="text" id="project-title-input" class="text-2xl sm:text-3xl font-extrabold text-slate-900 bg-transparent border-none focus:ring-0 outline-none w-full truncate tracking-tight" placeholder="Project Title">
-                    <div class="flex items-center gap-2 font-sans-ui">
-                        <input type="text" id="project-notes-summary-input" class="flex-1 bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-600 placeholder-slate-400 outline-none focus:bg-white transition-all truncate" placeholder="Add notes, resources, links...">
-                        <button onclick="toggleProjectNotesModal()" class="px-3 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shrink-0"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Expand Notes</button>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-soft ring-1 ring-slate-900/5 shrink-0 self-end lg:self-auto">
-                    <div class="flex flex-col text-right">
-                        <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">TIME SPENT</span>
-                        <span class="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-tight" id="project-cumulative-timer">00:00:00</span>
-                    </div>
-                    <div class="h-7 w-px bg-slate-200"></div>
-                    <div class="flex flex-col text-right">
-                        <span class="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider font-sans-ui">DEADLINE</span>
-                        <input type="date" id="project-deadline-input" class="text-xs sm:text-sm font-bold text-slate-700 bg-transparent border-none p-0 outline-none cursor-pointer">
-                    </div>
-                    <div class="h-7 w-px bg-slate-200"></div>
-                    <button onclick="toggleCompleteCurrentProject()" id="btn-toggle-project-complete" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs bg-emerald-600 hover:bg-emerald-500 text-white">
-                        <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                        <span id="label-toggle-project-complete">Complete</span>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto px-4 sm:px-8 pb-24 z-10 scroll-smooth">
-            <div class="max-w-4xl mx-auto space-y-6 mt-4">
-                <div id="resumption-banner-mount"></div>
-                <section class="relative bg-white rounded-[2rem] shadow-float ring-1 ring-slate-900/5 p-4 sm:p-8 overflow-hidden flex flex-col items-center" id="active-task-stage">
-                    <div class="relative z-10 w-full flex flex-col items-center">
-                        <div class="w-full flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
-                            <div class="flex items-center gap-2.5 min-w-0">
-                                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1.5 shrink-0 font-sans-ui"><span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> Focusing</span>
-                                <h2 class="text-lg sm:text-xl font-extrabold text-slate-800 truncate" id="active-task-title">Select a task to begin</h2>
+                        <div id="sprint-cycle-container" onclick="openSprintReviewModal()" class="px-3.5 py-2 bg-white border border-stone-200 hover:border-brand-400 rounded-xl cursor-pointer transition-colors">
+                            <div class="flex items-center justify-between gap-3 text-[11px] font-bold text-stone-800">
+                                <span id="sprint-cycle-label">Cycle: Day 1 of 30</span>
+                                <span id="sprint-days-remaining" class="text-[10px] text-brand-600 font-mono-code">30d left</span>
                             </div>
-                            <div class="flex items-center gap-1.5 font-sans-ui shrink-0">
-                                <button onclick="openZenView()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1"><i data-lucide="maximize-2" class="w-3.5 h-3.5 text-indigo-400"></i><span>Zen</span></button>
-                                <button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-brand-600 rounded-xl text-xs font-bold transition-colors flex items-center gap-1" title="Scratchpad (Alt + S)"><i data-lucide="edit-3" class="w-3.5 h-3.5"></i><span>Dump</span></button>
-                                <button onclick="toggleBloomPopover()" class="p-2 bg-slate-100 text-emerald-600 rounded-xl" title="Bloom"><i data-lucide="sun" class="w-4 h-4"></i></button>
-                                <div id="bloom-popover" class="absolute right-12 top-10 w-56 bg-white p-3 rounded-2xl shadow-xl border border-slate-200 hidden z-50 space-y-2">
-                                    <div class="flex justify-between items-center text-xs font-bold text-slate-700"><span>Breathing Bloom</span><span id="bloom-val-label" class="text-emerald-600">60%</span></div>
-                                    <input type="range" id="bloom-slider" min="10" max="100" value="60" oninput="updateBloomOpacity(this.value)" class="w-full accent-emerald-500 cursor-pointer">
-                                </div>
-                                <button onclick="toggleAudioPopover()" id="btn-audio-popover-trigger" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Audio"><i data-lucide="volume-2" class="w-4 h-4" id="audio-icon-display"></i></button>
-                                <div id="audio-popover" class="absolute right-0 top-10 w-72 bg-white p-4 rounded-2xl shadow-xl border border-slate-200 hidden z-50 space-y-3">
-                                    <div class="flex items-center justify-between pb-2 border-b border-slate-100"><span class="text-xs font-bold text-slate-800">Audio Profile</span><button onclick="toggleMuteAudio()" id="btn-mute-toggle" class="px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded">Mute</button></div>
-                                    <div class="space-y-1"><div class="flex justify-between text-[10px] font-bold text-slate-500"><span>Volume</span><span id="volume-label">80%</span></div><input type="range" id="volume-slider" min="0" max="100" value="80" oninput="updateVolume(this.value)" class="w-full accent-brand-500 cursor-pointer"></div>
-                                    <div class="space-y-1"><label class="text-[10px] font-bold text-slate-500 block">Sound Style</label><select id="audio-family-select" onchange="changeAudioFamily(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-1.5 text-xs font-semibold text-slate-700 outline-none"><option value="woodblock">Woodblock (Acoustic)</option><option value="pip">8-Bit Pip (Chiptune)</option><option value="zen">Zen Chord (Pure Sine)</option></select></div>
-                                </div>
-                                <button onclick="toggleThemePopover(event)" class="p-2 bg-slate-100 text-brand-600 rounded-xl" title="Theme"><i data-lucide="palette" class="w-4 h-4"></i></button>
+                            <div class="w-32 h-1.5 bg-stone-200 rounded-full mt-1 overflow-hidden">
+                                <div id="sprint-cycle-bar" class="h-full bg-brand-600 rounded-full" style="width: 3.3%"></div>
                             </div>
                         </div>
-
-                        <div id="main-mascot-mount-wrapper" class="w-full flex justify-center items-center mb-4 hidden">
-                            <div class="p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 flex items-center justify-center gap-3"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Companion</span><div id="main-mascot-mount" class="w-14 h-14 flex items-center justify-center mascot-mount-box"></div></div>
-                        </div>
-
-                        <div class="relative flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-10 w-full mb-6">
-                            <div class="relative flex items-center justify-center">
-                                <div class="absolute inset-0 pointer-events-none flex items-center justify-center -rotate-90">
-                                    <svg class="w-64 h-64 sm:w-80 sm:h-80" viewBox="0 0 320 320">
-                                        <circle cx="160" cy="160" r="148" stroke="#e2e8f0" stroke-width="8" fill="none" class="opacity-40" />
-                                        <circle id="radial-progress-arc" cx="160" cy="160" r="148" stroke="#10b981" stroke-width="9" stroke-linecap="round" fill="none" stroke-dasharray="930" stroke-dashoffset="930" class="transition-all duration-300 ease-out" />
-                                        <circle id="radial-overtime-halo" cx="160" cy="160" r="156" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" fill="none" stroke-dasharray="980" stroke-dashoffset="980" class="opacity-0 transition-all duration-700 ease-out" />
-                                    </svg>
-                                </div>
-                                <button aria-label="Toggle Timer" id="main-timer-btn" onclick="toggleTimer()" class="relative flex flex-col items-center justify-center w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] transition-all duration-300 timer-red-container cursor-pointer outline-none overflow-hidden">
-                                    <div id="inner-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div>
-                                    <div class="relative z-10 flex flex-col items-center"><div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="timer-state-text">Paused</div><div class="text-4xl sm:text-6xl font-bold font-mono tracking-tighter" id="active-timer-display">00:00:00</div><div class="text-xs font-medium mt-2 opacity-80 flex items-center gap-1" id="active-timer-estimate"><i data-lucide="target" class="w-3.5 h-3.5"></i> <span>No Target</span></div></div>
-                                </button>
-                            </div>
-                            <button onclick="completeActiveTask()" aria-label="Done" id="btn-complete-task" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-emerald-500 text-white font-bold hover:bg-emerald-400 shadow-md flex flex-col items-center justify-center gap-1 shrink-0 font-sans-ui"><i data-lucide="check-circle" class="w-6 h-6 sm:w-8 sm:h-8"></i><span class="text-[9px] uppercase tracking-wider">Done</span></button>
-                        </div>
-
-                        <!-- Micro-steps -->
-                        <div class="w-full bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 font-sans-ui mb-4 space-y-2.5">
-                            <div class="flex items-center justify-between"><div class="flex items-center gap-1.5 text-xs font-bold text-indigo-900"><i data-lucide="split" class="w-4 h-4 text-brand-600"></i><span>Micro-Step Decomposer (&le; 5-min atomic actions)</span></div><span class="text-[10px] text-slate-400 font-mono" id="microstep-summary">0/0 done</span></div>
-                            <div class="flex flex-wrap gap-1.5 text-[10px] font-semibold text-slate-600">
-                                <button onclick="addPresetMicroStep('Open workspace & clean canvas', 2)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Open (2m)</button>
-                                <button onclick="addPresetMicroStep('Jot down 3 messy bullets', 3)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> 3 Bullets (3m)</button>
-                                <button onclick="addPresetMicroStep('Draft initial section outline', 5)" class="px-2.5 py-1 bg-white hover:bg-indigo-50 border border-slate-200 rounded-lg transition-colors flex items-center gap-1"><i data-lucide="plus" class="w-3 h-3 text-brand-500"></i> Rough Pass (5m)</button>
-                            </div>
-                            <div class="space-y-1.5" id="active-task-microsteps-list"></div>
-                            <div class="flex items-center gap-2 pt-1"><input type="text" id="custom-microstep-input" class="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs placeholder-slate-400 outline-none focus:border-brand-400" placeholder="Custom ≤5 min micro-step..."><button onclick="addCustomMicroStep()" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold hover:bg-brand-500 transition-colors shrink-0">Add Step</button></div>
-                        </div>
-
-                        <!-- Notes & Target -->
-                        <div class="w-full bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 flex flex-col md:flex-row gap-4 font-sans-ui">
-                            <div class="flex-1">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Notes</label>
-                                <textarea id="active-task-notes" rows="2" class="w-full bg-white border border-slate-200 rounded-xl p-2.5 text-xs text-slate-600 outline-none focus:border-brand-400 transition-all resize-none" placeholder="Jot down notes..."></textarea>
-                            </div>
-                            <div class="shrink-0 w-full md:w-32">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Target (Mins)</label>
-                                <input type="number" id="active-task-est-mins" min="0" max="999" onchange="handleActiveTaskEstimateChange(this.value)" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-700 outline-none font-mono focus:border-brand-400" placeholder="0 = Open">
-                            </div>
-                            <div class="shrink-0 w-full md:w-44">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block">Task Deadline</label>
-                                <input type="date" id="active-task-deadline" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-600 outline-none focus:border-brand-400">
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="bg-white rounded-3xl p-5 shadow-sm ring-1 ring-slate-900/5 space-y-3 font-sans-ui">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
-                        <div class="flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5 text-indigo-600"></i><h3 class="font-bold text-slate-800 text-sm">Focus Companions</h3></div>
-                        <div class="flex items-center gap-2"><button onclick="removeCompanion()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold">Remove</button><button onclick="unlockAllMascotsTest()" id="btn-unlock-all-mascots" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold flex items-center gap-1"><i data-lucide="unlock" class="w-3.5 h-3.5"></i> Unlock All</button><button onclick="relockAllMascots()" id="btn-relock-all-mascots" class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-[11px] font-bold flex items-center gap-1"><i data-lucide="lock" class="w-3.5 h-3.5"></i> Relock</button></div>
-                    </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5" id="mascot-gallery-grid"></div>
-                </section>
-
-                <section class="font-sans-ui" id="project-tasks-section">
-                    <div id="tasks-header-wrapper" class="flex items-center justify-between mb-3 px-1"><h3 class="text-base font-bold text-slate-700 flex items-center gap-2" id="tasks-section-title"><i data-lucide="list-todo" class="w-4 h-4 text-brand-500"></i> Active Tasks</h3><span class="text-xs font-semibold text-slate-500 bg-white px-2.5 py-0.5 rounded-full ring-1 ring-slate-200" id="task-progress-text">0/0 Completed</span></div>
-                    <div id="container-milestone-hub" class="space-y-3 hidden"></div>
-                    <div class="space-y-2" id="task-list-container"></div>
-                    <div id="add-task-container" class="mt-3 bg-white p-2 rounded-2xl shadow-sm ring-1 ring-slate-200 flex flex-col sm:flex-row items-center gap-2">
-                        <input type="text" id="new-task-title-input" class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-slate-700 placeholder-slate-400 py-1.5 font-medium text-xs px-2 w-full" placeholder="Add atomic task... (Enter)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end pr-1"><span class="text-[10px] font-bold text-rose-500 uppercase tracking-wider">*Target:</span><input type="number" id="new-task-est-input" class="w-16 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs outline-none text-center font-mono" placeholder="min" min="0" max="999"><button onclick="handleAddTask()" class="bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold shrink-0">Add</button></div>
-                    </div>
-                    <div id="completed-tasks-wrapper" class="mt-4 pt-2 border-t border-slate-200/60 hidden">
-                        <button onclick="toggleCompletedTasksDrawer()" id="btn-completed-toggle" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200/80 rounded-xl text-xs font-bold text-slate-500 flex items-center justify-between transition-colors"><span class="flex items-center gap-2"><i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i><span id="completed-tasks-count-label">Completed Tasks (0)</span></span><i data-lucide="chevron-down" id="completed-tasks-chevron" class="w-3.5 h-3.5 text-slate-400 transition-transform duration-200"></i></button>
-                        <div id="completed-tasks-container" class="mt-2 space-y-2 hidden"></div>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </main>
-
-    <!-- VIEW 2: CALENDAR HORIZONS (Filtered Single-Project Calm) -->
-    <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
-        <header class="px-4 sm:px-8 py-4 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
-            <div>
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Calendar Horizons</h1>
-                <p class="text-xs text-slate-500 mt-0.5">Shame-free schedule view filtered cleanly for clarity.</p>
-            </div>
-            <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-                <div class="flex items-center gap-1.5 mr-2">
-                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project:</label>
-                    <select id="calendar-project-filter" onchange="changeCalendarProjectFilter(this.value)" class="bg-white border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
-                </div>
-                <button onclick="navigateCalendarMonth(-1)" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                <span class="text-xs font-bold font-mono px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-800 min-w-[120px] text-center" id="calendar-month-label">Month 2026</span>
-                <button onclick="navigateCalendarMonth(1)" class="p-1.5 bg-white border border-slate-200 rounded-xl text-slate-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                <button onclick="resetCalendarToToday()" class="px-2.5 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold rounded-xl border border-brand-200">Today</button>
-            </div>
-        </header>
-        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
-            <div class="max-w-6xl mx-auto space-y-5">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2"><div class="flex items-center justify-between border-b border-slate-100 pb-1.5"><span class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Due Today</span><span class="text-[10px] font-mono text-slate-400" id="horizon-count-today">0 items</span></div><div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-today"></div></div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2"><div class="flex items-center justify-between border-b border-slate-100 pb-1.5"><span class="text-xs font-bold text-slate-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Next 7 Days</span><span class="text-[10px] font-mono text-slate-400" id="horizon-count-week">0 items</span></div><div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-week"></div></div>
-                    <div class="bg-amber-50/50 p-4 rounded-2xl shadow-sm border border-amber-200/80 space-y-2"><div class="flex items-center justify-between border-b border-amber-100 pb-1.5"><span class="text-xs font-bold text-amber-900 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Gentle Recalibration</span><span class="text-[10px] font-mono text-amber-600" id="horizon-count-recalibrate">0 items</span></div><div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-recalibrate"></div></div>
-                </div>
-                <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-slate-200 space-y-3"><div class="grid grid-cols-7 gap-px text-center text-[10px] font-bold uppercase tracking-wider text-slate-400 pb-2 border-b border-slate-100"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div class="grid grid-cols-7 gap-1.5" id="calendar-days-grid"></div></div>
-            </div>
-        </div>
-    </main>
-
-    <!-- VIEW 3: PROJECT MAP (1-Row Clean Header & Autostack Stage) -->
-    <main id="view-map-container" class="flex-1 flex flex-col h-full overflow-hidden bg-[#090d16] text-[#f8fafc] hidden font-sans-ui">
-        <header id="map-header-bar" class="bg-[#121826] border-b border-[#24324f] px-3 sm:px-5 py-2.5 flex items-center justify-between gap-2 shrink-0 text-[#f8fafc] h-14">
-            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                <span class="text-sm sm:text-base font-extrabold text-[#38bdf8] tracking-tight flex items-center gap-1.5 shrink-0">
-                    <i data-lucide="compass" class="w-4 h-4 sm:w-5 sm:h-5 text-[#38bdf8]"></i> Project Map
-                </span>
-                <select id="map-project-select" onchange="TreeScopeEngine.switchProject(this.value)" class="bg-[#090d16] text-[#f8fafc] border border-[#24324f] px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none focus:border-[#38bdf8] max-w-[150px] sm:max-w-[210px] truncate"></select>
-                
-                <div class="relative group shrink-0">
-                    <button id="map-goal-btn" class="px-2.5 py-1 bg-[#1e293b] hover:bg-[#334155] text-[#38bdf8] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
-                        <i data-lucide="target" class="w-3.5 h-3.5 text-[#38bdf8]"></i>
-                        <span class="hidden sm:inline">Goal</span>
-                    </button>
-                    <div id="map-goal-tooltip" class="absolute left-0 top-full mt-2 z-50 w-72 sm:w-80 p-3 bg-[#0f172a] border border-[#38bdf8]/40 rounded-xl shadow-2xl text-xs text-slate-200 hidden group-hover:block transition-all pointer-events-none">
-                        <div class="text-[10px] font-bold uppercase tracking-wider text-[#38bdf8] font-mono mb-1 flex items-center gap-1">
-                            <i data-lucide="target" class="w-3 h-3"></i> North Star Goal
-                        </div>
-                        <p id="map-goal-tooltip-text" class="text-xs text-slate-200 font-medium leading-relaxed">No North Star Goal defined.</p>
+                        <button onclick="createNewProject()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs shadow-sm flex items-center gap-1.5">
+                            <i data-lucide="plus" class="w-4 h-4"></i> New Project
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                <button id="map-toggle-fit-btn" onclick="TreeScopeEngine.toggleFitScreen()" class="px-2.5 py-1 bg-[#182236] text-[#38bdf8] border border-[#38bdf8] rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer" title="Toggle Fit to Screen">
-                    <span id="map-fit-dot" class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]"></span>
-                    <span class="hidden md:inline">Fit Screen</span>
-                </button>
-
-                <button onclick="TreeScopeEngine.autoStackColumns()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Auto-Stack Columns (2 Rows)">
-                    <span>⊞</span> <span class="hidden md:inline">Auto-Stack</span>
-                </button>
-
-                <button onclick="TreeScopeEngine.resetLayout()" class="px-2.5 py-1 bg-[#121826] hover:bg-[#22304d] text-[#94a3b8] hover:text-[#f8fafc] border border-[#24324f] rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer" title="Separate All Columns">
-                    <span>⎌</span> <span class="hidden md:inline">Separate All</span>
-                </button>
-
-                <select id="map-depth-select" onchange="TreeScopeEngine.applyDepthFilter(this.value)" class="bg-[#090d16] text-[#38bdf8] border border-[#24324f] px-2 py-1 rounded-lg text-xs font-bold cursor-pointer outline-none max-w-[110px] sm:max-w-none">
-                    <option value="1" selected>L1: Sub-Projects Only</option>
-                    <option value="2">L2: + Component Tracks</option>
-                    <option value="3">L3: + Tasks</option>
-                    <option value="4">L4: + Micro-tasks (Full)</option>
-                    <option value="all">Expand All</option>
-                    <option value="collapse">Collapse All (L1)</option>
-                </select>
-
-                <button id="map-fullscreen-btn" onclick="TreeScopeEngine.toggleFullscreen()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer">
-                    <i data-lucide="maximize-2" class="w-3.5 h-3.5" id="map-fullscreen-icon"></i>
-                    <span id="map-fullscreen-label">Fullscreen</span>
-                </button>
-            </div>
-        </header>
-
-        <div id="map-visualizer-stage" class="flex-1 overflow-hidden p-3.5 relative"></div>
-    </main>
-
-    <!-- VIEW 4: PROGRESSION & OUTPUT VARIABLES (Native Page) -->
-    <main id="view-progression-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
-        <header class="px-4 sm:px-8 py-4 z-10 border-b border-slate-200/60 bg-white/70 backdrop-blur-md flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
-            <div>
-                <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                    <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Project Progression
-                </h1>
-                <p class="text-xs text-slate-500 mt-0.5">Real-world rating tracking, output variables, and visual journals.</p>
-            </div>
-            <div class="flex items-center gap-2 self-start sm:self-auto">
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project:</label>
-                <select id="prog-project-selector" onchange="ProgressionEngine.switchProject(this.value)" class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 outline-none shadow-xs"></select>
-            </div>
-        </header>
-        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
-            <div class="max-w-5xl mx-auto space-y-5">
-                <div class="flex gap-2 p-1 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-                    <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">📊 Quantitative Metrics (MMR, Elo, Counts)</button>
-                    <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">🎨 Visual Journal (Photos & Drawings)</button>
-                    <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">✓ Simple Binary Milestone</button>
-                </div>
-                <div id="prog-page-body-container" class="space-y-4"></div>
-            </div>
-        </div>
-    </main>
-
-    <!-- VIEW 5: ANALYTICS & RETROSPECTIVE (Secondary Review View) -->
-    <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden bg-slate-50 hidden font-sans-ui">
-        <header class="px-4 sm:px-8 py-5 z-10 border-b border-slate-200/50 bg-white/30 backdrop-blur-sm flex justify-between items-center"><h1 class="text-xl sm:text-2xl font-bold text-slate-800">Analytics & Retrospective</h1><button onclick="switchView('focus')" class="px-3 py-1.5 bg-brand-600 text-white rounded-xl text-xs font-bold">Return to Focus</button></header>
-        <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
-            <div class="max-w-5xl mx-auto space-y-6">
-                <div class="flex bg-white p-1 rounded-xl shadow-sm ring-1 ring-slate-200 inline-flex">
-                    <button onclick="renderAnalytics(1)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="1">Today</button>
-                    <button onclick="renderAnalytics(7)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="7">7 Days</button>
-                    <button onclick="renderAnalytics(30)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="30">30 Days</button>
-                    <button onclick="renderAnalytics(9999)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="9999">All Time</button>
-                </div>
-                <div class="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">⚡</div><div><h4 class="font-extrabold text-sm text-emerald-950">Rolling Momentum Battery</h4><p class="text-[11px] text-emerald-700">Forgiving consistency index based on 5 of 7 active days.</p></div></div><span class="text-xl sm:text-2xl font-mono font-extrabold text-emerald-700" id="stat-battery-pct">0%</span></div><div class="w-full h-3 bg-white rounded-full overflow-hidden border border-emerald-200"><div id="stat-battery-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div></div></div>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Focused Time</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-total-time">0m</p></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tasks Completed</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tasks-done">0</p></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time Accuracy</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-accuracy">0%</p></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200"><h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Task Complexity</h4><p class="text-xl sm:text-2xl font-mono font-bold text-slate-800 mt-1" id="stat-tci">0.0</p></div>
-                </div>
+                <!-- Active Slots: 1 Headliner + 1 Co-Pilot -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2.5"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Time-Blindness Recalibration</h4><div class="space-y-1.5 text-xs"><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Underestimated Tasks</span><span class="font-mono font-bold text-slate-800" id="stat-underestimated-count">0</span></div><div class="flex justify-between py-1 border-b border-slate-100"><span class="text-slate-500">Context Switching Density</span><span class="font-mono font-bold text-slate-800" id="stat-switching-density">0/hr</span></div><div class="flex justify-between py-1"><span class="text-slate-500">Zen Mode Ratio</span><span class="font-mono font-bold text-slate-800" id="stat-zen-ratio">0%</span></div></div></div>
-                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Circadian Alignment</h4><p class="text-xs text-slate-500">Peak window: <strong class="text-slate-800" id="stat-circadian-peak">Detecting...</strong></p><div class="grid grid-cols-12 gap-1 py-1" id="circadian-bars-grid"></div></div>
+                    <div class="bg-white rounded-3xl p-5 border-2 border-emerald-500/40 shadow-soft space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider">Slot 1 • Deep Work Headliner</span>
+                            <span class="text-[11px] text-stone-400 font-semibold">Primary Focus</span>
+                        </div>
+                        <div id="vault-headliner-slot"></div>
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-5 border border-stone-200 shadow-soft space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800 text-[10px] font-extrabold uppercase tracking-wider">Slot 2 • Daily Co-Pilot (Optional)</span>
+                            <span class="text-[11px] text-stone-400 font-semibold">Maintenance / Habit</span>
+                        </div>
+                        <div id="vault-copilot-slot"></div>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-slate-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian</h4><div class="space-y-1.5" id="dormant-projects-list"></div></div>
-                <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-slate-200 space-y-2.5"><div class="flex items-center justify-between"><h3 class="font-bold text-sm text-slate-800 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Activity Heatmap</h3></div><div class="grid grid-cols-10 gap-1.5 py-1" id="heatmap-grid"></div></div>
-                <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden"><div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-slate-500"></i><h3 class="font-bold text-slate-800 text-sm">Completed Task Archive</h3></div><div class="divide-y divide-slate-100 max-h-80 overflow-y-auto" id="analytics-log-container"></div></div>
+
+                <!-- Parking Lot (Zero-Shame Vault) -->
+                <div class="bg-white rounded-3xl p-5 border border-stone-200/90 shadow-soft space-y-3">
+                    <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                        <h3 class="text-sm font-extrabold text-stone-800 flex items-center gap-2">
+                            <i data-lucide="archive" class="w-4 h-4 text-amber-600"></i> Parked Ideas &amp; Future Projects (<span id="vault-parked-count">0</span>)
+                        </h3>
+                        <span class="text-[11px] text-stone-400">Safe storage — swap into Headliner whenever a project finishes</span>
+                    </div>
+                    <div id="vault-parking-list" class="space-y-2"></div>
+                </div>
+
+                <!-- Completed Archive -->
+                <div class="bg-white rounded-3xl p-5 border border-stone-200/90 shadow-soft space-y-3">
+                    <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                        <h3 class="text-sm font-extrabold text-stone-800 flex items-center gap-2">
+                            <i data-lucide="award" class="w-4 h-4 text-emerald-600"></i> Completed Trophy Shelf (<span id="vault-completed-count">0</span>)
+                        </h3>
+                    </div>
+                    <div id="vault-completed-list" class="space-y-2"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ARCHITECT VIEW C: CALENDAR HORIZONS -->
+        <main id="view-calendar-container" class="flex-1 flex flex-col h-full overflow-hidden hidden font-sans-ui">
+            <header class="px-4 sm:px-8 py-4 z-10 border-b border-stone-200/60 bg-white/60 backdrop-blur-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-stone-800 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-brand-600"></i> Calendar Horizons</h1>
+                    <p class="text-xs text-stone-500 mt-0.5">Shame-free schedule view filtered cleanly for clarity.</p>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                    <div class="flex items-center gap-1.5 mr-2">
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Project:</label>
+                        <select id="calendar-project-filter" onchange="changeCalendarProjectFilter(this.value)" class="bg-white border border-stone-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-700 outline-none shadow-2xs"></select>
+                    </div>
+                    <button onclick="navigateCalendarMonth(-1)" class="p-1.5 bg-white border border-stone-200 rounded-xl text-stone-600"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <span class="text-xs font-bold font-mono-code px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-stone-800 min-w-[120px] text-center" id="calendar-month-label">Month 2026</span>
+                    <button onclick="navigateCalendarMonth(1)" class="p-1.5 bg-white border border-stone-200 rounded-xl text-stone-600"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                    <button onclick="resetCalendarToToday()" class="px-2.5 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold rounded-xl border border-brand-200">Today</button>
+                </div>
+            </header>
+            <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
+                <div class="max-w-6xl mx-auto space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 space-y-2"><div class="flex items-center justify-between border-b border-stone-100 pb-1.5"><span class="text-xs font-bold text-stone-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Due Today</span><span class="text-[10px] font-mono-code text-stone-400" id="horizon-count-today">0 items</span></div><div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-today"></div></div>
+                        <div class="bg-white p-4 rounded-2xl shadow-sm border border-stone-200 space-y-2"><div class="flex items-center justify-between border-b border-stone-100 pb-1.5"><span class="text-xs font-bold text-stone-800 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Next 7 Days</span><span class="text-[10px] font-mono-code text-stone-400" id="horizon-count-week">0 items</span></div><div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-week"></div></div>
+                        <div class="bg-amber-50/50 p-4 rounded-2xl shadow-sm border border-amber-200/80 space-y-2"><div class="flex items-center justify-between border-b border-amber-100 pb-1.5"><span class="text-xs font-bold text-amber-900 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Gentle Recalibration</span><span class="text-[10px] font-mono-code text-amber-600" id="horizon-count-recalibrate">0 items</span></div><div class="space-y-1.5 max-h-40 overflow-y-auto" id="horizon-list-recalibrate"></div></div>
+                    </div>
+                    <div class="bg-white p-4 sm:p-6 rounded-3xl shadow-sm border border-stone-200 space-y-3"><div class="grid grid-cols-7 gap-px text-center text-[10px] font-bold uppercase tracking-wider text-stone-400 pb-2 border-b border-stone-100"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div class="grid grid-cols-7 gap-1.5" id="calendar-days-grid"></div></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ARCHITECT VIEW D: PROGRESSION & OUTPUT VARIABLES -->
+        <main id="view-progression-container" class="flex-1 flex flex-col h-full overflow-hidden hidden font-sans-ui">
+            <header class="px-4 sm:px-8 py-4 z-10 border-b border-stone-200/60 bg-white/70 backdrop-blur-md flex flex-col sm:flex-row justify-between sm:items-center gap-3 shrink-0">
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-stone-900 tracking-tight flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-emerald-600"></i> Project Progression
+                    </h1>
+                    <p class="text-xs text-stone-500 mt-0.5">Real-world rating tracking, output variables, and visual journals.</p>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Project:</label>
+                    <select id="prog-project-selector" onchange="ProgressionEngine.switchProject(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-bold text-stone-700 outline-none shadow-2xs"></select>
+                </div>
+            </header>
+            <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-5">
+                <div class="max-w-5xl mx-auto space-y-5">
+                    <div class="flex gap-2 p-1 bg-white rounded-2xl border border-stone-200 shadow-2xs">
+                        <button onclick="ProgressionEngine.setType('metrics')" id="prog-tab-metrics" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">📊 Quantitative Metrics (MMR, Elo, Counts)</button>
+                        <button onclick="ProgressionEngine.setType('gallery')" id="prog-tab-gallery" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">🎨 Visual Journal (Photos &amp; Drawings)</button>
+                        <button onclick="ProgressionEngine.setType('binary')" id="prog-tab-binary" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all text-center">✓ Simple Binary Milestone</button>
+                    </div>
+                    <div id="prog-page-body-container" class="space-y-4"></div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ARCHITECT VIEW E: ANALYTICS & RETROSPECTIVE -->
+        <main id="view-analytics-container" class="flex-1 flex flex-col h-full overflow-hidden hidden font-sans-ui">
+            <header class="px-4 sm:px-8 py-5 z-10 border-b border-stone-200/50 bg-white/40 backdrop-blur-sm flex justify-between items-center">
+                <h1 class="text-xl sm:text-2xl font-bold text-stone-800">Momentum Retrospective</h1>
+                <button onclick="enterOperatorMode()" class="px-3.5 py-1.5 bg-emerald-600 text-white rounded-xl text-xs font-bold">Return to Operator</button>
+            </header>
+            <div class="flex-1 overflow-y-auto px-4 sm:px-8 py-6 space-y-6">
+                <div class="max-w-5xl mx-auto space-y-6">
+                    <div class="flex bg-white p-1 rounded-xl shadow-sm ring-1 ring-stone-200 inline-flex">
+                        <button onclick="renderAnalytics(1)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="1">Today</button>
+                        <button onclick="renderAnalytics(7)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="7">7 Days</button>
+                        <button onclick="renderAnalytics(30)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="30">30 Days</button>
+                        <button onclick="renderAnalytics(9999)" class="analytics-tab px-3.5 py-1.5 text-xs font-bold rounded-lg transition-colors" data-days="9999">All Time</button>
+                    </div>
+                    <div class="border border-emerald-200 bg-emerald-50/70 rounded-2xl p-4 sm:p-5 shadow-sm space-y-2"><div class="flex items-center justify-between"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">⚡</div><div><h4 class="font-extrabold text-sm text-emerald-950">Rolling Momentum Battery</h4><p class="text-[11px] text-emerald-700">Forgiving consistency index based on 5 of 7 active days.</p></div></div><span class="text-xl sm:text-2xl font-mono-code font-extrabold text-emerald-700" id="stat-battery-pct">0%</span></div><div class="w-full h-3 bg-white rounded-full overflow-hidden border border-emerald-200"><div id="stat-battery-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div></div></div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                        <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200"><h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Total Focused Time</h4><p class="text-xl sm:text-2xl font-mono-code font-bold text-stone-800 mt-1" id="stat-total-time">0m</p></div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200"><h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Slices Completed</h4><p class="text-xl sm:text-2xl font-mono-code font-bold text-stone-800 mt-1" id="stat-tasks-done">0</p></div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200"><h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Clock Calibration</h4><p class="text-xl sm:text-2xl font-mono-code font-bold text-stone-800 mt-1" id="stat-accuracy">0%</p></div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200"><h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Deep Flow Ratio</h4><p class="text-xl sm:text-2xl font-mono-code font-bold text-stone-800 mt-1" id="stat-tci">0.0</p></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200 space-y-2.5"><h4 class="font-bold text-xs uppercase tracking-wider text-stone-500 flex items-center gap-1.5"><i data-lucide="clock" class="w-4 h-4 text-brand-500"></i> Session Rhythm</h4><div class="space-y-1.5 text-xs"><div class="flex justify-between py-1 border-b border-stone-100"><span class="text-stone-500">Expanded Slices</span><span class="font-mono-code font-bold text-stone-800" id="stat-underestimated-count">0</span></div><div class="flex justify-between py-1 border-b border-stone-100"><span class="text-stone-500">Context Switching Density</span><span class="font-mono-code font-bold text-stone-800" id="stat-switching-density">0/hr</span></div><div class="flex justify-between py-1 border-b border-stone-100"><span class="text-stone-500">Zen Mode Ratio</span><span class="font-mono-code font-bold text-stone-800" id="stat-zen-ratio">0%</span></div><div class="flex justify-between py-1"><span class="text-stone-500">Weekday / Weekend Split</span><span class="font-mono-code font-bold text-stone-800" id="stat-weekend-split">0% / 0%</span></div></div></div>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-stone-500 flex items-center gap-1.5"><i data-lucide="sun" class="w-4 h-4 text-amber-500"></i> Circadian Alignment</h4><p class="text-xs text-stone-500">Peak window: <strong class="text-stone-800" id="stat-circadian-peak">Detecting...</strong></p><div class="grid grid-cols-12 gap-1 py-1" id="circadian-bars-grid"></div></div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 shadow-sm ring-1 ring-stone-200 space-y-2"><h4 class="font-bold text-xs uppercase tracking-wider text-stone-500 flex items-center gap-1.5"><i data-lucide="eye" class="w-4 h-4 text-indigo-500"></i> Object Permanence Guardian</h4><div class="space-y-1.5" id="dormant-projects-list"></div></div>
+                    <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm ring-1 ring-stone-200 space-y-2.5"><div class="flex items-center justify-between"><h3 class="font-bold text-sm text-stone-800 flex items-center gap-2"><i data-lucide="calendar" class="w-4 h-4 text-emerald-600"></i> Activity Heatmap</h3></div><div class="grid grid-cols-10 gap-1.5 py-1" id="heatmap-grid"></div></div>
+                    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-stone-200 overflow-hidden"><div class="px-5 py-3.5 border-b border-stone-100 flex items-center gap-2"><i data-lucide="history" class="w-4 h-4 text-stone-500"></i><h3 class="font-bold text-stone-800 text-sm">Completed Slice Archive</h3></div><div class="divide-y divide-stone-100 max-h-80 overflow-y-auto" id="analytics-log-container"></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ======================================================================
+         MODALS, POPOVERS & OVERLAYS
+         ====================================================================== -->
+
+    <!-- Task Slicer Modal (Anti-Paralysis Boulder Splitter) -->
+    <div id="task-slicer-modal" class="fixed inset-0 bg-stone-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-stone-200">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="scissors" class="w-5 h-5"></i></div>
+                    <div>
+                        <h3 class="font-extrabold text-sm text-stone-900">Slice Into Smaller Pieces</h3>
+                        <p class="text-[11px] text-stone-500">Feeling friction? Break this task into 2–4 tiny, clear sessions.</p>
+                    </div>
+                </div>
+                <button onclick="closeTaskSlicerModal()" class="text-stone-400 hover:text-stone-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="p-3 bg-stone-50 rounded-2xl border border-stone-200/80">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-stone-400 block">Target Task</span>
+                <p id="slicer-target-title" class="text-xs font-extrabold text-stone-800 mt-0.5"></p>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-stone-500 block">New Ready Slices (Leave blanks empty)</label>
+                <input type="text" id="slice-input-1" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-800 outline-none focus:bg-white focus:border-brand-400" placeholder="Slice 1: e.g., Set up base scene & camera">
+                <input type="text" id="slice-input-2" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-800 outline-none focus:bg-white focus:border-brand-400" placeholder="Slice 2: e.g., Rough out key poses">
+                <input type="text" id="slice-input-3" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-800 outline-none focus:bg-white focus:border-brand-400" placeholder="Slice 3: (Optional)">
+                <input type="text" id="slice-input-4" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-800 outline-none focus:bg-white focus:border-brand-400" placeholder="Slice 4: (Optional)">
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-stone-100">
+                <button onclick="convertSlicerTargetToSpike()" class="w-full sm:w-auto px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5">
+                    <i data-lucide="search" class="w-3.5 h-3.5"></i> Turn into 20m Research Spike
+                </button>
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <button onclick="closeTaskSlicerModal()" class="px-3 py-2 text-stone-400 text-xs font-semibold">Cancel</button>
+                    <button onclick="confirmTaskSlice()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-sm">Create Slices</button>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
+
+    <!-- Companion Picker Popover -->
+    <div id="companion-popover" class="fixed inset-0 bg-stone-950/40 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl p-5 space-y-4 border border-stone-200">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-5 h-5 text-brand-600"></i>
+                    <h3 class="font-extrabold text-sm text-stone-800">Studio Focus Companions</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="removeCompanion()" class="px-2.5 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-lg text-[11px] font-bold">None</button>
+                    <button onclick="unlockAllMascotsTest()" id="btn-unlock-all-mascots" class="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-bold flex items-center gap-1"><i data-lucide="unlock" class="w-3 h-3"></i> Unlock All</button>
+                    <button onclick="relockAllMascots()" id="btn-relock-all-mascots" class="px-2.5 py-1 bg-stone-200 hover:bg-stone-300 text-stone-700 rounded-lg text-[11px] font-bold flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> Relock</button>
+                    <button onclick="closeCompanionPopover()" class="text-stone-400 hover:text-stone-600 p-1"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2.5 max-h-72 overflow-y-auto p-1" id="mascot-gallery-grid"></div>
+        </div>
+    </div>
+
+    <!-- Project Settings Modal (Preserves title, goal, deadline, notes & completion inputs) -->
+    <div id="project-settings-modal" class="fixed inset-0 bg-stone-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-stone-200">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h3 class="font-extrabold text-sm text-stone-800 flex items-center gap-2"><i data-lucide="sliders-horizontal" class="w-4 h-4 text-brand-600"></i> Active Track &amp; Project Details</h3>
+                <button onclick="closeProjectSettingsModal()" class="text-stone-400 hover:text-stone-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Title</label>
+                    <input type="text" id="project-title-input" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-900 outline-none focus:bg-white focus:border-brand-400" placeholder="Project Title">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">North Star Goal</label>
+                    <input type="text" id="project-goal-input" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 outline-none focus:bg-white focus:border-brand-400" placeholder="What is the finish line?">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Target Deadline</label>
+                        <input type="date" id="project-deadline-input" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-stone-700 outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Cumulative Time</label>
+                        <div class="bg-stone-100 rounded-xl px-3 py-2 text-xs font-mono-code font-bold text-stone-700" id="project-cumulative-timer">00:00:00</div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider mb-1 block">Quick Context &amp; Links</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="project-notes-summary-input" class="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-600 outline-none" placeholder="Resources, repo links...">
+                        <button onclick="closeProjectSettingsModal(); toggleProjectNotesModal();" class="px-3 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold shrink-0">Full Notes</button>
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between pt-3 border-t border-stone-100">
+                <button onclick="toggleCompleteCurrentProject()" id="btn-toggle-project-complete" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white">
+                    <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                    <span id="label-toggle-project-complete">Complete Project</span>
+                </button>
+                <button onclick="closeProjectSettingsModal()" class="px-5 py-2 bg-stone-900 text-white rounded-xl text-xs font-bold">Done</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 90-MINUTE COMPULSORY RESET LOCKDOWN -->
-    <div id="compulsory-break-overlay" class="fixed inset-0 bg-slate-950/95 text-white z-50 hidden flex-col items-center justify-center p-6 font-sans-ui backdrop-blur-xl">
-        <div class="max-w-md w-full bg-slate-900 border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
-            <div class="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center text-2xl font-bold">⚠️</div>
+    <div id="compulsory-break-overlay" class="fixed inset-0 bg-stone-950/95 text-white z-50 hidden flex-col items-center justify-center p-6 font-sans-ui backdrop-blur-xl">
+        <div class="max-w-md w-full bg-stone-900 border border-amber-500/30 rounded-3xl p-8 text-center space-y-6 shadow-2xl">
+            <div class="w-16 h-16 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 mx-auto flex items-center justify-center text-2xl font-bold">☕</div>
             <div class="space-y-2">
-                <span class="text-[10px] font-mono font-bold tracking-widest uppercase text-amber-400">Biological Reality Check</span>
+                <span class="text-[10px] font-mono-code font-bold tracking-widest uppercase text-amber-400">Studio Pace Check</span>
                 <h2 class="text-2xl font-black tracking-tight text-white">90-Minute Focus Boundary</h2>
-                <p class="text-xs text-slate-400 leading-relaxed">Continuous hyperfocus past 90 minutes degrades working memory and causes cognitive crash. Take a mandatory 3-minute physical reset.</p>
+                <p class="text-xs text-stone-400 leading-relaxed">You've been locked in for 90 straight minutes. Step away for a 3-minute physical reset so your brain stays sharp.</p>
             </div>
-            <div class="p-6 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-2">
-                <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">Lockdown Closes In</span>
-                <span class="text-5xl font-mono font-extrabold text-amber-400" id="break-countdown-display">03:00</span>
-                <div class="text-[11px] text-slate-400 pt-2 space-y-1">
-                    <p>💧 Drink a glass of water</p>
-                    <p>👀 Look 20 feet away to relax optic muscles</p>
-                    <p>🚶 Stand up, stretch spine and shoulders</p>
+            <div class="p-6 bg-stone-950/60 rounded-2xl border border-stone-800 space-y-2">
+                <span class="text-xs font-mono-code text-stone-400 uppercase tracking-wider block">Reset Timer</span>
+                <span class="text-5xl font-mono-code font-extrabold text-amber-400" id="break-countdown-display">03:00</span>
+                <div class="text-[11px] text-stone-400 pt-2 space-y-1">
+                    <p>💧 Grab a glass of water</p>
+                    <p>👀 Look out a window 20 feet away</p>
+                    <p>🚶 Unclench your jaw and stretch your shoulders</p>
                 </div>
             </div>
-            <button id="btn-dismiss-break" disabled onclick="dismissCompulsoryBreak()" class="w-full py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl transition-all cursor-not-allowed">Reset in Progress...</button>
+            <button id="btn-dismiss-break" disabled onclick="dismissCompulsoryBreak()" class="w-full py-3 bg-stone-800 text-stone-500 font-bold text-xs rounded-xl transition-all cursor-not-allowed">Reset in Progress...</button>
         </div>
     </div>
 
     <!-- ZEN OVERLAY -->
     <div id="zen-overlay" class="fixed inset-0 bg-slate-950 text-white z-50 hidden flex flex-col font-sans-ui overflow-hidden items-center justify-center">
         <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden"><div id="mascot-roam-wrapper" class="absolute left-10 top-1/2 -translate-y-1/2 pointer-events-auto cursor-pointer mascot-roam hidden"><div id="mascot-scale-wrapper" class="transition-transform duration-300" style="transform: scale(1.0);"><div id="mascot-anim-wrapper" class="mascot-bob relative" onclick="triggerMascotAnim('squish')"><div id="sleep-particle-z" class="hidden"><div class="z-particle z-1">Z</div></div><div id="emote-pop-container" class="emote-icon text-rose-500"><i data-lucide="heart" class="w-6 h-6 fill-rose-500"></i></div><div id="zen-mascot-mount" class="mascot-mount-box"></div></div></div></div></div>
-        <div class="absolute top-6 left-6 right-6 flex items-center justify-between z-20"><span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase tracking-widest font-mono">Zen Mode</span><div class="flex items-center gap-2"><button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1.5 shadow"><i data-lucide="edit-3" class="w-3.5 h-3.5 text-brand-400"></i> Dump</button><button onclick="toggleBackdropModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1.5 shadow"><i data-lucide="palette" class="w-3.5 h-3.5 text-indigo-400"></i> Backdrops</button><button onclick="closeZenView()" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1 shadow"><i data-lucide="minimize-2" class="w-3.5 h-3.5"></i> Exit</button></div></div>
-        <div class="flex-1 flex flex-col items-center justify-center z-20 space-y-6 w-full max-w-xl text-center my-auto px-4"><h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight" id="zen-active-task-title">Workspace Active</h2><div class="w-full flex justify-center items-center"><button aria-label="Toggle Zen Timer" onclick="toggleTimer()" class="w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden relative shadow-2xl timer-red-container" id="zen-timer-btn"><div id="zen-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div><div class="relative z-10 flex flex-col items-center"><div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="zen-timer-state">Paused</div><div class="text-5xl sm:text-6xl font-mono font-bold tracking-tighter" id="zen-timer-display">00:00:00</div></div></button></div><p class="text-xs text-slate-300/80 font-mono w-full truncate max-w-md mx-auto" id="zen-task-notes">No notes attached</p></div>
+        <div class="absolute top-6 left-6 right-6 flex items-center justify-between z-20"><span class="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase tracking-widest font-mono-code">Zen Mode</span><div class="flex items-center gap-2"><button onclick="toggleScratchpadModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1.5 shadow"><i data-lucide="edit-3" class="w-3.5 h-3.5 text-brand-400"></i> Dump</button><button onclick="toggleBackdropModal()" class="px-3 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-white rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1.5 shadow"><i data-lucide="palette" class="w-3.5 h-3.5 text-indigo-400"></i> Backdrops</button><button onclick="closeZenView()" class="px-3.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold backdrop-blur border border-slate-700 flex items-center gap-1 shadow"><i data-lucide="minimize-2" class="w-3.5 h-3.5"></i> Exit</button></div></div>
+        <div class="flex-1 flex flex-col items-center justify-center z-20 space-y-6 w-full max-w-xl text-center my-auto px-4"><h2 class="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight" id="zen-active-task-title">Workspace Active</h2><div class="w-full flex justify-center items-center"><button aria-label="Toggle Zen Timer" onclick="toggleTimer()" class="w-64 h-64 sm:w-80 sm:h-80 rounded-full border-[8px] flex flex-col items-center justify-center transition-all duration-300 cursor-pointer overflow-hidden relative shadow-2xl timer-red-container" id="zen-timer-btn"><div id="zen-bloom-layer" class="absolute inset-0 rounded-full pointer-events-none opacity-0"></div><div class="relative z-10 flex flex-col items-center"><div class="text-xs font-bold uppercase tracking-widest mb-1 opacity-70 font-sans-ui" id="zen-timer-state">Paused</div><div class="text-5xl sm:text-6xl font-mono-code font-bold tracking-tighter" id="zen-timer-display">00:00:00</div></div></button></div><p class="text-xs text-slate-300/80 font-mono-code w-full truncate max-w-md mx-auto" id="zen-task-notes">No notes attached</p></div>
+
+        <!-- Zen Backdrop Customizer Modal -->
+        <div id="backdrop-modal" class="hidden absolute top-20 right-6 w-72 bg-slate-900 border border-slate-700 rounded-2xl p-4 z-30 space-y-3 text-left shadow-2xl">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2"><span class="text-xs font-bold text-slate-200">Zen Atmosphere</span><button onclick="toggleBackdropModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button></div>
+            <div class="grid grid-cols-3 gap-2">
+                <div><label class="text-[10px] text-slate-400 block mb-1">Base</label><input type="color" id="picker-primary" value="#090d16" onchange="onCustomColorChange()" class="w-full h-8 rounded cursor-pointer bg-transparent"></div>
+                <div><label class="text-[10px] text-slate-400 block mb-1">Mid</label><input type="color" id="picker-secondary" value="#1e1b4b" onchange="onCustomColorChange()" class="w-full h-8 rounded cursor-pointer bg-transparent"></div>
+                <div><label class="text-[10px] text-slate-400 block mb-1">Glow</label><input type="color" id="picker-tertiary" value="#4338ca" onchange="onCustomColorChange()" class="w-full h-8 rounded cursor-pointer bg-transparent"></div>
+            </div>
+            <div><label class="text-[10px] text-slate-400 block mb-1">Gradient Style</label><select id="select-pattern" onchange="onCustomColorChange()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-slate-200 outline-none"><option value="radial-center">Radial Center</option><option value="linear-vert">Vertical</option><option value="linear-diag">Diagonal</option><option value="spotlight">Spotlight</option><option value="mesh">Ambient Mesh</option><option value="solid">Solid</option></select></div>
+        </div>
     </div>
 
-    <!-- Modals -->
-    <div id="theme-popover" class="fixed top-16 left-4 sm:left-20 md:left-80 z-50 w-72 bg-white p-4 rounded-3xl shadow-2xl border border-slate-200 hidden font-sans-ui space-y-3"><div class="flex items-center justify-between pb-2 border-b border-slate-100"><div class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4 text-brand-600"></i><span class="text-xs font-bold text-slate-800">Visual Theme</span></div><button onclick="closeThemePopover()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div><div class="space-y-1.5" id="theme-options-container"></div></div>
-    <div id="sprint-review-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">30-Day Sprint Checkpoint</h3><p class="text-[11px] text-slate-400">Dopamine checkpoint and sprint calibration.</p></div></div><button onclick="closeSprintReviewModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-slate-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Actions</label><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="switchView('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-slate-500"></i> Review Analytics & Retrospective</button></div></div></div></div></div>
-    <div id="blueprint-modal" class="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-slate-800">Momentum Blueprint Ingest</h3><p class="text-[11px] text-slate-400">Ingest conversational roadmaps.</p></div></div><button onclick="BlueprintEngine.closeModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 flex-1 overflow-y-auto"><div class="flex flex-wrap gap-2"><button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button><button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold border border-slate-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button><button onclick="BlueprintEngine.exportCurrentWorkspaceToMarkdown()" id="btn-export-blueprint" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200"><i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> Export Workspace</button></div><div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mount Destination</label><select id="blueprint-target-select" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-slate-700 outline-none"></select></div><textarea id="blueprint-input" rows="8" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-mono text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]"></textarea></div><div class="flex justify-between items-center pt-3 border-t border-slate-100"><button onclick="BlueprintEngine.closeModal()" class="px-4 py-2 text-slate-400 text-xs font-semibold">Cancel</button><button onclick="BlueprintEngine.executeImport()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Ingest Blueprint</button></div></div></div>
-    <div id="scratchpad-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div><h3 class="font-bold text-sm text-slate-800">Mental RAM Dump (Scratchpad)</h3></div><button onclick="toggleScratchpadModal()" class="text-slate-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="flex gap-2"><input type="text" id="scratchpad-input" class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-700 outline-none" placeholder="Dump thought..."><button onclick="submitScratchpadItem()" class="px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save</button></div><div class="max-h-56 overflow-y-auto divide-y divide-slate-100" id="scratchpad-items-list"></div></div></div>
-    <div id="park-resume-modal" class="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 border border-slate-100"><div class="flex items-center gap-3 border-b border-slate-100 pb-3"><div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div><h3 class="font-bold text-sm text-slate-800">Anchor Your Momentum</h3></div><div class="space-y-3"><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Where did you stop?</label><input type="text" id="park-stopped-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none" placeholder="e.g. Finished part A"></div><div><label class="text-[10px] font-bold text-slate-400 block mb-1">Immediate 60s launchpad action?</label><input type="text" id="park-next60s-input" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-700 outline-none" placeholder="e.g. Open test suite"></div></div><div class="flex justify-between items-center pt-2"><button onclick="dismissParkModal()" class="px-4 py-2 text-slate-400 text-xs font-semibold">Just Pause</button><button onclick="confirmParkAndPause()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold shadow-md">Anchor & Pause</button></div></div></div>
-    <div id="instructions-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h2 class="text-lg font-bold text-brand-700 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i> Focus Flow Guide</h2><button onclick="toggleInstructionsModal()" class="p-2 text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-4 leading-relaxed"><div><h3 class="font-bold text-slate-800 text-sm mb-1 text-brand-600">The 4-Stage Focus Pipeline</h3><p><strong>1. Calendar:</strong> Check horizons for one project.<br><strong>2. Map:</strong> Orient in the macro autostack architecture.<br><strong>3. Focus:</strong> Execute single atomic tasks.<br><strong>4. Progress:</strong> Log concrete ratings, drawings, or outcomes.</p></div></div></div></div>
-    <div id="project-notes-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col"><div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50"><h3 class="font-bold text-slate-800 text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes</h3><button onclick="toggleProjectNotesModal()" class="p-1.5 text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6"><textarea id="project-full-notes-textarea" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-700 outline-none resize-none"></textarea></div><div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end"><button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save Changes</button></div></div></div>
-    <div id="project-retrospective-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100"><div class="flex items-center justify-between border-b border-slate-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><i data-lucide="award" class="w-6 h-6"></i></div><div><h3 class="font-extrabold text-base text-slate-900" id="postdoc-modal-title">Project Post-Doc</h3><p class="text-[11px] text-slate-400" id="postdoc-modal-subtitle">Momentum Retrospective</p></div></div><button onclick="closeProjectRetrospectiveModal()" class="text-slate-400 p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-4 flex-1 overflow-y-auto pr-1"><div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 text-white space-y-1"><span class="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-100">Milestone Complete</span><h4 class="text-lg font-black" id="postdoc-headline">Project Completed!</h4><p class="text-xs text-emerald-50" id="postdoc-dates-label"></p></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Time Spent</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-total-time">0h 0m</span></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Planned</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-target-time">0h 0m</span></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Accuracy</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-accuracy">0%</span></div><div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Tasks</span><span class="text-base font-bold font-mono text-slate-800" id="postdoc-tasks-count">0/0</span></div></div><div class="space-y-1.5"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Tasks</label><div class="divide-y divide-slate-100 border border-slate-200 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div></div><div class="space-y-1"><label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Debrief Notes</label><textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs text-slate-700 outline-none"></textarea></div></div><div class="flex items-center justify-between pt-3 border-t border-slate-100"><button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen</button><button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-slate-800 text-white rounded-xl text-xs font-bold">Done</button></div></div></div>
+    <!-- Standard Studio Modals -->
+    <div id="theme-popover" class="fixed top-14 right-4 z-50 w-72 bg-white p-4 rounded-3xl shadow-2xl border border-stone-200 hidden font-sans-ui space-y-3"><div class="flex items-center justify-between pb-2 border-b border-stone-100"><div class="flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4 text-brand-600"></i><span class="text-xs font-bold text-stone-800">Visual Theme</span></div><button onclick="closeThemePopover()" class="text-stone-400 hover:text-stone-600 p-1 rounded-lg"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div><div class="space-y-1.5" id="theme-options-container"></div></div>
+    <div id="sprint-review-modal" class="fixed inset-0 bg-stone-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-6 space-y-4 border border-indigo-100"><div class="flex items-center justify-between border-b border-stone-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="compass" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-stone-800">30-Day Cycle Checkpoint</h3><p class="text-[11px] text-stone-400">Novelty reset and pace calibration.</p></div></div><button onclick="closeSprintReviewModal()" class="text-stone-400 hover:text-stone-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 text-xs text-stone-600 leading-relaxed"><div class="p-3.5 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5"><div class="flex items-center justify-between font-bold text-indigo-950"><span>Current Cycle Status</span><span id="sprint-modal-status-badge" class="px-2 py-0.5 rounded-full text-[10px] bg-brand-100 text-brand-700">Day 1 / 30</span></div></div><div class="flex flex-col gap-2"><button onclick="confirmSprintReset()" class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"><i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Begin Fresh 30-Day Cycle</button><button onclick="enterArchitectMode('analytics'); closeSprintReviewModal();" class="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5"><i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-stone-500"></i> Review Retrospective</button></div></div></div></div>
+    <div id="blueprint-modal" class="fixed inset-0 bg-stone-950/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-4 max-h-[90vh] flex flex-col"><div class="flex items-center justify-between border-b border-stone-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2 bg-indigo-50 text-brand-600 rounded-xl"><i data-lucide="file-up" class="w-5 h-5"></i></div><div><h3 class="font-extrabold text-sm text-stone-800">Momentum Blueprint Ingest</h3><p class="text-[11px] text-stone-400">Import conversational roadmaps into Architect Map.</p></div></div><button onclick="BlueprintEngine.closeModal()" class="text-stone-400 hover:text-stone-600 p-1.5 rounded-lg"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-3 flex-1 overflow-y-auto"><div class="flex flex-wrap gap-2"><button onclick="BlueprintEngine.copyArchitectPrompt()" id="btn-copy-architect" class="px-3 py-1.5 bg-brand-50 hover:bg-brand-100 text-brand-700 rounded-xl text-xs font-bold border border-brand-200"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-brand-600"></i> Copy Stage 1: Interview Prompt</button><button onclick="BlueprintEngine.copyFormatterPrompt()" id="btn-copy-formatter" class="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold border border-stone-200"><i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy Stage 2: Formatter Prompt</button><button onclick="BlueprintEngine.exportCurrentWorkspaceToMarkdown()" id="btn-export-blueprint" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-bold border border-emerald-200"><i data-lucide="share-2" class="w-3.5 h-3.5 text-emerald-600"></i> Export Workspace</button></div><div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2 pt-1"><label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Mount Destination</label><select id="blueprint-target-select" class="bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs font-semibold text-stone-700 outline-none"></select></div><textarea id="blueprint-input" rows="8" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3.5 text-xs font-mono-code text-stone-700 outline-none focus:bg-white focus:ring-2 focus:ring-brand-400" placeholder="# Phase 1: Sorting & Spines [2026-05-10]"></textarea></div><div class="flex justify-between items-center pt-3 border-t border-stone-100"><button onclick="BlueprintEngine.closeModal()" class="px-4 py-2 text-stone-400 text-xs font-semibold">Cancel</button><button onclick="BlueprintEngine.executeImport()" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5"><i data-lucide="check" class="w-4 h-4"></i> Ingest Blueprint</button></div></div></div>
+    <div id="scratchpad-modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4"><div class="flex items-center justify-between border-b border-stone-100 pb-3"><div class="flex items-center gap-2"><div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="edit-3" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-stone-800">Mental RAM Dump</h3><p class="text-[11px] text-stone-400">Offload distracting thoughts without breaking focus.</p></div></div><button onclick="toggleScratchpadModal()" class="text-stone-400 p-1"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="flex gap-2"><input type="text" id="scratchpad-input" class="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-700 outline-none" placeholder="Dump stray thought..."><button onclick="submitScratchpadItem()" class="px-4 py-2 bg-stone-900 text-white rounded-xl text-xs font-bold">Park Thought</button></div><div class="max-h-56 overflow-y-auto divide-y divide-stone-100" id="scratchpad-items-list"></div></div></div>
+    <div id="park-resume-modal" class="fixed inset-0 bg-stone-950/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 sm:p-6 space-y-4 border border-stone-100"><div class="flex items-center gap-3 border-b border-stone-100 pb-3"><div class="p-2 bg-amber-50 text-amber-600 rounded-xl"><i data-lucide="anchor" class="w-5 h-5"></i></div><div><h3 class="font-bold text-sm text-stone-800">Leave a Breadcrumb for Future You</h3><p class="text-[11px] text-stone-400">Makes restarting effortless next session.</p></div></div><div class="space-y-3"><div><label class="text-[10px] font-bold text-stone-400 block mb-1">Where are you stopping?</label><input type="text" id="park-stopped-input" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-700 outline-none" placeholder="e.g. Finished rough layout on layer 2"></div><div><label class="text-[10px] font-bold text-stone-400 block mb-1">Tiny 60-second spark for next time?</label><input type="text" id="park-next60s-input" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 text-xs text-stone-700 outline-none" placeholder="e.g. Test color contrast on header"></div></div><div class="flex justify-between items-center pt-2"><button onclick="dismissParkModal()" class="px-4 py-2 text-stone-400 text-xs font-semibold">Just Pause</button><button onclick="confirmParkAndPause()" class="px-5 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-md">Drop Anchor &amp; Pause</button></div></div></div>
+    <div id="instructions-modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"><div class="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50"><h2 class="text-base font-extrabold text-stone-900 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 text-brand-600"></i> How Your Studio Workbench Works</h2><button onclick="toggleInstructionsModal()" class="p-2 text-stone-400"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="p-6 overflow-y-auto text-xs text-stone-600 space-y-4 leading-relaxed"><div><h3 class="font-bold text-stone-900 text-sm mb-1">1. Two Modes, Zero Cross-Contamination</h3><p><strong>Architect Mode:</strong> Zoom out in the WBS Map, slice big Boulders into small Ready Slices, and star up to <strong>3 On-Deck slices</strong>.<br><strong>Operator Mode:</strong> Hide the backlog. Check your Studio GPS card to see where you left off, and execute one slice at a time.</p></div><div><h3 class="font-bold text-stone-900 text-sm mb-1">2. Slice, Spike, or Boulder</h3><p><strong>⚡ Ready Slice:</strong> Clear, small, ready to run.<br><strong>🔍 20m Spike:</strong> Unsure how to tackle something? Run a 20-minute research box whose only goal is clarity.<br><strong>🐘 Boulder:</strong> Too big for one sitting. Use <em>Slice It</em> to split it before starting the clock.</p></div></div></div></div>
+    <div id="project-notes-modal" class="fixed inset-0 bg-stone-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col"><div class="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50"><h3 class="font-bold text-stone-800 text-sm flex items-center gap-2"><i data-lucide="file-text" class="w-4 h-4 text-brand-600"></i> Project Notes</h3><button onclick="toggleProjectNotesModal()" class="p-1.5 text-stone-400"><i data-lucide="x" class="w-4 h-4"></i></button></div><div class="p-6"><textarea id="project-full-notes-textarea" rows="10" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-4 text-xs font-mono-code text-stone-700 outline-none resize-none"></textarea></div><div class="px-6 py-3.5 border-t border-stone-100 bg-stone-50 flex justify-end"><button onclick="saveFullProjectNotes()" class="px-5 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">Save Changes</button></div></div></div>
+    <div id="project-retrospective-modal" class="fixed inset-0 bg-stone-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 font-sans-ui"><div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl p-6 space-y-5 max-h-[90vh] flex flex-col border border-emerald-100"><div class="flex items-center justify-between border-b border-stone-100 pb-3"><div class="flex items-center gap-2.5"><div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-2xl"><i data-lucide="award" class="w-6 h-6"></i></div><div><h3 class="font-extrabold text-base text-stone-900" id="postdoc-modal-title">Project Post-Doc</h3><p class="text-[11px] text-stone-400" id="postdoc-modal-subtitle">Momentum Retrospective</p></div></div><button onclick="closeProjectRetrospectiveModal()" class="text-stone-400 p-1.5"><i data-lucide="x" class="w-5 h-5"></i></button></div><div class="space-y-4 flex-1 overflow-y-auto pr-1"><div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 text-white space-y-1"><span class="text-[10px] font-mono-code font-bold uppercase tracking-widest text-emerald-100">Milestone Complete</span><h4 class="text-lg font-black" id="postdoc-headline">Project Completed!</h4><p class="text-xs text-emerald-50" id="postdoc-dates-label"></p></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5"><div class="p-3 bg-stone-50 border border-stone-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Time Spent</span><span class="text-base font-bold font-mono-code text-stone-800" id="postdoc-total-time">0h 0m</span></div><div class="p-3 bg-stone-50 border border-stone-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Planned</span><span class="text-base font-bold font-mono-code text-stone-800" id="postdoc-target-time">0h 0m</span></div><div class="p-3 bg-stone-50 border border-stone-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Calibration</span><span class="text-base font-bold font-mono-code text-stone-800" id="postdoc-accuracy">0%</span></div><div class="p-3 bg-stone-50 border border-stone-200 rounded-2xl text-center"><span class="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Slices</span><span class="text-base font-bold font-mono-code text-stone-800" id="postdoc-tasks-count">0/0</span></div></div><div class="space-y-1.5"><label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Completed Slices</label><div class="divide-y divide-stone-100 border border-stone-200 rounded-2xl bg-white max-h-40 overflow-y-auto" id="postdoc-tasks-breakdown"></div></div><div class="space-y-1"><label class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Debrief Notes</label><textarea id="postdoc-reflection-notes" rows="3" class="w-full bg-stone-50 border border-stone-200 rounded-2xl p-3 text-xs text-stone-700 outline-none"></textarea></div></div><div class="flex items-center justify-between pt-3 border-t border-stone-100"><button onclick="reopenPostDocProject()" id="btn-reopen-project" class="px-3.5 py-2 bg-stone-100 text-stone-600 rounded-xl text-xs font-bold flex items-center gap-1.5"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reopen</button><button onclick="closeProjectRetrospectiveModal()" class="px-4 py-2 bg-stone-900 text-white rounded-xl text-xs font-bold">Done</button></div></div></div>
 
     <script src="js/mascots.js"></script>
     <script src="js/storage.js"></script>
