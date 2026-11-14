@@ -1,17 +1,193 @@
+/* ==========================================================================
+   Focus Flow | Tactile Studio & Executive Function Stylesheet (css/style.css)
+   ========================================================================== */
+
 :root {
     --bloom-opacity: 0.6;
+    --studio-bg: #f8f6f1;
+    --studio-surface: #ffffff;
+    --studio-subtle: #f2efe9;
+    --studio-border: #e5e0d5;
+    --studio-ink: #1c1917;
+    --studio-muted: #78716c;
+    --studio-accent: #4f46e5;
+    --studio-emerald: #059669;
+    --studio-amber: #d97706;
 }
 
-body { font-family: 'Fira Code', monospace; }
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--studio-bg);
+    color: var(--studio-ink);
+}
+
 .font-sans-ui { font-family: 'Inter', sans-serif; }
+.font-mono-code { font-family: 'Fira Code', monospace; }
+
+/* Subtle Tactile Workbench Dot Grid (Light Mode) */
+.studio-workbench-bg {
+    background-color: var(--studio-bg);
+    background-image: radial-gradient(#dcd6c8 1px, transparent 1px);
+    background-size: 20px 20px;
+}
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+::-webkit-scrollbar-thumb { background: #d6d1c7; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
 
-/* Meditative Inner Bounded Breathing Bloom Glow */
+/* ==========================================================================
+   Architect vs. Operator Cognitive Mode Switcher
+   ========================================================================== */
+
+.mode-switcher-pill {
+    display: inline-flex;
+    background: #ece8df;
+    padding: 4px;
+    border-radius: 16px;
+    border: 1px solid #dfd9cc;
+    gap: 4px;
+}
+
+.mode-switch-btn {
+    padding: 6px 14px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    color: #57534e;
+    cursor: pointer;
+}
+
+.mode-switch-btn:hover {
+    color: #1c1917;
+}
+
+.mode-switch-btn.active-operator {
+    background: #ffffff;
+    color: #059669;
+    box-shadow: 0 2px 8px rgba(28, 25, 23, 0.08);
+}
+
+.mode-switch-btn.active-architect {
+    background: #ffffff;
+    color: #4f46e5;
+    box-shadow: 0 2px 8px rgba(28, 25, 23, 0.08);
+}
+
+/* ==========================================================================
+   Studio GPS Re-Entry Card ("Where You Are in the Plan")
+   ========================================================================== */
+
+.gps-card {
+    background: #ffffff;
+    border: 1px solid #e5e0d5;
+    border-radius: 24px;
+    box-shadow: 0 8px 30px -6px rgba(28, 25, 23, 0.06);
+    overflow: hidden;
+    transition: all 0.25s ease;
+}
+
+.gps-horizon-band {
+    background: linear-gradient(135deg, #fdfcf9 0%, #f5f2eb 100%);
+    border-bottom: 1px solid #ebe6dc;
+    padding: 18px 22px;
+}
+
+.gps-anchor-band {
+    background: #fffbeb;
+    border-bottom: 1px solid #fde68a;
+    padding: 12px 22px;
+}
+
+.gps-ondeck-band {
+    background: #ffffff;
+    padding: 14px 22px;
+}
+
+/* Phase Stepper Nodes */
+.phase-track-rail {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+}
+
+.phase-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.phase-node.done {
+    background: #ecfdf5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+.phase-node.current {
+    background: #eef2ff;
+    color: #3730a3;
+    border-color: #a5b4fc;
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.12);
+}
+
+.phase-node.upcoming {
+    background: #f5f5f4;
+    color: #78716c;
+    border-color: #e7e5e4;
+}
+
+/* ==========================================================================
+   Slice / Spike / Boulder Readiness Badges
+   ========================================================================== */
+
+.readiness-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.readiness-slice {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.readiness-spike {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.readiness-boulder {
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #fed7aa;
+}
+
+/* ==========================================================================
+   Meditative Inner Bounded Breathing Bloom Glow & Timer Containers
+   ========================================================================== */
+
 @keyframes zenBreathingCurve {
     0% { transform: scale(0.25); opacity: calc(var(--bloom-opacity, 0.6) * 0.15); }
     45% { transform: scale(1.0); opacity: var(--bloom-opacity, 0.6); }
@@ -26,26 +202,40 @@ body { font-family: 'Fira Code', monospace; }
 
 .timer-green-container {
     border-color: #34d399;
-    background-color: #ecfdf5;
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #ecfdf5 100%);
     color: #065f46;
-    box-shadow: 0 10px 35px -5px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 14px 38px -6px rgba(16, 185, 129, 0.24), inset 0 2px 6px rgba(255, 255, 255, 0.9);
 }
 
 .timer-red-container {
-    border-color: #fecdd3;
-    background-color: #fff1f2;
-    color: #881337;
-    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.05);
+    border-color: #e7e5e4;
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #faf8f5 100%);
+    color: #292524;
+    box-shadow: 0 10px 28px -6px rgba(28, 25, 23, 0.08), inset 0 2px 6px rgba(255, 255, 255, 0.9);
+}
+
+.timer-red-container:hover {
+    border-color: #a5b4fc;
+    box-shadow: 0 14px 32px -6px rgba(79, 70, 229, 0.14);
 }
 
 .timer-amber-container {
-    border-color: #fcd34d;
-    background-color: #fffbeb;
+    border-color: #fbbf24;
+    background: radial-gradient(circle at 30% 30%, #ffffff 0%, #fffbeb 100%);
     color: #92400e;
-    box-shadow: 0 10px 35px -5px rgba(245, 158, 11, 0.25);
+    box-shadow: 0 14px 38px -6px rgba(245, 158, 11, 0.25), inset 0 2px 6px rgba(255, 255, 255, 0.9);
 }
 
-/* Mascot Keyframe Animations */
+@keyframes overtimeHaloPulse {
+    0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 6px rgba(245, 158, 1, 0.4)); }
+    50% { opacity: 1.0; filter: drop-shadow(0 0 16px rgba(245, 158, 1, 0.8)); }
+}
+.overtime-pulse { animation: overtimeHaloPulse 2.6s infinite ease-in-out; }
+
+/* ==========================================================================
+   Mascot Keyframe Animations
+   ========================================================================== */
+
 @keyframes expandedRoam {
     0%    { transform: translate(0px, 0px) scaleX(1); }
     18%   { transform: translate(420px, 0px) scaleX(1); }
@@ -71,7 +261,7 @@ body { font-family: 'Fira Code', monospace; }
 }
 .mascot-float { animation: aimlessFloat 22s ease-in-out infinite; }
 
-@keyframes gentleBob { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-7px); } }
+@keyframes gentleBob { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
 .mascot-bob { animation: gentleBob 3.4s infinite ease-in-out; }
 
 @keyframes tailWag { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(18deg); } }
@@ -127,12 +317,6 @@ body { font-family: 'Fira Code', monospace; }
 }
 .anim-emote { animation: emotePop 1.3s ease-out forwards; }
 
-@keyframes overtimeHaloPulse {
-    0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.4)); }
-    50% { opacity: 1.0; filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.8)); }
-}
-.overtime-pulse { animation: overtimeHaloPulse 2.6s infinite ease-in-out; }
-
 input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type="number"] { -moz-appearance: textfield; }
 
@@ -140,7 +324,6 @@ input[type="number"] { -moz-appearance: textfield; }
    Focus Flow Multi-Theme Engine (Dark, Earth Tones, Fire Tones)
    ========================================================================== */
 
-/* ----------------- 1. Dark Mode (Midnight Obsidian) ----------------- */
 [data-theme="dark"] {
     color-scheme: dark;
     --theme-bg-page: #090d16;
@@ -158,7 +341,6 @@ input[type="number"] { -moz-appearance: textfield; }
     --theme-accent-text: #a5b4fc;
 }
 
-/* ----------------- 2. Earth Tones (Forest & Sage) ----------------- */
 [data-theme="earth"] {
     color-scheme: dark;
     --theme-bg-page: #101511;
@@ -176,7 +358,6 @@ input[type="number"] { -moz-appearance: textfield; }
     --theme-accent-text: #6ee7b7;
 }
 
-/* ----------------- 3. Fire Tones (Ember & Sunset) ----------------- */
 [data-theme="fire"] {
     color-scheme: dark;
     --theme-bg-page: #140d0a;
@@ -194,41 +375,57 @@ input[type="number"] { -moz-appearance: textfield; }
     --theme-accent-text: #fdba74;
 }
 
-/* --- Base Surface Overrides (Excluding Zen Overlay) --- */
-[data-theme="dark"], [data-theme="earth"], [data-theme="fire"] {
-    background-color: var(--theme-bg-page);
-    color: var(--theme-text-primary);
-}
-
-[data-theme="dark"] body, [data-theme="earth"] body, [data-theme="fire"] body {
+[data-theme="dark"] body, [data-theme="earth"] body, [data-theme="fire"] body,
+[data-theme="dark"] .studio-workbench-bg, [data-theme="earth"] .studio-workbench-bg, [data-theme="fire"] .studio-workbench-bg {
     background-color: var(--theme-bg-page) !important;
+    background-image: none !important;
     color: var(--theme-text-primary) !important;
 }
 
-[data-theme="dark"] #view-focus-container,
-[data-theme="dark"] #view-calendar-container,
-[data-theme="dark"] #view-analytics-container,
-[data-theme="earth"] #view-focus-container,
-[data-theme="earth"] #view-calendar-container,
-[data-theme="earth"] #view-analytics-container,
-[data-theme="fire"] #view-focus-container,
-[data-theme="fire"] #view-calendar-container,
-[data-theme="fire"] #view-analytics-container {
-    background-color: var(--theme-bg-page) !important;
-}
-
-[data-theme="dark"] #sidebar-drawer,
-[data-theme="earth"] #sidebar-drawer,
-[data-theme="fire"] #sidebar-drawer {
+[data-theme="dark"] header, [data-theme="earth"] header, [data-theme="fire"] header {
     background-color: var(--theme-bg-sidebar) !important;
     border-color: var(--theme-border) !important;
 }
 
-[data-theme="dark"] header,
-[data-theme="earth"] header,
-[data-theme="fire"] header {
-    background-color: var(--theme-bg-sidebar) !important;
+[data-theme="dark"] .mode-switcher-pill,
+[data-theme="earth"] .mode-switcher-pill,
+[data-theme="fire"] .mode-switcher-pill {
+    background-color: var(--theme-bg-card-subtle) !important;
     border-color: var(--theme-border) !important;
+}
+
+[data-theme="dark"] .mode-switch-btn.active-operator,
+[data-theme="dark"] .mode-switch-btn.active-architect,
+[data-theme="earth"] .mode-switch-btn.active-operator,
+[data-theme="earth"] .mode-switch-btn.active-architect,
+[data-theme="fire"] .mode-switch-btn.active-operator,
+[data-theme="fire"] .mode-switch-btn.active-architect {
+    background-color: var(--theme-bg-card) !important;
+    color: var(--theme-accent-text) !important;
+}
+
+[data-theme="dark"] .gps-card,
+[data-theme="earth"] .gps-card,
+[data-theme="fire"] .gps-card {
+    background-color: var(--theme-bg-card) !important;
+    border-color: var(--theme-border) !important;
+}
+
+[data-theme="dark"] .gps-horizon-band,
+[data-theme="dark"] .gps-ondeck-band,
+[data-theme="earth"] .gps-horizon-band,
+[data-theme="earth"] .gps-ondeck-band,
+[data-theme="fire"] .gps-horizon-band,
+[data-theme="fire"] .gps-ondeck-band {
+    background: var(--theme-bg-card) !important;
+    border-color: var(--theme-border) !important;
+}
+
+[data-theme="dark"] .gps-anchor-band,
+[data-theme="earth"] .gps-anchor-band,
+[data-theme="fire"] .gps-anchor-band {
+    background: var(--theme-accent-bg) !important;
+    border-color: var(--theme-accent-border) !important;
 }
 
 [data-theme="dark"] :not(#zen-overlay) .bg-white,
@@ -238,34 +435,21 @@ input[type="number"] { -moz-appearance: textfield; }
     color: var(--theme-text-primary) !important;
 }
 
-[data-theme="dark"] :not(#zen-overlay) .bg-white\/70,
-[data-theme="dark"] :not(#zen-overlay) .bg-white\/60,
-[data-theme="dark"] :not(#zen-overlay) .bg-white\/30,
-[data-theme="earth"] :not(#zen-overlay) .bg-white\/70,
-[data-theme="earth"] :not(#zen-overlay) .bg-white\/60,
-[data-theme="earth"] :not(#zen-overlay) .bg-white\/30,
-[data-theme="fire"] :not(#zen-overlay) .bg-white\/70,
-[data-theme="fire"] :not(#zen-overlay) .bg-white\/60,
-[data-theme="fire"] :not(#zen-overlay) .bg-white\/30 {
-    background-color: var(--theme-bg-card) !important;
-}
-
 [data-theme="dark"] :not(#zen-overlay) .bg-slate-50,
 [data-theme="dark"] :not(#zen-overlay) .bg-slate-100,
-[data-theme="dark"] :not(#zen-overlay) .bg-slate-50\/80,
-[data-theme="dark"] :not(#zen-overlay) .bg-slate-50\/60,
+[data-theme="dark"] :not(#zen-overlay) .bg-stone-50,
+[data-theme="dark"] :not(#zen-overlay) .bg-stone-100,
 [data-theme="earth"] :not(#zen-overlay) .bg-slate-50,
 [data-theme="earth"] :not(#zen-overlay) .bg-slate-100,
-[data-theme="earth"] :not(#zen-overlay) .bg-slate-50\/80,
-[data-theme="earth"] :not(#zen-overlay) .bg-slate-50\/60,
+[data-theme="earth"] :not(#zen-overlay) .bg-stone-50,
+[data-theme="earth"] :not(#zen-overlay) .bg-stone-100,
 [data-theme="fire"] :not(#zen-overlay) .bg-slate-50,
 [data-theme="fire"] :not(#zen-overlay) .bg-slate-100,
-[data-theme="fire"] :not(#zen-overlay) .bg-slate-50\/80,
-[data-theme="fire"] :not(#zen-overlay) .bg-slate-50\/60 {
+[data-theme="fire"] :not(#zen-overlay) .bg-stone-50,
+[data-theme="fire"] :not(#zen-overlay) .bg-stone-100 {
     background-color: var(--theme-bg-card-subtle) !important;
 }
 
-/* Inputs, textareas & form fields */
 [data-theme="dark"] input:not([type="range"]):not([type="checkbox"]):not([type="color"]),
 [data-theme="dark"] textarea,
 [data-theme="dark"] select,
@@ -280,433 +464,98 @@ input[type="number"] { -moz-appearance: textfield; }
     border-color: var(--theme-border) !important;
 }
 
-/* Micro-step decomposer container */
-[data-theme="dark"] .bg-indigo-50\/50,
-[data-theme="earth"] .bg-indigo-50\/50,
-[data-theme="fire"] .bg-indigo-50\/50 {
-    background-color: var(--theme-accent-bg) !important;
-    border-color: var(--theme-accent-border) !important;
-}
-
-/* Borders and dividers */
 [data-theme="dark"] :not(#zen-overlay) .border-slate-200,
-[data-theme="dark"] :not(#zen-overlay) .border-slate-200\/80,
-[data-theme="dark"] :not(#zen-overlay) .border-slate-200\/70,
-[data-theme="dark"] :not(#zen-overlay) .border-slate-200\/60,
-[data-theme="dark"] :not(#zen-overlay) .border-slate-200\/50,
+[data-theme="dark"] :not(#zen-overlay) .border-stone-200,
 [data-theme="dark"] :not(#zen-overlay) .border-slate-100,
-[data-theme="dark"] :not(#zen-overlay) .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
 [data-theme="earth"] :not(#zen-overlay) .border-slate-200,
-[data-theme="earth"] :not(#zen-overlay) .border-slate-200\/80,
-[data-theme="earth"] :not(#zen-overlay) .border-slate-200\/70,
-[data-theme="earth"] :not(#zen-overlay) .border-slate-200\/60,
-[data-theme="earth"] :not(#zen-overlay) .border-slate-200\/50,
+[data-theme="earth"] :not(#zen-overlay) .border-stone-200,
 [data-theme="earth"] :not(#zen-overlay) .border-slate-100,
-[data-theme="earth"] :not(#zen-overlay) .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
 [data-theme="fire"] :not(#zen-overlay) .border-slate-200,
-[data-theme="fire"] :not(#zen-overlay) .border-slate-200\/80,
-[data-theme="fire"] :not(#zen-overlay) .border-slate-200\/70,
-[data-theme="fire"] :not(#zen-overlay) .border-slate-200\/60,
-[data-theme="fire"] :not(#zen-overlay) .border-slate-200\/50,
-[data-theme="fire"] :not(#zen-overlay) .border-slate-100,
-[data-theme="fire"] :not(#zen-overlay) .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+[data-theme="fire"] :not(#zen-overlay) .border-stone-200,
+[data-theme="fire"] :not(#zen-overlay) .border-slate-100 {
     border-color: var(--theme-border) !important;
 }
 
-/* Typography Overrides */
 [data-theme="dark"] :not(#zen-overlay) .text-slate-900,
 [data-theme="dark"] :not(#zen-overlay) .text-slate-800,
-[data-theme="dark"] :not(#zen-overlay) .text-indigo-950,
+[data-theme="dark"] :not(#zen-overlay) .text-stone-900,
+[data-theme="dark"] :not(#zen-overlay) .text-stone-800,
 [data-theme="earth"] :not(#zen-overlay) .text-slate-900,
 [data-theme="earth"] :not(#zen-overlay) .text-slate-800,
-[data-theme="earth"] :not(#zen-overlay) .text-indigo-950,
+[data-theme="earth"] :not(#zen-overlay) .text-stone-900,
+[data-theme="earth"] :not(#zen-overlay) .text-stone-800,
 [data-theme="fire"] :not(#zen-overlay) .text-slate-900,
 [data-theme="fire"] :not(#zen-overlay) .text-slate-800,
-[data-theme="fire"] :not(#zen-overlay) .text-indigo-950 {
+[data-theme="fire"] :not(#zen-overlay) .text-stone-900,
+[data-theme="fire"] :not(#zen-overlay) .text-stone-800 {
     color: var(--theme-text-primary) !important;
 }
 
 [data-theme="dark"] :not(#zen-overlay) .text-slate-700,
 [data-theme="dark"] :not(#zen-overlay) .text-slate-600,
+[data-theme="dark"] :not(#zen-overlay) .text-stone-600,
 [data-theme="earth"] :not(#zen-overlay) .text-slate-700,
 [data-theme="earth"] :not(#zen-overlay) .text-slate-600,
+[data-theme="earth"] :not(#zen-overlay) .text-stone-600,
 [data-theme="fire"] :not(#zen-overlay) .text-slate-700,
-[data-theme="fire"] :not(#zen-overlay) .text-slate-600 {
+[data-theme="fire"] :not(#zen-overlay) .text-slate-600,
+[data-theme="fire"] :not(#zen-overlay) .text-stone-600 {
     color: var(--theme-text-secondary) !important;
 }
 
 [data-theme="dark"] :not(#zen-overlay) .text-slate-500,
 [data-theme="dark"] :not(#zen-overlay) .text-slate-400,
+[data-theme="dark"] :not(#zen-overlay) .text-stone-500,
 [data-theme="earth"] :not(#zen-overlay) .text-slate-500,
 [data-theme="earth"] :not(#zen-overlay) .text-slate-400,
+[data-theme="earth"] :not(#zen-overlay) .text-stone-500,
 [data-theme="fire"] :not(#zen-overlay) .text-slate-500,
-[data-theme="fire"] :not(#zen-overlay) .text-slate-400 {
+[data-theme="fire"] :not(#zen-overlay) .text-slate-400,
+[data-theme="fire"] :not(#zen-overlay) .text-stone-500 {
     color: var(--theme-text-muted) !important;
 }
 
-/* ==========================================================================
-   TARGET CONTRAST CORRECTIONS
-   ========================================================================== */
-
-/* --- 1. Left Bar: Tier 1, Tier 2, Tier 3 Project Badges --- */
-[data-theme="dark"] .font-mono:is(.bg-slate-200\/80, .bg-slate-200) {
-    background-color: #243042 !important;
-    color: #cbd5e1 !important;
-    border: 1px solid #334155 !important;
-}
-[data-theme="dark"] .font-mono.bg-indigo-100 {
-    background-color: #2a265f !important;
-    color: #c7d2fe !important;
-    border: 1px solid #4338ca !important;
-}
-[data-theme="dark"] .font-mono.bg-brand-100 {
-    background-color: #3730a3 !important;
-    color: #e0e7ff !important;
-    border: 1px solid #6366f1 !important;
-}
-
-[data-theme="earth"] .font-mono:is(.bg-slate-200\/80, .bg-slate-200) {
-    background-color: #232e25 !important;
-    color: #d1ded3 !important;
-    border: 1px solid #364839 !important;
-}
-[data-theme="earth"] .font-mono.bg-indigo-100 {
-    background-color: #1b3824 !important;
-    color: #a7f3d0 !important;
-    border: 1px solid #285436 !important;
-}
-[data-theme="earth"] .font-mono.bg-brand-100 {
-    background-color: #14472d !important;
-    color: #6ee7b7 !important;
-    border: 1px solid #1f6b43 !important;
-}
-
-[data-theme="fire"] .font-mono:is(.bg-slate-200\/80, .bg-slate-200) {
-    background-color: #2d1c16 !important;
-    color: #fbd5c3 !important;
-    border: 1px solid #4a2f25 !important;
-}
-[data-theme="fire"] .font-mono.bg-indigo-100 {
-    background-color: #4a1c10 !important;
-    color: #fed7aa !important;
-    border: 1px solid #7c2d12 !important;
-}
-[data-theme="fire"] .font-mono.bg-brand-100 {
-    background-color: #6c230e !important;
-    color: #ffedd5 !important;
-    border: 1px solid #9a3412 !important;
-}
-
-/* --- 2. Left Bar: Auth Status / Signed-In Button --- */
-[data-theme="dark"] #auth-status-container > div,
-[data-theme="earth"] #auth-status-container > div,
-[data-theme="fire"] #auth-status-container > div {
-    background-color: var(--theme-bg-input) !important;
-    border: 1px solid var(--theme-border) !important;
-}
-
-[data-theme="dark"] #auth-status-container span,
-[data-theme="earth"] #auth-status-container span,
-[data-theme="fire"] #auth-status-container span {
-    color: var(--theme-text-primary) !important;
-}
-
-[data-theme="dark"] #auth-status-container button.text-rose-600,
-[data-theme="earth"] #auth-status-container button.text-rose-600,
-[data-theme="fire"] #auth-status-container button.text-rose-600 {
-    color: #fb7185 !important;
-}
-
-[data-theme="dark"] #auth-status-container button:not(.text-rose-600),
-[data-theme="earth"] #auth-status-container button:not(.text-rose-600),
-[data-theme="fire"] #auth-status-container button:not(.text-rose-600) {
-    background-color: var(--theme-bg-input) !important;
+[data-theme="dark"] .timer-red-container,
+[data-theme="earth"] .timer-red-container,
+[data-theme="fire"] .timer-red-container {
+    background: var(--theme-bg-card-subtle) !important;
     border-color: var(--theme-border) !important;
     color: var(--theme-text-primary) !important;
 }
 
-/* --- 3. Focus Page: Expand Notes Button --- */
-[data-theme="dark"] button[onclick*="toggleProjectNotesModal"],
-[data-theme="earth"] button[onclick*="toggleProjectNotesModal"],
-[data-theme="fire"] button[onclick*="toggleProjectNotesModal"] {
-    background-color: var(--theme-bg-input) !important;
-    color: var(--theme-text-primary) !important;
-    border: 1px solid var(--theme-border) !important;
-}
-
-[data-theme="dark"] button[onclick*="toggleProjectNotesModal"]:hover,
-[data-theme="earth"] button[onclick*="toggleProjectNotesModal"]:hover,
-[data-theme="fire"] button[onclick*="toggleProjectNotesModal"]:hover {
-    background-color: var(--theme-border) !important;
-}
-
-/* --- 4. Focus Page: Relock & Companion Utility Buttons --- */
-[data-theme="dark"] #btn-relock-all-mascots,
-[data-theme="earth"] #btn-relock-all-mascots,
-[data-theme="fire"] #btn-relock-all-mascots,
-[data-theme="dark"] button[onclick*="removeCompanion"],
-[data-theme="earth"] button[onclick*="removeCompanion"],
-[data-theme="fire"] button[onclick*="removeCompanion"] {
-    background-color: var(--theme-bg-input) !important;
-    color: var(--theme-text-primary) !important;
-    border: 1px solid var(--theme-border) !important;
-}
-
-[data-theme="dark"] #btn-relock-all-mascots:hover,
-[data-theme="earth"] #btn-relock-all-mascots:hover,
-[data-theme="fire"] #btn-relock-all-mascots:hover,
-[data-theme="dark"] button[onclick*="removeCompanion"]:hover,
-[data-theme="earth"] button[onclick*="removeCompanion"]:hover,
-[data-theme="fire"] button[onclick*="removeCompanion"]:hover {
-    background-color: var(--theme-border) !important;
-}
-
-/* --- 5. Calendar Page: Gentle Recalibration Box --- */
-[data-theme="dark"] .bg-amber-50\/50 {
-    background-color: #211606 !important;
-    border-color: #5c3b09 !important;
-}
-[data-theme="earth"] .bg-amber-50\/50 {
-    background-color: #1c1809 !important;
-    border-color: #4a3e14 !important;
-}
-[data-theme="fire"] .bg-amber-50\/50 {
-    background-color: #291207 !important;
-    border-color: #69280d !important;
-}
-
-[data-theme="dark"] .bg-amber-50\/50 .text-amber-900,
-[data-theme="earth"] .bg-amber-50\/50 .text-amber-900,
-[data-theme="fire"] .bg-amber-50\/50 .text-amber-900 {
-    color: #fde68a !important;
-}
-
-[data-theme="dark"] #horizon-count-recalibrate,
-[data-theme="earth"] #horizon-count-recalibrate,
-[data-theme="fire"] #horizon-count-recalibrate {
-    color: #fbbf24 !important;
-}
-
-[data-theme="dark"] #horizon-list-recalibrate > div,
-[data-theme="earth"] #horizon-list-recalibrate > div,
-[data-theme="fire"] #horizon-list-recalibrate > div {
-    background-color: var(--theme-bg-card-subtle) !important;
-    border: 1px solid var(--theme-border) !important;
-}
-
-[data-theme="dark"] #horizon-list-recalibrate .bg-amber-100,
-[data-theme="earth"] #horizon-list-recalibrate .bg-amber-100,
-[data-theme="fire"] #horizon-list-recalibrate .bg-amber-100 {
-    background-color: #452408 !important;
-    color: #fde68a !important;
-    border: 1px solid #78350f !important;
-}
-
-[data-theme="dark"] #horizon-list-recalibrate button,
-[data-theme="earth"] #horizon-list-recalibrate button,
-[data-theme="fire"] #horizon-list-recalibrate button {
-    background-color: var(--theme-bg-input) !important;
-    color: var(--theme-text-secondary) !important;
-    border: 1px solid var(--theme-border) !important;
-}
-
-[data-theme="dark"] #horizon-list-recalibrate button:hover,
-[data-theme="earth"] #horizon-list-recalibrate button:hover,
-[data-theme="fire"] #horizon-list-recalibrate button:hover {
-    background-color: var(--theme-border) !important;
-    color: var(--theme-text-primary) !important;
-}
-
-/* --- 6. Calendar Page: Date Cells & Task Items Visibility --- */
-[data-theme="dark"] #calendar-days-grid > div,
-[data-theme="earth"] #calendar-days-grid > div,
-[data-theme="fire"] #calendar-days-grid > div {
-    background-color: var(--theme-bg-card) !important;
-    border: 1px solid var(--theme-border) !important;
-}
-
-/* Selected / Today Calendar Cell */
-[data-theme="dark"] #calendar-days-grid > div.border-brand-500 {
-    border-color: #6366f1 !important;
-    background-color: #14172c !important;
-}
-[data-theme="earth"] #calendar-days-grid > div.border-brand-500 {
-    border-color: #10b981 !important;
-    background-color: #142419 !important;
-}
-[data-theme="fire"] #calendar-days-grid > div.border-brand-500 {
-    border-color: #f97316 !important;
-    background-color: #2b170f !important;
-}
-
-[data-theme="dark"] #calendar-days-grid span.text-slate-500,
-[data-theme="earth"] #calendar-days-grid span.text-slate-500,
-[data-theme="fire"] #calendar-days-grid span.text-slate-500 {
-    color: var(--theme-text-muted) !important;
-}
-
-[data-theme="dark"] #calendar-days-grid span.bg-brand-100,
-[data-theme="earth"] #calendar-days-grid span.bg-brand-100,
-[data-theme="fire"] #calendar-days-grid span.bg-brand-100 {
-    background-color: var(--theme-accent-bg) !important;
-    color: var(--theme-accent-text) !important;
-    border: 1px solid var(--theme-accent-border) !important;
-}
-
-/* Project Badge inside Calendar Cells */
-[data-theme="dark"] #calendar-days-grid .bg-indigo-100 {
-    background-color: #271d4a !important;
-    color: #c7d2fe !important;
-    border: 1px solid #4338ca !important;
-}
-[data-theme="earth"] #calendar-days-grid .bg-indigo-100 {
-    background-color: #153320 !important;
-    color: #a7f3d0 !important;
-    border: 1px solid #235c3b !important;
-}
-[data-theme="fire"] #calendar-days-grid .bg-indigo-100 {
-    background-color: #3b160c !important;
-    color: #fed7aa !important;
-    border: 1px solid #7c2d12 !important;
-}
-
-/* Task Badge inside Calendar Cells */
-[data-theme="dark"] #calendar-days-grid .bg-brand-500 {
-    background-color: #4f46e5 !important;
-    color: #ffffff !important;
-}
-[data-theme="earth"] #calendar-days-grid .bg-brand-500 {
-    background-color: #059669 !important;
-    color: #ffffff !important;
-}
-[data-theme="fire"] #calendar-days-grid .bg-brand-500 {
-    background-color: #ea580c !important;
-    color: #ffffff !important;
-}
-
-/* Completed Tasks inside Calendar Cells */
-[data-theme="dark"] #calendar-days-grid .bg-slate-100,
-[data-theme="earth"] #calendar-days-grid .bg-slate-100,
-[data-theme="fire"] #calendar-days-grid .bg-slate-100 {
-    background-color: var(--theme-bg-input) !important;
-    color: var(--theme-text-muted) !important;
-    border: 1px solid var(--theme-border-subtle) !important;
-}
-
-/* Empty Padding Days in Month */
-[data-theme="dark"] #calendar-days-grid > div.opacity-40,
-[data-theme="earth"] #calendar-days-grid > div.opacity-40,
-[data-theme="fire"] #calendar-days-grid > div.opacity-40 {
-    background-color: var(--theme-bg-page) !important;
-    border-color: var(--theme-border-subtle) !important;
-}
-
-/* --- 7. Analytics Page: Rolling Momentum Battery Box --- */
-[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 {
-    background-color: #06281e !important;
-    border-color: #0d5940 !important;
-}
-[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 {
-    background-color: #112618 !important;
-    border-color: #1d4e2d !important;
-}
-[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 {
-    background-color: #24180d !important;
-    border-color: #5c3510 !important;
-}
-
-[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .bg-emerald-100,
-[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .bg-emerald-100,
-[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .bg-emerald-100 {
-    background-color: rgba(16, 185, 129, 0.2) !important;
-    color: #6ee7b7 !important;
-    border: 1px solid rgba(16, 185, 129, 0.4) !important;
-}
-
-[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-950,
-[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-950,
-[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-950 {
-    color: #f0fdf4 !important;
-}
-
-[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-700,
-[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-700,
-[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .text-emerald-700 {
-    color: #a7f3d0 !important;
-}
-
-[data-theme="dark"] #stat-battery-pct,
-[data-theme="earth"] #stat-battery-pct,
-[data-theme="fire"] #stat-battery-pct {
-    color: #34d399 !important;
-}
-
-[data-theme="dark"] .border-emerald-200.bg-emerald-50\/70 .bg-white,
-[data-theme="earth"] .border-emerald-200.bg-emerald-50\/70 .bg-white,
-[data-theme="fire"] .border-emerald-200.bg-emerald-50\/70 .bg-white {
-    background-color: var(--theme-bg-input) !important;
-    border-color: rgba(16, 185, 129, 0.3) !important;
-}
-
-/* Modals */
-[data-theme="dark"] .modal-container,
-[data-theme="dark"] .bg-white.rounded-3xl,
-[data-theme="dark"] .bg-white.rounded-2xl,
-[data-theme="earth"] .modal-container,
-[data-theme="earth"] .bg-white.rounded-3xl,
-[data-theme="earth"] .bg-white.rounded-2xl,
-[data-theme="fire"] .modal-container,
-[data-theme="fire"] .bg-white.rounded-3xl,
-[data-theme="fire"] .bg-white.rounded-2xl {
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
-}
-
 /* ==========================================================================
-   TreeScope v3 Fullscreen WBS Board & Progression Styles
+   Architect Mode: Interactive TreeScope WBS Board
    ========================================================================== */
 
-#treescope-overlay {
-    --ts-bg: #090d16;
-    --ts-surface: #121826;
+#view-map-container {
+    --ts-bg: #0b1120;
+    --ts-surface: #131c31;
     --ts-card: #182236;
-    --ts-hover: #22304d;
-    --ts-border: #24324f;
-    --ts-border-subtle: rgba(255, 255, 255, 0.08);
+    --ts-hover: #1e2d4a;
+    --ts-border: #263554;
     --ts-text: #f8fafc;
     --ts-muted: #94a3b8;
     --ts-accent: #38bdf8;
-    --ts-sub: #38bdf8;
-    --ts-comp: #818cf8;
     --ts-task: #34d399;
 }
 
-#treescope-overlay.active {
-    display: flex !important;
+#view-map-container.map-fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
 }
 
-/* Columns Canvas */
 .ts-columns-container {
     display: flex;
     gap: 12px;
     height: 100%;
     width: 100%;
 }
-.ts-columns-container.fit-screen {
-    overflow-x: hidden;
-}
-.ts-columns-container.fit-screen .ts-board-column {
-    flex: 1 1 0px;
-    min-width: 0;
-}
-.ts-columns-container.scroll-mode {
-    overflow-x: auto;
-}
-.ts-columns-container.scroll-mode .ts-board-column {
-    flex: 0 0 350px;
-    min-width: 320px;
-}
+.ts-columns-container.fit-screen { overflow-x: hidden; }
+.ts-columns-container.fit-screen .ts-board-column { flex: 1 1 0px; min-width: 0; }
+.ts-columns-container.scroll-mode { overflow-x: auto; }
+.ts-columns-container.scroll-mode .ts-board-column { flex: 0 0 360px; min-width: 330px; }
 
-/* Board Column */
 .ts-board-column {
     display: flex;
     flex-direction: column;
@@ -718,32 +567,36 @@ input[type="number"] { -moz-appearance: textfield; }
 .ts-board-column.drop-target {
     outline: 2px dashed var(--ts-accent);
     outline-offset: -2px;
-    border-radius: 8px;
-    background: rgba(56, 189, 248, 0.05);
+    border-radius: 12px;
+    background: rgba(56, 189, 248, 0.06);
 }
 
-/* Subproject Tile */
 .ts-subproject-tile {
     flex: 1 1 0;
     min-height: 0;
     background: var(--ts-surface);
     border: 1px solid var(--ts-border);
-    border-radius: 8px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-    transition: flex 0.2s ease, border-color 0.15s ease;
-}
-.ts-subproject-tile.combine-source {
-    border-color: #f59e0b;
-    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Tile Header */
+.ts-subproject-tile.active-phase-tile {
+    border-color: #34d399;
+    box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.4), 0 8px 24px rgba(16, 185, 129, 0.16);
+}
+
+.ts-subproject-tile.combine-source {
+    border-color: #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+}
+
 .ts-tile-header {
-    padding: 8px 12px;
-    background: #162035;
+    padding: 9px 12px;
+    background: #17233b;
     border-bottom: 1px solid var(--ts-border);
     display: flex;
     justify-content: space-between;
@@ -764,13 +617,12 @@ input[type="number"] { -moz-appearance: textfield; }
     gap: 8px;
 }
 
-/* Tree Nodes */
 .ts-tree-row {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 6px;
-    border-radius: 4px;
+    padding: 5px 7px;
+    border-radius: 6px;
     cursor: pointer;
     user-select: none;
     transition: background 0.12s ease;
@@ -779,7 +631,7 @@ input[type="number"] { -moz-appearance: textfield; }
 
 .ts-tree-children {
     margin-left: 14px;
-    border-left: 1px dashed rgba(255, 255, 255, 0.14);
+    border-left: 1px dashed rgba(255, 255, 255, 0.16);
     padding-left: 8px;
     margin-top: 3px;
 }
